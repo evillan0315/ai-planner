@@ -1,6 +1,6 @@
 # User Guide
 
-This guide provides instructions on how to effectively use the Google Gemini TTS & AI Code Planner frontend application.
+This guide provides instructions on how to effectively use the AI Code Planner frontend application.
 
 ## 1. Authentication
 
@@ -13,50 +13,15 @@ Before accessing most features, you need to log in.
 
 Once logged in, your user name or email will appear in the navigation bar.
 
-## 2. Google Gemini Text-to-Speech (TTS) Generator
-
-This feature allows you to convert text into natural-sounding speech using Google Gemini's advanced TTS models.
-
-### 2.1 Accessing the TTS Generator
-
-1.  From the homepage (`/`), click on the "Text-to-Speech Generator" card, or navigate directly to the TTS Landing Page (`/tts`) and then click "Start Generating Speech", or directly to the generator page (`/tts-generator`).
-
-### 2.2 Generating Speech
-
-1.  **Text Prompt:**
-    *   Enter the text you want to convert to speech in the large "Text Prompt" text area.
-    *   **For multiple speakers:** Use the format `SpeakerName: Your text here.` for each segment of dialogue.
-        *   Example: `Eddie: Hello, world! Marionette: How are you doing today?`
-
-2.  **Language Code:**
-    *   Select or type a [BCP-47 language code](https://datatracker.ietf.org/doc/html/bcp47) in the "Language Code" field (e.g., `en-US` for US English, `es-ES` for Spanish (Spain)). The default is `en-US`.
-
-3.  **Speakers Configuration:**
-    *   **Default Speakers:** By default, two speakers ("Eddie" and "Marionette" with default voices) are provided.
-    *   **Add Speaker:** Click the "Add Speaker" button to add a new speaker row.
-    *   **Configure Speaker:**
-        *   **Speaker Name:** Enter a unique name for your speaker (e.g., `CharacterA`). This name is used in your "Text Prompt" to assign dialogue.
-        *   **Voice Name:** Select or type a valid voice name. Valid voice names depend on the Google Gemini TTS API and your backend's configuration. Common examples include `kore`, `puck`, `fenrir`, `zephyr`. If an invalid voice name is used, the backend will return an error.
-    *   **Remove Speaker:** Click the trash can icon next to a speaker row to remove it. (You must have at least one speaker.)
-    *   Ensure that the speaker names used in your "Text Prompt" exactly match the `Speaker Name` configured in this section.
-
-4.  **Generate Speech:**
-    *   Once your prompt, language, and speakers are configured, click the "Generate Speech" button.
-    *   A loading indicator will show while the audio is being generated.
-    *   Any errors (e.g., authentication, invalid voice names, API issues) will be displayed in an alert.
-
-5.  **Playback:**
-    *   Upon successful generation, an audio player will appear below the generator, allowing you to listen to the synthesized speech.
-
-## 3. AI Code Planner
+## 2. AI Code Planner
 
 This feature allows you to describe desired code changes in natural language, generate a structured plan of modifications, and apply them directly to your local project.
 
-### 3.1 Accessing the AI Code Planner
+### 2.1 Accessing the AI Code Planner
 
 1.  From the homepage (`/`), click on the "AI Code Planner" card, or navigate directly to the AI Planner Landing Page (`/planner`) and then click "Start Planning Code", or directly to the planner page (`/planner-generator`).
 
-### 3.2 Generating a Code Plan
+### 2.2 Generating a Code Plan
 
 1.  **Enter your prompt for the AI:**
     *   In the main text area, clearly describe the code changes you want the AI to make. Be as specific as possible.
@@ -66,7 +31,7 @@ This feature allows you to describe desired code changes in natural language, ge
 2.  **Configure Project Context (Optional but Recommended):**
     *   **Select Project Root Directory** (Folder Open Icon):
         *   Click the folder icon. A drawer will open, displaying the current project root path.
-        *   Manually type or paste the absolute path to your frontend project's root directory (e.g., `/media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/text-to-speech`). This is crucial for the AI to correctly locate files.
+        *   Manually type or paste the absolute path to your frontend project's root directory (e.g., `/media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner`). This is crucial for the AI to correctly locate files.
         *   Click "Go" to update the path.
         *   Click "Select" in the drawer's footer to confirm and close.
     *   **Manage AI Scan Paths** (Road/Fork Icon):
@@ -87,7 +52,7 @@ This feature allows you to describe desired code changes in natural language, ge
     *   A loading indicator will appear while the AI processes your request and generates the plan.
     *   Any errors from the AI or backend will be displayed.
 
-### 3.3 Reviewing and Applying a Plan
+### 2.3 Reviewing and Applying a Plan
 
 1.  **Plan Display:**
     *   If successful, the generated plan will appear in a detailed format below the generator. This includes:

@@ -1,23 +1,20 @@
 # Project Roadmap
 
-This document outlines the vision, current focus, and planned future enhancements for the Google Gemini TTS & AI Code Planner Frontend.
+This document outlines the vision, current focus, and planned future enhancements for the AI Code Planner Frontend.
 
 ## Vision
 
-To create a powerful, intuitive, and highly integrated suite of AI-powered developer tools, making complex tasks like speech generation and code modification accessible and efficient directly from the user's desktop.
+To create a powerful, intuitive, and highly integrated suite of AI-powered developer tools, making complex tasks like code modification accessible and efficient directly from the user's desktop.
 
 ## Current Focus (v0.1.0 - Initial Release)
 
 -   **Robust Authentication:** Ensure secure and reliable user login via email/password, Google OAuth2, and GitHub OAuth2.
--   **Gemini Text-to-Speech:** Implement core TTS functionality allowing users to:
-    -   Input text.
-    -   Configure multiple speakers with voice profiles.
-    -   Generate and play speech audio.
 -   **AI Code Planner (MVP):** Provide foundational AI code planning capabilities, including:
     -   Defining project context (root directory, scan paths).
     -   Crafting AI instructions and expected output formats.
     -   Generating and displaying structured plans (add, modify, delete, repair, analyze).
     -   Applying individual or full plans to the local filesystem.
+    -   Multimodal input (e.g., image upload) for additional AI context.
 -   **User Experience:** Deliver a clean, responsive UI with light/dark mode support and clear feedback mechanisms.
 -   **Core Infrastructure:** Establish a solid Vite/React/TypeScript foundation with Material UI and Tailwind CSS.
 
@@ -31,10 +28,6 @@ To create a powerful, intuitive, and highly integrated suite of AI-powered devel
     -   **Undo/Rollback Mechanism:** Allow users to easily revert applied changes, possibly by integrating with Git staging/reset commands.
     -   **Pre-defined Plan Templates:** Offer templates for common refactoring or feature addition tasks to streamline planning.
     -   **Interactive File Tree Browser:** Improve `DirectoryPickerDrawer` to allow actual browsing of local directories (requires backend support for file listing).
--   **TTS Improvements:**
-    -   **Voice Customization:** More granular control over speech parameters (pitch, speed, volume).
-    -   **Speaker Management:** Save and load speaker profiles.
-    -   **Export Options:** Allow exporting generated audio in different formats (e.g., MP3, OGG).
 -   **Notifications & Feedback:** More prominent success/error notifications for plan generation and application.
 
 ### Medium-Term (Next 3-6 Months)
@@ -42,7 +35,7 @@ To create a powerful, intuitive, and highly integrated suite of AI-powered devel
 -   **Advanced AI Capabilities:**
     -   **Code Analysis & Refactoring Suggestions:** Proactive suggestions for code improvements.
     -   **Automated Testing Plan Generation:** AI-generated test plans and even test code based on feature descriptions.
-    -   **Multi-Modal AI Input:** Support for image/screenshot input for the AI planner (e.g., "make UI look like this").
+    -   **Multi-Modal AI Input:** Expanded support for image/screenshot/file input for the AI planner (e.g., "make UI look like this").
 -   **Project Integration:**
     -   **Git Integration:** Deeper integration with Git, including branch management, commit message generation, and pull request drafting.
     -   **Monorepo Support:** Improved handling and context management for monorepo structures.

@@ -1,12 +1,10 @@
 # Overview and Architecture
 
-This document provides a high-level overview of the `text-to-speech` frontend application's architecture, its core components, and how it interacts with the backend services.
+This document provides a high-level overview of the `ai-planner` frontend application's architecture, its core components, and how it interacts with the backend services.
 
 ## 1. High-Level Architecture
 
-The `text-to-speech` application is a modern Single-Page Application (SPA) built using React and Vite. It serves as the user interface for two primary functionalities:
-1.  **Google Gemini Text-to-Speech (TTS) Generation**: Converting text into speech audio.
-2.  **AI Code Planning & Application**: Generating and applying code modifications based on natural language prompts.
+The `ai-planner` application is a modern Single-Page Application (SPA) built using React and Vite. It serves as the user interface for **AI Code Planning & Application**: generating and applying code modifications based on natural language prompts.
 
 It operates as a client that communicates with a separate NestJS backend server (likely part of the same monorepo, e.g., `project-board-server`).
 
@@ -17,10 +15,9 @@ It operates as a client that communicates with a separate NestJS backend server 
 | (React/Vite)   |                           |    (Node.js/NestJS)     |
 |                |                           |                         |
 | - UI Components|                           | - Auth Module           |
-| - State Mgmt   |                           | - Google TTS Module     |
-| - Routing      |                           | - AI Planner Module     |
-| - API Clients  |                           | - Database (Prisma)     |
-|                |                           | - File System Access    |
+| - State Mgmt   |                           | - AI Planner Module     |
+| - Routing      |                           | - Database (Prisma)     |
+| - API Clients  |                           | - File System Access    |
 +----------------+                           +----------^--------------+
         ^                                               |
         |  OAuth Redirect (browser-based)               | Google Gemini,
@@ -51,17 +48,15 @@ The frontend is structured to be modular, maintainable, and scalable.
 
 *   **`src/App.tsx`**: The main entry point, responsible for setting up the Material UI theme provider and React Router.
 *   **`src/components/Layout.tsx`**: Provides the consistent application layout, including the `AppBar` (navigation, theme toggle, auth buttons) and a `main` content area where routes are rendered.
-*   **`src/pages/`**: Contains page-level components that define the structure and logic for specific routes (e.g., `HomePage`, `TtsGeneratorPage`, `PlannerPage`).
+*   **`src/pages/`**: Contains page-level components that define the structure and logic for specific routes (e.g., `HomePage`, `PlannerPage`).
 *   **`src/stores/` (Nanostores)**:
     *   **`authStore.ts`**: Manages user authentication state (login status, JWT token, user profile). It also handles persistence of the JWT token in `localStorage`.
-    *   **`ttsStore.ts`**: Manages the state for the TTS generator (prompt, speakers, language code, loading, error, audio URL).
     *   **`plannerStore.ts`**: Manages the state for the AI Code Planner (user prompt, project root, scan paths, generated plan, loading, error, apply status).
     *   **`themeStore.ts`**: Controls the application's light/dark theme.
     *   **`fileTreeStore.ts`**: A simple persistent store for the `projectRootDirectory`, ensuring it's remembered across sessions.
 *   **`src/api/` (API Services)**:
     *   Encapsulates all communication with the backend.
     *   `authService.ts`: Handles login (email/password, Google/GitHub OAuth initiation), logout, and fetching user profile.
-    *   `geminiTtsService.ts`: Handles requests to the backend's Google Gemini TTS endpoint.
     *   `src/components/planner/api/plannerService.ts`: Handles requests to the backend's AI Planner endpoints (generating and applying plans).
     *   These services abstract away `axios` calls and provide typed interfaces for data.
 *   **`src/hooks/`**: Custom React hooks like `useAuth` simplify component logic by abstracting state management and side effects.
@@ -76,18 +71,9 @@ The frontend is structured to be modular, maintainable, and scalable.
 2.  **Login (Email/Password)**: User provides credentials, `authService.login` calls backend. Backend returns JWT and user profile. `authStore` updates, token stored in `localStorage`.
 3.  **Login (OAuth)**: User clicks Google/GitHub button. Frontend redirects to backend OAuth endpoint. Backend initiates OAuth flow with provider, receives token, authenticates user, and redirects back to frontend's `/auth/callback` with JWT token as a URL parameter.
 4.  **`AuthCallback.tsx`**: Extracts token, updates `authStore`, and fetches user profile. Redirects to `/` (homepage).
-5.  **Token Usage**: For subsequent authenticated API calls (TTS, Planner), `getAuthToken()` from `authStore` is used to retrieve the JWT, which is then added to the `Authorization` header (`Bearer <token>`).
+5.  **Token Usage**: For subsequent authenticated API calls (Planner), `getAuthToken()` from `authStore` is used to retrieve the JWT, which is then added to the `Authorization` header (`Bearer <token>`).
 
-### 2.4 Google Gemini TTS Flow
-
-1.  User enters `prompt`, configures `speakers` (name, voiceName), and `languageCode` on `TtsGeneratorPage`.
-2.  On "Generate Speech" click, `ttsStore.generateSpeech` action is dispatched.
-3.  This action calls `geminiTtsService.generateSpeech`, sending a `TtsRequestDto` to `POST /api/google-tts/generate`.
-4.  The backend processes the request using Google Gemini's TTS API, converts the text, and returns an audio `Blob`.
-5.  The frontend receives the `Blob`, creates a `URL` for it (`URL.createObjectURL`), and updates `ttsStore` with this URL.
-6.  The `audio` element on `TtsGeneratorPage` renders and plays the audio.
-
-### 2.5 AI Code Planner Flow
+### 2.4 AI Code Planner Flow
 
 1.  User provides `userPrompt`, sets `projectRoot`, `scanPaths`, `additionalInstructions`, and `expectedOutputFormat` on `PlannerPage`.
 2.  On "Generate Plan" click, `plannerStore.generatePlan` (via `PlanGenerator` component) calls `plannerService.generatePlan`.
@@ -105,12 +91,10 @@ The frontend is structured to be modular, maintainable, and scalable.
 The frontend primarily interacts with the `project-board-server` backend via RESTful API endpoints.
 
 *   **Authentication**: `/api/auth/*`
-*   **Google Gemini TTS**: `/api/google-tts/*`
 *   **AI Code Planner**: `/api/plan/*`
 
 The backend is responsible for:
 *   Authentication logic and OAuth redirects.
-*   Interfacing with Google Gemini's TTS API.
 *   Interfacing with the AI/LLM for code planning.
 *   Reading and writing files to the local filesystem (for the AI Planner), based on the `projectRoot` provided by the frontend.
 *   Database operations (for storing user profiles, plans, etc.).

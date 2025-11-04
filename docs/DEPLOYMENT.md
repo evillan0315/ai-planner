@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This document outlines the steps to deploy the `text-to-speech` frontend application. This guide focuses on general production deployment considerations. For specific CI/CD setups, refer to `VERCEL_GITHUB_ACTIONS.md` if applicable.
+This document outlines the steps to deploy the `ai-planner` frontend application. This guide focuses on general production deployment considerations. For specific CI/CD setups, refer to `VERCEL_GITHUB_ACTIONS.md` if applicable.
 
 ## 1. Building for Production
 
@@ -13,7 +13,7 @@ pnpm run build
 This command will:
 *   Run TypeScript compilation (`tsc -b`).
 *   Execute Vite's build process (`vite build`).
-*   Output the production-ready static assets (HTML, CSS, JavaScript, images) into the `dist/` directory at the project root (`apps/text-to-speech/dist`).
+*   Output the production-ready static assets (HTML, CSS, JavaScript, images) into the `dist/` directory at the project root (`apps/ai-planner/dist`).
 
 ## 2. Environment Variables for Production
 
@@ -21,7 +21,7 @@ Ensure your production environment has the correct environment variables. These 
 
 *   `VITE_APP_API_BASE_URL`: **Crucial.** This must be the public URL of your deployed backend server (e.g., `https://your-backend-api.com/api`).
 *   `VITE_FRONTEND_PORT`: The port your frontend application will be served from (e.g., `80` or `443` for public web servers). This is primarily used by the backend for OAuth callback URLs during the login process.
-*   `VITE_BASE_DIR`: **Crucial for AI Code Planner.** This is the **absolute path** to the `text-to-speech` project root on the machine where the backend is running. This is typically only relevant if your backend application is deployed on a server that has direct access to the `text-to-speech` project's files (e.g., in a development or local server setup, or a very specific monorepo deployment strategy). In most standard production deployments, the frontend and backend are separate, and the backend would *not* have direct access to the frontend's local files. For typical production, you might need to reconsider how the AI Planner applies changes or provide a different mechanism if direct file system access isn't feasible or desired. **For standard frontend deployments, this variable often won't be used by the frontend itself, but the backend still requires it to apply plans.**
+*   `VITE_BASE_DIR`: **Crucial for AI Code Planner.** This is the **absolute path** to the `ai-planner` project root on the machine where the backend is running. This is typically only relevant if your backend application is deployed on a server that has direct access to the `ai-planner` project's files (e.g., in a development or local server setup, or a very specific monorepo deployment strategy). In most standard production deployments, the frontend and backend are separate, and the backend would *not* have direct access to the frontend's local files. For typical production, you might need to reconsider how the AI Planner applies changes or provide a different mechanism if direct file system access isn't feasible or desired. **For standard frontend deployments, this variable often won't be used by the frontend itself, but the backend still requires it to apply plans.**
 
 **Example `.env` (production values):**
 
@@ -111,11 +111,11 @@ You can containerize your frontend application using Docker. A `Dockerfile` is p
 
 1.  **Build the Docker image:**
     ```bash
-    docker build -t text-to-speech-frontend .
+    docker build -t ai-planner-frontend .
     ```
 2.  **Run the Docker container:**
     ```bash
-    docker run -p 3003:80 text-to-speech-frontend
+    docker run -p 3003:80 ai-planner-frontend
     ```
     This will map container port 80 to host port 3003. You can then access the application at `http://localhost:3003`.
 
@@ -134,20 +134,20 @@ Example `kubernetes/deployment.yaml` snippet (ensure image name and environment 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: text-to-speech-frontend
+  name: ai-planner-frontend
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: text-to-speech-frontend
+      app: ai-planner-frontend
   template:
     metadata:
       labels:
-        app: text-to-speech-frontend
+        app: ai-planner-frontend
     spec:
       containers:
         - name: frontend
-          image: your-docker-registry/text-to-speech-frontend:latest # Update with your image
+          image: your-docker-registry/ai-planner-frontend:latest # Update with your image
           ports:
             - containerPort: 80 # The port your Nginx/server inside Docker listens on
           env:

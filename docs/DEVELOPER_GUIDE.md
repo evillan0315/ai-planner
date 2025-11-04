@@ -1,6 +1,6 @@
 # Developer Guide
 
-This guide is for developers who want to understand, contribute to, or extend the Google Gemini TTS & AI Code Planner frontend application.
+This guide is for developers who want to understand, contribute to, or extend the AI Code Planner frontend application.
 
 ## 1. Project Setup
 
@@ -8,16 +8,16 @@ Refer to the [Getting Started section in README.md](../README.md#getting-started
 
 ### 1.1 Environment Variables
 
-Ensure your `.env` file in `apps/text-to-speech` is correctly configured:
+Ensure your `.env` file in `apps/ai-planner` is correctly configured:
 
 ```env
 VITE_APP_API_BASE_URL=http://localhost:5000/api # URL of the backend API
 VITE_FRONTEND_PORT=3003 # Port for OAuth callbacks
-VITE_BASE_DIR=/media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/text-to-speech # ABSOLUTE path to THIS project's root for AI Planner
+VITE_BASE_DIR=/media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner # ABSOLUTE path to THIS project's root for AI Planner
 VITE_PREVIEW_APP_URL=http://localhost:3002 # (Optional) URL for Vite preview if different
 ```
 
-**`VITE_BASE_DIR` Importance**: This variable is critical for the AI Code Planner. It tells the backend the absolute path to your local `text-to-speech` project, allowing the AI to scan relevant files and apply changes. **Change this to your actual project path.**
+**`VITE_BASE_DIR` Importance**: This variable is critical for the AI Code Planner. It tells the backend the absolute path to your local `ai-planner` project, allowing the AI to scan relevant files and apply changes. **Change this to your actual project path.**
 
 ### 1.2 Linting & Formatting
 
@@ -31,7 +31,7 @@ It's recommended to integrate these tools with your IDE (e.g., VS Code extension
 
 ## 2. Architecture Overview
 
-The frontend is a single-page application (SPA) built with React and Vite. It communicates with a NestJS backend for authentication, TTS, and AI Planner functionalities.
+The frontend is a single-page application (SPA) built with React and Vite. It communicates with a NestJS backend for authentication and AI Planner functionalities.
 
 *   **Technology Stack**:
     *   **React 18**: UI Library for building user interfaces.
@@ -48,11 +48,11 @@ The frontend is a single-page application (SPA) built with React and Vite. It co
 
 Refer to the [Project Structure in README.md](../README.md#project-structure) for a high-level overview of directories and their contents. Key directories include:
 
-*   `src/api`: Centralized location for all API service calls (e.g., `authService.ts`, `geminiTtsService.ts`, `plannerService.ts`).
+*   `src/api`: Centralized location for all API service calls (e.g., `authService.ts`, `plannerService.ts`).
 *   `src/components`: Reusable UI components.
     *   `src/components/planner`: Houses the complex AI Planner components, stores, and related logic.
 *   `src/pages`: Top-level components mapped to routes by React Router.
-*   `src/stores`: Nanostores for application-wide state (e.g., `authStore.ts`, `ttsStore.ts`, `themeStore.ts`, `plannerStore.ts`).
+*   `src/stores`: Nanostores for application-wide state (e.g., `authStore.ts`, `themeStore.ts`, `plannerStore.ts`).
 *   `src/hooks`: Custom React hooks for encapsulating reusable logic.
 *   `src/types`: Global TypeScript interface and type definitions.
 *   `src/theme`: Material UI theme configuration.
@@ -128,7 +128,7 @@ Please refer to the [CONTRIBUTING.md](../CONTRIBUTING.md) file for detailed cont
     *   Check backend console for any OAuth or JWT-related errors.
     *   Ensure OAuth callback URLs are correctly configured in both frontend and backend `.env` files.
 *   **AI Code Planner Errors**:
-    *   Verify `VITE_BASE_DIR` in your frontend `.env` is the correct **absolute path** to your `text-to-speech` project root. This is the most common issue.
+    *   Verify `VITE_BASE_DIR` in your frontend `.env` is the correct **absolute path** to your `ai-planner` project root. This is the most common issue.
     *   Check if the backend `project-board-server` is running and its own `.env` is configured correctly for AI model access.
     *   Review the AI Instructions and Expected Output Format in the drawers for any syntax errors or inconsistencies.
 *   **"Root element with ID 'root' not found"**: Ensure your `index.html` has `<div id="root"></div>`.
