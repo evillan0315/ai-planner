@@ -8,7 +8,7 @@ The **AI Code Planner** provides an innovative way to articulate desired code ch
 
 The application emphasizes a clean, intuitive user experience with robust authentication and error handling.
 
-**🎥 Watch a demo video on YouTube:** [AI Code Planner Demo](https://youtu.be/mZL6CygyYm8)
+**🎥 Watch a demo video on YouTube:** [AI Code Planner Demo](https://youtu.be/Lcls1s0MJV0)
 
 For a deep dive into the application's architecture and design principles, please refer to the [Overview and Architecture document](docs/OVERVIEW_ARCHITECTURE.md).
 
