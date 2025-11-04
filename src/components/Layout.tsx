@@ -1,0 +1,79 @@
+import type { ReactNode } from 'react';
+import React from 'react';
+import { AppBar, Toolbar, Typography, Box, Button, Stack } from '@mui/material';
+import { ThemeToggle } from './ThemeToggle';
+import { Link as RouterLink } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import LoginIcon from '@mui/icons-material/Login';
+import LogoutIcon from '@mui/icons-material/Logout';
+import AddRoadIcon from '@mui/icons-material/AddRoad'; // New: Import AddRoadIcon for Planner
+
+interface LayoutProps {
+  children: ReactNode;
+}
+
+export const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const { isLoggedIn, logout, user } = useAuth();
+
+  return (
+    <Box
+      sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
+      className="transition-colors duration-200"
+    >
+      <AppBar position="static" className="shadow-md">
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
+          {/* Left section: App Logo and Title as a Home Link */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <RouterLink to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <AddRoadIcon sx={{ fontSize: 30 }} /> { /* Adjusted size for navbar and icon for AI Planner */}
+                <Typography variant="h6" component="div" sx={{ color: 'inherit' }}>
+                  AI Planner
+                </Typography>
+              </Stack>
+            </RouterLink>
+
+            {/* Removed: Navigation link to AI Planner feature landing page */}
+          </Box>
+
+          {/* Right section: Auth controls and Theme Toggle */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {isLoggedIn ? (
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="body1" sx={{ mr: 2, color: 'inherit' }}>
+                  Welcome, {user?.firstName || user?.email || 'User'}
+                </Typography>
+                <Button
+                  onClick={logout}
+                  color="inherit"
+                  variant="text" // Changed to text variant for smaller appearance
+                  size="small" // Explicitly set size to small
+                  startIcon={<LogoutIcon fontSize="small" />} // Added Logout icon
+                  sx={{ mr: 1 }}
+                >
+                  Logout
+                </Button>
+              </Box>
+            ) : (
+              <RouterLink to="/login" style={{ textDecoration: 'none' }}>
+                <Button
+                  color="inherit"
+                  variant="text" // Changed to text variant for smaller appearance
+                  size="small" // Explicitly set size to small
+                  startIcon={<LoginIcon fontSize="small" />} // Added Login icon
+                  sx={{ mr: 1 }}
+                >
+                  Login
+                </Button>
+              </RouterLink>
+            )}
+            <ThemeToggle />
+          </Box>
+        </Toolbar>
+      </AppBar>
+      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        {children}
+      </Box>
+    </Box>
+  );
+};
