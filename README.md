@@ -48,10 +48,10 @@ Before you begin, ensure you have the following installed:
 
 ### Installation
 
-1.  **Clone the repository (if you haven't already):**
+1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/evillan0315/project-board-server.git # Assuming this repo is part of a monorepo
-    cd apps/ai-planner
+    git clone https://github.com/evillan0315/ai-planner.git
+    cd ai-planner
     ```
 
 2.  **Install dependencies:**
@@ -66,7 +66,7 @@ Before you begin, ensure you have the following installed:
 
 ### Configuration
 
-Create a `.env` file in the `apps/ai-planner` directory for local development:
+Create a `.env` file in the `ai-planner` directory for local development:
 
 ```env
 VITE_APP_API_BASE_URL=http://localhost:5000/api
@@ -289,4 +289,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 Eddie Villanueva - [evillan0315@gmail.com](mailto:evillan0315@gmail.com)
 [LinkedIn](https://www.linkedin.com/in/eddie-villalon/)
-[GitHub](https://github.com/evillan0315)
+[GitHub](https://github.com/evillan0315/ai-planner)
