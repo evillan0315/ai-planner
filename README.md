@@ -25,9 +25,9 @@ For a deep dive into the application's architecture and design principles, pleas
 ### AI Code Planner
 _Visualizing the AI-driven code planning interface and plan management._
 
-| Planner View 1 |
-| :------------- |
-| ![AI Code Planner 1](screens/planner01.png) |
+| Planner View 1 | Planner View 2 |
+| :------------- | :------------- |
+| ![AI Code Planner 1](screens/planner01.png) | ![AI Code Planner 2](screens/planner02.png) |
 
 ## Technologies Used
 
