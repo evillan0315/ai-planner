@@ -13,6 +13,7 @@ import {
   ListItemButton,
   Button,
   CircularProgress,
+  Alert,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -25,6 +26,11 @@ import CheckIcon from '@mui/icons-material/Check'; // New icon for selected file
 import * as path from 'path-browserify'; // For path manipulation
 import { plannerService } from '../api/plannerService'; // For fetching directory contents
 import type { IDirectoryListing, IFileSystemEntry } from '../types'; // For file system types
+
+/**
+ * List of file and folder names to exclude from browsing and scanning.
+ */
+const EXCLUDED_NAMES = ['node_modules', 'dist', 'logs', '.git', '.github', '.vscode', '.idea'];
 
 /**
  * Truncates a file path for display purposes.
@@ -100,8 +106,14 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
       setFetchContentsError(null);
       try {
         const contents = await plannerService.fetchDirectoryContents(currentBrowsingPath);
+
+        // Filter out excluded files and folders
+        const filteredContents = contents.filter(
+          (entry) => !EXCLUDED_NAMES.includes(entry.name),
+        );
+
         // Sort directories first, then files, both alphabetically
-        const sortedContents = contents.sort((a, b) => {
+        const sortedContents = filteredContents.sort((a, b) => {
           if (a.isDirectory && !b.isDirectory) return -1;
           if (!a.isDirectory && b.isDirectory) return 1;
           return a.name.localeCompare(b.name);
@@ -159,8 +171,7 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
 
     // Root check for various OS
     const isCurrentPathRoot =
-  normalizedCurrentPath === '/' ||
-  /^[a-zA-Z]:[\\/]{0,1}$/.test(normalizedCurrentPath);
+      normalizedCurrentPath === '/' || /^[a-zA-Z]:[\\/]{0,1}$/.test(normalizedCurrentPath);
     // const isParentPathRoot = // Not explicitly used but good for context
     //   normalizedParentPath === '/' || /^[a-zA-Z]:\\/$/.test(normalizedParentPath);
 
@@ -184,7 +195,6 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
       setTempPathInput(normalizedParentPath);
     }
   }, [currentBrowsingPath, initialBrowsingPath, allowExternalPaths]);
-
 
   const handleGoToPath = useCallback(() => {
     const trimmedPath = tempPathInput.trim();
@@ -241,8 +251,7 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
 
     // Root path patterns for various OS
     const isCurrentPathRoot =
-  normalizedCurrentPath === '/' ||
-  /^[a-zA-Z]:[\\/]{0,1}$/.test(normalizedCurrentPath);
+      normalizedCurrentPath === '/' || /^[a-zA-Z]:[\\/]{0,1}$/.test(normalizedCurrentPath);
     if (isCurrentPathRoot) return false;
 
     // If external paths are not allowed, ensure we are not at or below the initial path
@@ -252,7 +261,6 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
 
     return true; // Can always go up if external paths are allowed and not at a root
   }, [currentBrowsingPath, initialBrowsingPath, allowExternalPaths]);
-
 
   return (
     <Box
