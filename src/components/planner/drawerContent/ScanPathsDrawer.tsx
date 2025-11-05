@@ -159,7 +159,8 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
 
     // Root check for various OS
     const isCurrentPathRoot =
-      normalizedCurrentPath === '/' || /^[a-zA-Z]:\\/$/.test(normalizedCurrentPath);
+  normalizedCurrentPath === '/' ||
+  /^[a-zA-Z]:[\\/]{0,1}$/.test(normalizedCurrentPath);
     // const isParentPathRoot = // Not explicitly used but good for context
     //   normalizedParentPath === '/' || /^[a-zA-Z]:\\/$/.test(normalizedParentPath);
 
@@ -240,7 +241,8 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
 
     // Root path patterns for various OS
     const isCurrentPathRoot =
-      normalizedCurrentPath === '/' || /^[a-zA-Z]:\\/$/.test(normalizedCurrentPath);
+  normalizedCurrentPath === '/' ||
+  /^[a-zA-Z]:[\\/]{0,1}$/.test(normalizedCurrentPath);
     if (isCurrentPathRoot) return false;
 
     // If external paths are not allowed, ensure we are not at or below the initial path
