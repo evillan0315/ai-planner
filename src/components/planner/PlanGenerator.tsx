@@ -89,7 +89,7 @@ const PlanGenerator: React.FC = () => {
 
   // Local state for the project root input field within the DirectoryPickerDrawer
   const [tempDrawerProjectRootInput, setTempDrawerProjectRootInput] = useState(projectRoot || '');
-  // Local state for scan paths within the drawer before confirming
+  // Local state for scan paths within the drawer before confirming (now used for `ScanPathsDrawer`'s `onLocalPathsChange`)
   const [localScanPaths, setLocalScanPaths] = useState<string[]>([]);
 
   // Effect to ensure plannerStore's projectRoot is in sync with globalProjectRoot
@@ -144,7 +144,8 @@ const PlanGenerator: React.FC = () => {
   );
 
   const scanPathAutocompleteOptions = useMemo(() => {
-    return Array.from(new Set(['src', 'public', 'package.json', 'README.md', '.env'])).sort();
+    // These are general suggestions, not fetched from FS. Can be extended.
+    return Array.from(new Set(['src', 'public', 'package.json', 'README.md', '.env', '.gitignore'])).sort();
   }, []);
 
   const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -290,7 +291,7 @@ const PlanGenerator: React.FC = () => {
       action: () => setIsProjectRootPickerDialogOpen(false),
       icon: <CloseIcon />,
     },
-    {
+    {{
       label: 'Select',
       color: 'primary',
       variant: 'contained',
@@ -305,22 +306,11 @@ const PlanGenerator: React.FC = () => {
 
   const scanPathsDrawerActions: GlobalAction[] = [
     {
-      label: 'Cancel',
+      label: 'Close',
       color: 'inherit',
       variant: 'outlined',
       action: () => setIsScanPathsDialogOpen(false),
       icon: <CloseIcon />,
-    },
-    {
-      label: 'Confirm',
-      color: 'primary',
-      variant: 'contained',
-      action: () => {
-        updateScanPaths(localScanPaths);
-        setIsScanPathsDialogOpen(false);
-      },
-      icon: <CheckIcon />,
-      disabled: false,
     },
   ];
 
@@ -421,16 +411,17 @@ const PlanGenerator: React.FC = () => {
         open={isScanPathsDialogOpen}
         onClose={() => setIsScanPathsDialogOpen(false)}
         position="right"
-        size="normal"
+        size="medium" // Increased size for more browsing space
         title="Manage AI Scan Paths"
         hasBackdrop={true}
         footerActionButton={scanPathsDrawerActions}
       >
         <ScanPathsDrawer
+          initialBrowsingPath={projectRoot} // Pass the current projectRoot as the starting point for browsing
           currentScanPaths={localScanPaths}
-          availablePaths={scanPathAutocompleteOptions}
-          allowExternalPaths
-          onLocalPathsChange={setLocalScanPaths}
+          suggestedPaths={scanPathAutocompleteOptions}
+          allowExternalPaths={true} // Allow browsing outside projectRoot for scan paths for flexibility
+          onLocalPathsChange={setLocalScanPaths} // This updates the localScanPaths in PlanGenerator
         />
       </CustomDrawer>
 
