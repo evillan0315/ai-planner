@@ -34,7 +34,7 @@ _Visualizing the AI-driven code planning interface and plan management._
 
 ## Technologies Used
 
--   **Frontend**: React v18, Vite, TypeScript, Material UI v6, Material Icons v6, Tailwind CSS v4, Nanostores, Axios, React Router DOM, path-browserify.
+-   **Frontend**: React v18, Vite, TypeScript, Material UI v6, Material Icons v6, Tailwind CSS v4, Nanostores, Axios, React Router DOM, path-browserify, **Monaco Editor**.
 -   **Backend (Interacts with)**: Node.js, NestJS, Google Gemini API.
 
 ## Getting Started
@@ -156,6 +156,9 @@ ai-planner/
 │   ├── components/             # Reusable UI components
 │   │   ├── Drawer/             # Custom Drawer component
 │   │   │   └── CustomDrawer.tsx
+│   │   ├── editor/             # Code Editor components
+│   │   │   └── monaco/         # Monaco Editor specific components
+│   │   │       └── MonacoEditor.tsx
 │   │   ├── Layout.tsx          # Main application layout with navigation
 │   │   ├── Loading.tsx         # Generic loading indicator
 │   │   ├── planner/            # AI Code Planner specific components and logic
