@@ -116,9 +116,10 @@ export const plannerService = {
   async fetchDirectoryContents(targetPath: string): Promise<IDirectoryListing> {
     try {
       const response = await axios.get<IDirectoryListing>(
-        `${API_BASE_URL}/file-system/browse?path=${encodeURIComponent(targetPath)}`,
+        `${API_BASE_URL}/file/list?directory=${encodeURIComponent(targetPath)}&recursive=false`,
         { headers: getAuthHeaders() },
       );
+      console.log(response.data, 'response.data');
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
