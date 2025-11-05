@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => {
       port: 4173, // Default preview server port
     },
     server: {
-      port: env.VITE_FRONTEND_PORT,
+      port: parseInt(env.VITE_FRONTEND_PORT || '3000'), // Convert string to number, with fallback
       proxy: {
         '/api': {
           target: env.VITE_API_URL,
