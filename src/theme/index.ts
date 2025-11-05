@@ -35,26 +35,9 @@ const commonSettings = {
         variant: 'outlined',
         fullWidth: true,
       } as Partial<TextFieldProps>,
-      styleOverrides: {
-        root: {
-          // Some global styles for text fields if needed
-        },
-      },
     },
-    MuiAppBar: {
-      styleOverrides: {
-        root: {
-          // Tailwind handles background/text for appbar via className
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          // Tailwind handles background/text for paper via className
-        },
-      },
-    },
+    // MuiAppBar and MuiPaper styleOverrides removed as their background/text colors
+    // are typically handled by the palette's background.default/paper or Tailwind classes.
   },
 };
 
@@ -64,48 +47,53 @@ export const getMuiTheme = (mode: 'light' | 'dark') =>
     palette: {
       mode,
       primary: {
-        main: mode === 'light' ? '#4A3C32' : '#9E8C7F', // Dark Coffee / Light Mocha
-        light: mode === 'light' ? '#7A6A5E' : '#C2B5AA', // Muted Coffee / Pale Mocha
-        dark: mode === 'light' ? '#2A1C12' : '#7C6A5F', // Very Dark Coffee / Medium Mocha
+        main: mode === 'light' ? '#007ACC' : '#569CD6', // VS Code Blue (light/dark)
+        light: mode === 'light' ? '#3399DD' : '#7AAFE0',
+        dark: mode === 'light' ? '#005C99' : '#3D6D9F',
         contrastText: '#FFFFFF',
       },
       secondary: {
-        main: mode === 'light' ? '#8B7D72' : '#E0D8D0', // Warm Gray-Brown / Very Light Tan
-        light: mode === 'light' ? '#AF9C90' : '#F0ECE8', // Pale Warm Gray-Brown / Almost White Tan
-        dark: mode === 'light' ? '#685C52' : '#BDB3AB', // Dark Warm Gray-Brown / Medium Light Tan
-        contrastText: '#210002', // Very dark almost black for contrast
+        main: mode === 'light' ? '#808080' : '#CC7A4E', // Neutral Gray (light) / VS Code Orange-Brown (dark)
+        light: mode === 'light' ? '#A0A0A0' : '#E09F7C',
+        dark: mode === 'light' ? '#606060' : '#A65E3E',
+        contrastText: '#FFFFFF',
       },
       error: {
-        main: '#D32F2F', // Default MUI Red for error
-        light: '#EF5350',
-        dark: '#C62828',
+        main: mode === 'light' ? '#D32F2F' : '#CF6679', // Default MUI Red / Muted Red for dark
+        light: mode === 'light' ? '#EF5350' : '#E57373',
+        dark: mode === 'light' ? '#C62828' : '#B71C1C',
         contrastText: '#FFFFFF',
       },
       warning: {
-        main: '#ED6C02', // Default MUI Orange for warning
-        light: '#FF9800',
-        dark: '#E65100',
+        main: mode === 'light' ? '#ED6C02' : '#FFA726', // Default MUI Orange / More vibrant orange for dark
+        light: mode === 'light' ? '#FF9800' : '#FFB74D',
+        dark: mode === 'light' ? '#E65100' : '#F57C00',
         contrastText: '#FFFFFF',
       },
       info: {
-        main: '#0288D1', // Default MUI Blue for info
-        light: '#03A9F4',
-        dark: '#01579B',
+        main: mode === 'light' ? '#0288D1' : '#2196F3', // Default MUI Blue / More vibrant blue for dark
+        light: mode === 'light' ? '#03A9F4' : '#64B5F6',
+        dark: mode === 'light' ? '#01579B' : '#1976D2',
         contrastText: '#FFFFFF',
       },
       success: {
-        main: '#2E7D32', // Default MUI Green for success
-        light: '#4CAF50',
-        dark: '#1B5E20',
+        main: mode === 'light' ? '#2E7D32' : '#66BB6A', // Default MUI Green / More vibrant green for dark
+        light: mode === 'light' ? '#4CAF50' : '#81C784',
+        dark: mode === 'light' ? '#1B5E20' : '#388E3C',
         contrastText: '#FFFFFF',
       },
       background: {
-        default: mode === 'light' ? '#F8F5F2' : '#2A1C12', // Off-white creamy / Very dark coffee
-        paper: mode === 'light' ? '#FFFFFF' : '#4A3C32', // White / Dark coffee
+        default: mode === 'light' ? '#F8F8F8' : '#1E1E1E', // Light grey / Monaco editor dark background
+        paper: mode === 'light' ? '#FFFFFF' : '#2D2D30', // Pure white / VS Code panels dark grey
       },
       text: {
-        primary: mode === 'light' ? '#333333' : '#F8F8F8', // Dark gray / Off-white
-        secondary: mode === 'light' ? '#666666' : '#E0E0E0', // Medium gray / Light gray
+        primary: mode === 'light' ? '#222222' : '#D4D4D4', // Dark gray / Monaco default text
+        secondary: mode === 'light' ? '#6A6A6A' : '#808080', // Medium gray / Muted grey like Monaco comments
+      },
+      divider: mode === 'light' ? '#EEEEEE' : '#444444', // Light gray / Dark gray for borders
+      action: {
+        hover: mode === 'light' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.08)', // Standard MUI hover alpha
+        selected: mode === 'light' ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.16)', // Standard MUI selected alpha
       },
     },
     ...commonSettings,
