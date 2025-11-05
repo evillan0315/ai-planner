@@ -105,9 +105,9 @@ GOOGLE_CLIENT_SECRET='your_google_client_secret'
 GOOGLE_CALLBACK_URL='http://localhost:3003/auth/callback' # Must match this frontend's callback route
 
 # GitHub OAuth2 Credentials
-GITHUB_CLIENT_ID='your_github_client_id'
-GITHUB_CLIENT_SECRET='your_github_client_secret'
-GITHUB_CALLBACK_URL='http://localhost:3003/auth/callback' # Must match this frontend's callback route
+HUB_CLIENT_ID='your_github_client_id'
+HUB_CLIENT_SECRET='your_github_client_secret'
+HUB_CALLBACK_URL='http://localhost:3003/auth/callback' # Must match this frontend's callback route
 
 # ...
 FRONTEND_URL='http://localhost:3003' # Ensure this is correctly set in backend too
