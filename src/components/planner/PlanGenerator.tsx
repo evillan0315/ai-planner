@@ -291,7 +291,7 @@ const PlanGenerator: React.FC = () => {
       action: () => setIsProjectRootPickerDialogOpen(false),
       icon: <CloseIcon />,
     },
-    {{
+    {
       label: 'Select',
       color: 'primary',
       variant: 'contained',
