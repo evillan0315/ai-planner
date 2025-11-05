@@ -280,7 +280,7 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
                         <TableCell>
                           <Chip
                             label={change.action}
-                            color=
+                            color={
                               change.action === 'ADD'
                                 ? 'success'
                                 : change.action === 'MODIFY'
