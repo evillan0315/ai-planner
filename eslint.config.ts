@@ -25,10 +25,11 @@ export default defineConfig([
             '@typescript-eslint/no-unused-vars': [
                 'warn', // Keep as warn, but apply specific ignore patterns
                 {
-                    argsIgnorePattern: '^_', // Ignore function arguments starting with underscore
-                    // Explicitly ignore variables that are frequently false positives or genuinely unused
-                    // but requested to be ignored via ESLint config.
-                    varsIgnorePattern: '^(CloseIcon|IFileChange|scanPathsInput|additionalInstructions|expectedOutputFormat|fileData|fileMimeType|theme|drawerErrorContentSx|IconButton|Tooltip|BugReportIcon)$',
+                    // Include '_' for typical unused arguments, and the specific destructured props
+                    // that ESLint reports as 'args' in PlanInputForm.tsx
+                    argsIgnorePattern: '^(?:_|scanPathsInput|additionalInstructions|expectedOutputFormat|fileData|fileMimeType)$',
+                    // Variables that are false positives or genuinely unused, not from argument destructuring
+                    varsIgnorePattern: '^(CloseIcon|IFileChange|theme|drawerErrorContentSx|IconButton|Tooltip|BugReportIcon)$',
                     caughtErrorsIgnorePattern: '^_',
                     ignoreRestSiblings: true,
                 },
