@@ -137,7 +137,7 @@ const PlanGenerator: React.FC = () => {
     }
     // Always update tempDrawerProjectRootInput to reflect the current projectRoot from store
     setTempDrawerProjectRootInput(projectRoot || '');
-  }, [globalProjectRoot, projectRoot, setProjectRoot]);
+  }, [globalProjectRoot, projectRoot]); // Removed setProjectRoot as it is a stable nanostore setter
 
   // Sync localScanPaths with plannerStore's scanPathsInput when the drawer is opened or parent changes it
   useEffect(() => {
@@ -225,12 +225,12 @@ const PlanGenerator: React.FC = () => {
       setError('');
       setPlan(null, null); // Clear existing plan on new project root selection
     },
-    [setProjectRoot, setError, setPlan],
+    [], // Removed setError, setPlan, setProjectRoot as they are stable nanostore setters
   );
 
   const updateScanPaths = useCallback(
     (paths: string[]) => setScanPathsInput([...new Set(paths)].sort().join(', ')),
-    [setScanPathsInput],
+    [], // Removed setScanPathsInput as it is a stable nanostore setter
   );
 
   const handleGeneratePlan = async () => {
