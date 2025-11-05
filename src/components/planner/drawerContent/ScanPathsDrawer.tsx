@@ -40,13 +40,12 @@ const EXCLUDED_NAMES = ['node_modules', 'dist', 'logs', '.git', '.github', '.vsc
  */
 const truncate = (filePath: string, maxLength = 30): string => {
   if (!filePath) return '';
-  const parts = filePath.split(/[\\/]/); // Split by / or \\ // Double quotes escaped
+  const parts = filePath.split(/[\\/]/); // Split by / or \ // Double quotes escaped
   const fileName = parts[parts.length - 1];
 
   if (fileName.length > maxLength - 3) {
     return `...${fileName.substring(fileName.length - (maxLength - 3))}`;
-  }
-} else if (filePath.length > maxLength) {
+  } else if (filePath.length > maxLength) {
     const availableLength = maxLength - fileName.length - 3;
     if (availableLength > 0) {
       return `${filePath.substring(0, availableLength)}...${fileName}`;
