@@ -45,7 +45,8 @@ const truncate = (filePath: string, maxLength = 30): string => {
 
   if (fileName.length > maxLength - 3) {
     return `...${fileName.substring(fileName.length - (maxLength - 3))}`;
-  } else if (filePath.length > maxLength) {
+  }
+} else if (filePath.length > maxLength) {
     const availableLength = maxLength - fileName.length - 3;
     if (availableLength > 0) {
       return `${filePath.substring(0, availableLength)}...${fileName}`;

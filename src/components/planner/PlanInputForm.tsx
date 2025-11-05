@@ -11,6 +11,7 @@ import {
   IconButton,
   Chip,
   useTheme,
+  Stack,
 } from '@mui/material';
 import AddRoadIcon from '@mui/icons-material/AddRoad';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -132,8 +133,13 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           sx={{ mb: 2 }}
         />
 
-        <Box className="flex justify-between items-center mt-2 flex-wrap gap-2">
-          <Box className="flex flex-wrap gap-2">
+        {/* Project Context Section */}
+        <Box sx={{ mt: 3, mb: 2 }}>
+          <Typography variant="subtitle1" className="font-semibold mb-2">
+            Project Context
+          </Typography>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="center" className="mb-2">
+            <TextField label="Project Root" value={projectRoot} disabled fullWidth size="small" />
             <Tooltip title="Select Project Root Directory">
               <IconButton
                 color="primary"
@@ -144,6 +150,16 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
                 <FolderOpenIcon />
               </IconButton>
             </Tooltip>
+          </Stack>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="center" className="mb-2">
+            <TextField
+              label="Scan Paths (comma-separated)"
+              value={scanPathsInput}
+              disabled
+              fullWidth
+              size="small"
+              placeholder="e.g., src, public, package.json"
+            />
             <Tooltip title="Manage AI Scan Paths">
               <IconButton
                 color="primary"
@@ -154,26 +170,18 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
                 <AddRoadIcon />
               </IconButton>
             </Tooltip>
-            <Tooltip title="View All Saved Plans">
-              <IconButton
-                color="primary"
-                onClick={openPlannerListDrawer}
-                aria-label="view all saved plans"
-                disabled={isLoading}
-              >
-                <ListAltIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Upload Image or File for AI Context">
-              <IconButton
-                color="primary"
-                onClick={() => fileInputRef.current?.click()}
-                aria-label="upload file"
-                disabled={isLoading}
-              >
-                <UploadFileIcon />
-              </IconButton>
-            </Tooltip>
+          </Stack>
+          {/* Multimodal File Upload */}
+          <Stack direction="row" spacing={1} alignItems="center" className="mt-2">
+            <Button
+              variant="outlined"
+              startIcon={<UploadFileIcon />}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+              size="small"
+            >
+              Upload Context File
+            </Button>
             <input
               type="file"
               ref={fileInputRef}
@@ -181,63 +189,79 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
               style={{ display: 'none' }}
               disabled={isLoading}
             />
-          </Box>
-
-          <Box className="flex flex-wrap gap-2">
-            <Tooltip title="Edit AI Instructions (System Prompt)">
-              <IconButton
-                color="primary"
-                onClick={openAiInstructionDrawer}
-                aria-label="edit ai instructions"
-                disabled={isLoading}
-              >
-                <DescriptionIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Edit Expected Output Format (JSON Schema)">
-              <IconButton
-                color="primary"
-                onClick={openExpectedOutputDrawer}
-                aria-label="edit expected output format"
-                disabled={isLoading}
-              >
-                <SchemaIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
+            {selectedFile && (
+              <Chip
+                label={`File: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(2)} KB)`}
+                onDelete={handleClearFile}
+                color="info"
+                size="small"
+                sx={{ color: theme.palette.text.primary, borderColor: theme.palette.info.main }}
+              />
+            )}
+          </Stack>
         </Box>
 
-        {selectedFile && (
-          <Box className="flex items-center gap-2 mt-4">
-            <Chip
-              label={`File: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(2)} KB)`}
-              color="info"
+        {/* AI Configuration Section */}
+        <Box sx={{ mt: 3, mb: 2 }}>
+          <Typography variant="subtitle1" className="font-semibold mb-2">
+            AI Configuration
+          </Typography>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} className="mb-2">
+            <Button
               variant="outlined"
-              onDelete={handleClearFile}
-              sx={{ color: theme.palette.text.primary, borderColor: theme.palette.info.main }}
-            />
-          </Box>
-        )}
+              startIcon={<DescriptionIcon />}
+              onClick={openAiInstructionDrawer}
+              disabled={isLoading}
+              fullWidth
+              size="small"
+            >
+              Edit AI Instructions
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<SchemaIcon />}
+              onClick={openExpectedOutputDrawer}
+              disabled={isLoading}
+              fullWidth
+              size="small"
+            >
+              Edit Expected Output Format
+            </Button>
+          </Stack>
+        </Box>
 
-        <Box className="flex justify-end gap-2 mt-4">
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={handleClearPlan}
-            disabled={isLoading && !plan} // 'plan' might not be defined in this scope if moved. Check context.
-          >
-            Clear Plan
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleGeneratePlan}
-            disabled={isLoading || !userPrompt.trim() || !projectRoot.trim()}
-            startIcon={isLoading && <CircularProgress size={20} color="inherit" />}
-            sx={styles.generateButton}
-          >
-            {isLoading ? 'Generating Plan...' : 'Generate Plan'}
-          </Button>
+        {/* Actions Section */}
+        <Box className="flex justify-between gap-2 mt-4">
+          <Tooltip title="View All Saved Plans">
+            <IconButton
+              color="primary"
+              onClick={openPlannerListDrawer}
+              aria-label="view all saved plans"
+              disabled={isLoading}
+            >
+              <ListAltIcon />
+            </IconButton>
+          </Tooltip>
+          <Box className="flex gap-2">
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={handleClearPlan}
+              disabled={isLoading && !plan} // 'plan' might not be defined in this scope if moved. Check context.
+            >
+              Clear Plan
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleGeneratePlan}
+              disabled={isLoading || !userPrompt.trim() || !projectRoot.trim()}
+              startIcon={isLoading && <CircularProgress size={20} color="inherit" />}
+              sx={styles.generateButton}
+            >
+              {isLoading ? 'Generating Plan...' : 'Generate Plan'}
+            </Button>
+          </Box>
         </Box>
       </CardContent>
     </Card>

@@ -8,6 +8,8 @@ The **AI Code Planner** provides an innovative way to articulate desired code ch
 
 The application emphasizes a clean, intuitive user experience with robust authentication and error handling.
 
+**🎥 Watch a demo video on YouTube:** [AI Code Planner Demo](https://youtu.be/Lcls1s0MJV0)
+
 For a deep dive into the application's architecture and design principles, please refer to the [Overview and Architecture document](docs/OVERVIEW_ARCHITECTURE.md).
 
 ## Features
@@ -20,6 +22,15 @@ For a deep dive into the application's architecture and design principles, pleas
 *   **Granular Plan Application:** Apply entire generated plans or individual file changes to your local project directory, automating code modifications with clear status feedback.
 *   **User Feedback & Error Details:** Provides clear visual cues for loading states, comprehensive error handling, and a dedicated UI to view detailed error messages from AI generation.
 *   **Theming:** Light/Dark mode toggle for personalized viewing.
+
+## Screenshots
+
+### AI Code Planner
+_Visualizing the AI-driven code planning interface and plan management._
+
+| Planner View 1 | Planner View 2 |
+| :------------- | :------------- |
+| ![AI Code Planner 1](screens/planner01.png) | ![AI Code Planner 2](screens/planner02.png) |
 
 ## Technologies Used
 
@@ -40,7 +51,7 @@ Before you begin, ensure you have the following installed:
 
 ### Installation
 
-1.  **Clone the repository (if you haven't already):**
+1.  **Clone the repository:**
     ```bash
     git clone https://github.com/evillan0315/project-board-server.git # Assuming this repo is part of a monorepo
     cd apps/ai-planner
@@ -61,7 +72,7 @@ Before you begin, ensure you have the following installed:
 Create a `.env` file in the `apps/ai-planner` directory for local development:
 
 ```env
-VITE_APP_API_BASE_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:5000/api
 VITE_FRONTEND_PORT=3003
 VITE_BASE_DIR=/media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner
 # ^^^ IMPORTANT: VITE_BASE_DIR is the default ABSOLUTE path of this 'ai-planner' project root
@@ -76,7 +87,7 @@ VITE_BASE_DIR=/media/eddie/Data/projects/nestJS/nest-modules/project-board-serve
 VITE_PREVIEW_APP_URL=http://localhost:3002
 ```
 
--   `VITE_APP_API_BASE_URL`: The base URL of your backend API. Ensure this matches the URL where your `project-board-server` is running.
+-   `VITE_API_URL`: The base URL of your backend API. Ensure this matches the URL where your `project-board-server` is running.
 -   `VITE_FRONTEND_PORT`: The port your frontend application runs on during development (e.g., `3003`). This is used for OAuth callback URLs.
 -   `VITE_BASE_DIR`: **Crucial for the AI Code Planner.** This environment variable now serves as the default `projectRoot` in the frontend's AI Planner (see `src/components/planner/stores/plannerStore.ts`). It should point to the **absolute path** of the `ai-planner` project root directory on your local filesystem. The AI backend uses the `projectRoot` specified in the frontend request to locate and apply file changes. **Misconfiguring this will prevent the AI Code Planner from working correctly.**
 -   `VITE_PREVIEW_APP_URL`: The URL for previewing the application, if applicable.
@@ -204,7 +215,7 @@ ai-planner/
 
 ## Backend Endpoints
 
-This frontend interacts with the following backend endpoints (assuming `VITE_APP_API_BASE_URL` is configured):
+This frontend interacts with the following backend endpoints (assuming `VITE_API_URL` is configured):
 
 ### Authentication Endpoints
 -   `POST /api/auth/login`: Authenticates with email and password.
@@ -214,7 +225,7 @@ This frontend interacts with the following backend endpoints (assuming `VITE_APP
 -   `GET /api/auth/me`: Fetches the profile of the currently authenticated user.
 
 ### File System Endpoints
--   `GET /api/file-system/browse?path=<path>`: **(NEW - assumed backend endpoint)** Retrieves a listing of subdirectories and files within the specified `path`. This is used for dynamic folder browsing in the frontend.
+-   `GET /api/file/list?directory=<path>&recursive=false`: Retrieves a listing of subdirectories and files within the specified `path`.
 
 ### AI Code Planner Endpoints
 -   `POST /api/plan`: Generates a new code modification plan based on an LLM input prompt and project context (requires authentication).
@@ -265,7 +276,7 @@ This frontend interacts with the following backend endpoints (assuming `VITE_APP
 -   **Theme:** The Material UI theme can be customized in `src/theme/index.ts`.
 -   **Tailwind CSS:** Modify `tailwind.config.js` for custom classes and design system adaptations.
 -   **AI Planner Defaults:** The default AI instructions (system prompt) and expected output JSON schema for the AI Planner can be found and customized in `src/components/planner/constants/instructions.ts`. These values are loaded into the `plannerStore` on initialization.
--   **AI Planner Default Project Root:** The default local project root for the AI Planner can be configured in your `.env` file via `VITE_BASE_DIR`. This environment variable is now used as the starting point for dynamic folder browsing.
+-   **AI Planner Default Project Root:** The default local project root for the AI Planner can be configured in your `.env` file via `VITE_BASE_DIR`.
 
 ## Contributing
 
