@@ -117,8 +117,8 @@ export const loadPlanById = async (planId: string) => {
     const response = await plannerService.getPlan(planId);
     // The getPlan service returns { plan: IPlan }, so extract the plan object.
     setPlan(planId, response.plan);
-  } catch (err: any) {
-    setError(err.message || `Failed to load plan ${planId}.`);
+  } catch (err: unknown) { // Changed 'any' to 'unknown'
+    setError((err as Error).message || `Failed to load plan ${planId}.`);
     setPlan(null, null); // Clear plan on error
   } finally {
     // setIsLoading(false) is handled by setPlan or setError

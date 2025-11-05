@@ -2,7 +2,7 @@ import axios from 'axios';
 import { authStore } from '@/stores/authStore';
 import type { IApplyPlanResult, IGeneratePlanResponse, ILlmInput, IPlan, IPaginatedPlansResponse } from '../types'; // Updated imports
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}` || '/api';
 
 const getAuthHeaders = () => {
   const token = authStore.get().token; // Corrected from jwtToken to token

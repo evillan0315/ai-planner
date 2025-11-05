@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getAuthToken } from '../stores/authStore';
 import type { LoginCredentials, UserProfile, AuthResponse } from '../types/auth';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}` || '/api';
 
 /**
  * Service for interacting with the backend authentication API.

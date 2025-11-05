@@ -39,7 +39,6 @@ export default defineConfig(({ mode }) => {
       allowedHosts: ['app.local', 'localhost'],
     },
     define: {
-      'process.env.NODE_ENV': JSON.stringify(mode),
       // These define statements are only relevant if the frontend code directly uses them.
       // Current services use relative '/api' paths handled by proxy/rewrites.
       'import.meta.env.GITHUB_CALLBACK_URL': JSON.stringify(env.GITHUB_CALLBACK_URL),

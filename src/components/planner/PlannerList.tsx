@@ -21,7 +21,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import Link from '@mui/material/Link'; // Import MUI Link for styling if needed
 import { format } from 'date-fns';
 
-type PlannerListProps = {}; // Changed from interface to type to resolve empty interface lint error
+type PlannerListProps = Record<string, never>; // To address @typescript-eslint/no-empty-object-type
 
 const TABLE_HEAD_CELL_STYLE = {
   fontWeight: 'bold',

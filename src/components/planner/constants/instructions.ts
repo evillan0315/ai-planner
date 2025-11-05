@@ -1,4 +1,4 @@
-/** System instruction used to guide automated code generation */
+
 export const INSTRUCTION = `
 Youare an expert developer in TypeScript, React v19, Node.js, NestJS, Vite, Prisma, Next.js, Material UI v6 with Material Icons, and Tailwind CSS v4.
 Produce **clean, idiomatic, fully type-safe code** that integrates seamlessly with new or existing projects.
@@ -13,7 +13,6 @@ General Rules:
 - Ensure imports/exports respect project aliases defined in tsconfig or Vite config.
 - Always consider the **full project context** before making changes.
 - If new dependencies are required, describe them in the \`thoughtProcess\` field and add related installation or build commands in \`buildScripts\`.
-- **Double Quotes Handling in newContent**: Any double quotes inside the \`newContent\` string **must be escaped** (\\\/") to ensure valid JSON output.
 
 File Operation Rules:
 - **ADD**: Provide the full new file content.
@@ -79,7 +78,7 @@ export const INSTRUCTION_SCHEMA_OUTPUT = `{
           },
           "newContent": {
             "type": "string",
-            "description": "Full file content for add/modify/repair. Required if action is add, repair, or modify. // eslint-disable-next-line no-useless-escape\n**Double Quotes Handling in newContent**: Any double quotes inside the \`newContent\` string **must be escaped** (\\\/") or replaced with single quotes (') to ensure valid JSON output."
+            "description": "Full file content for add/modify/repair. Required if action is add, repair, or modify."
           },
           "reason": {
             "type": "string",
@@ -120,13 +119,13 @@ export const INSTRUCTION_EXAMPLE_OUTPUT = `{
     {
       "filePath": "src/auth/Login.tsx",
       "action": "ADD",
-      "newContent": "import React from 'react';\\nimport { useStore } from '@nanostores/react';\\nimport { authStore }nfrom './authStore';\\n\\nfunction Login() {\\n  const $auth = useStore(authStore);\\n  return <div className='p-4'>Login Form</div>;\\n}\\nexport default Login;",
+      "newContent": "import React from 'react';\\nimport { useStore } from '@nanostores/react';\\nimport { authStore }\\nfrom './authStore';\\n\\nfunction Login() {\\n  const $auth = useStore(authStore);\\n  return <div className='p-4'>Login Form</div>;\\n}\\nexport default Login;",
       "reason": "New login component for authentication."
     },
     {
       "filePath": "src/components/Navbar.tsx",
       "action": "MODIFY",
-      "newContent": "import React from 'react';\\nimport { Link } from 'react-router-dom';\\nimport { useStore }nfrom '@nanostores/react';\\nimport { authStore } from '../auth/authStore';\\n\\nfunction Navbar() {\\n  const $auth = useStore(authStore);\\n  return (\\n    <nav className='bg-blue-500 p-4 text-white flex justify-between'>\\n      <Link to='/' className='font-bold text-lg'>My App</Link>\\n      <div>\\n        {$auth.isLoggedIn ? (\\n          <button onClick={() => authStore.setKey('isLoggedIn', false)} className='ml-4'>Logout</button>\\n        ) : (\\n          <>\\n            <Link to='/login' className='ml-4'>Login</Link>\\n            <Link to='/signup' className='ml-4'>Signup</Link>\\n          </>\\n        )}\\n      </div>\\n    </nav>\\n  );\\n}\\nexport default Navbar;",
+      "newContent": "import React from 'react';\\nimport { Link } from 'react-router-dom';\\nimport { useStore }\\nfrom '@nanostores/react';\\nimport { authStore } from '../auth/authStore';\\n\\nfunction Navbar() {\\n  const $auth = useStore(authStore);\\n  return (\\n    <nav className='bg-blue-500 p-4 text-white flex justify-between'>\\n      <Link to='/' className='font-bold text-lg'>My App</Link>\\n      <div>\\n        {$auth.isLoggedIn ? (\\n          <button onClick={() => authStore.setKey('isLoggedIn', false)} className='ml-4'>Logout</button>\\n        ) : (\\n          <>\\n            <Link to='/login' className='ml-4'>Login</Link>\\n            <Link to='/signup' className='ml-4'>Signup</Link>\\n          </>\\n        )}\\n      </div>\\n    </nav>\\n  );\\n}\\nexport default Navbar;",
       "reason": "Added login/logout links to Navbar."
     },
     {
@@ -137,7 +136,7 @@ export const INSTRUCTION_EXAMPLE_OUTPUT = `{
   ],
   "gitInstructions": [
     "git add .",
-    "git commit -m \"feat: implemented authentication\""
+    "git commit -m \`feat: implemented authentication\`
   ]
 }`;
 

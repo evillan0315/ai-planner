@@ -141,8 +141,8 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
       } else {
         setApplyStatus('failure', result.error || 'Failed to apply plan.');
       }
-    } catch (err: any) {
-      setApplyStatus('failure', err.message || 'An unexpected error occurred during application.');
+    } catch (err: unknown) { // Changed 'any' to 'unknown'
+      setApplyStatus('failure', (err as Error).message || 'An unexpected error occurred during application.');
     }
   };
 
@@ -172,11 +172,11 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
           }),
         );
       }
-    } catch (err: any) {
+    } catch (err: unknown) { // Changed 'any' to 'unknown'
       setIndividualChangeStatus((prev) =>
         new Map(prev).set(changeIndex, {
           status: 'failure',
-          error: err.message || 'An unexpected error occurred.',
+          error: (err as Error).message || 'An unexpected error occurred.',
         }),
       );
     }

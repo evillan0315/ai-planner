@@ -40,11 +40,11 @@ export const LoginPage: React.FC = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `/api/auth/google?cli_port=${import.meta.env.VITE_FRONTEND_PORT}`;
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google?cli_port=${import.meta.env.VITE_FRONTEND_PORT}`;
   };
 
   const handleGitHubLogin = () => {
-    window.location.href = `/api/auth/github?cli_port=${import.meta.env.VITE_FRONTEND_PORT}`;
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/github?cli_port=${import.meta.env.VITE_FRONTEND_PORT}`;
   };
 
   const paperSx = {

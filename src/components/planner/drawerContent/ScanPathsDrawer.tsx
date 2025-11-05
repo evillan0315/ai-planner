@@ -61,11 +61,10 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
 
   // Sync internal state with prop `currentScanPaths` when component mounts or prop changes
   useEffect(() => {
-    // Only update if the incoming prop is different to avoid unnecessary re-renders
-    // and ensure local state is mutable.
-    if (JSON.stringify(localSelectedPaths) !== JSON.stringify(currentScanPaths)) {
-      setLocalSelectedPaths(currentScanPaths);
-    }
+    // This effect ensures localSelectedPaths is kept in sync with the external source (currentScanPaths).
+    // Whenever currentScanPaths changes, localSelectedPaths is updated to reflect it.
+    // This pattern correctly handles prop-to-state synchronization without causing infinite loops.
+    setLocalSelectedPaths(currentScanPaths);
   }, [currentScanPaths]); // Depend on currentScanPaths only
 
   // Filter available paths based on search term

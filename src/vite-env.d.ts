@@ -1,10 +1,11 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_APP_API_BASE_URL: string;
-  readonly VITE_FRONTEND_PORT: string;
-  readonly VITE_BASE_DIR: string; // Base directory for the project, used as default for AI Planner
-  // more env variables...
+  readonly VITE_API_URL: string;
+  readonly VITE_FRONTEND_PORT: number;
+  readonly VITE_API_PORT: number;
+  readonly GITHUB_CALLBACK_URL: string;
+  readonly GOOGLE_CALLBACK_URL: string;
 }
 
 interface ImportMeta {

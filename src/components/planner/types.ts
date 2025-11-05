@@ -154,6 +154,16 @@ export interface IGeneratePlanResponse {
 }
 
 /**
+ * Represents the detailed result of applying a single file change.
+ */
+export interface IFileApplyResult {
+  file: string;
+  status: 'success' | 'failure' | 'skipped';
+  message?: string;
+  details?: string;
+}
+
+/**
  * Result structure after applying a plan via the API.
  */
 export interface IApplyPlanResult {
@@ -162,5 +172,5 @@ export interface IApplyPlanResult {
   details?: string;
   snapshot?: string; // Git commit hash of the snapshot taken before applying changes
   newHead?: string; // Git commit hash after applying changes
-  results?: any[]; // Detailed results of each change application (e.g., file: 'x', ok: true)
+  results?: IFileApplyResult[]; // Detailed results of each change application (e.g., file: 'x', ok: true)
 }

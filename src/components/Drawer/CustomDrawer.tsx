@@ -11,8 +11,6 @@ import {
   DialogActions,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { useStore } from '@nanostores/react';
-import { themeAtom } from '@/stores/themeStore'; // Changed from themeStore to themeAtom
 import { type GlobalAction } from '@/types/action';
 import GlobalActionButton from '@/components/ui/GlobalActionButton';
 
@@ -49,10 +47,6 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({
   title,
 }) => {
   const theme = useTheme();
-  // currentThemeMode was destructured but not used, relying on useTheme() for styling.
-  // No need to destructure `theme` from themeAtom explicitly if it's not directly consumed in the JSX or logic here.
-  // const { theme: currentThemeMode } = useStore(themeAtom);
-
   const drawerWidth = `${drawerWidthPercentage[size] * 100}%`;
   const isFullScreen = size === 'fullscreen';
 
@@ -89,17 +83,17 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({
             width: '100vw',
           }}
         >
-          <AppBar position="static" className="shadow-md"> {/* Added shadow-md for consistency */}
+          <AppBar position="static" className="shadow-md"> { /* Added shadow-md for consistency */}
             <Toolbar>
               <IconButton edge="start" color="inherit" onClick={onClose} aria-label="close">
                 <CloseIcon />
               </IconButton>
-              <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div" color="inherit"> {/* Ensure text color inherits */}
+              <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div" color="inherit"> { /* Ensure text color inherits */}
                 {title}
               </Typography>
             </Toolbar>
           </AppBar>
-          <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 2 }}>{children}</Box> {/* Added p:2 for consistent padding */}
+          <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 2 }}>{children}</Box> { /* Added p:2 for consistent padding */}
         </Box>
       ) : (
         <Box

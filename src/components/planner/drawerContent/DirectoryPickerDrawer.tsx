@@ -18,16 +18,12 @@ import * as path from 'path-browserify';
 import { projectRootDirectoryStore } from '@/stores/fileTreeStore';
 
 interface DirectoryPickerDrawerProps {
-  onSelect: (selectedPath: string) => void;
-  onClose: () => void;
   initialPath?: string;
   allowExternalPaths?: boolean;
   onPathUpdate?: (path: string) => void; // New prop for external path updates
 }
 
 const DirectoryPickerDrawer: React.FC<DirectoryPickerDrawerProps> = ({
-  onSelect,
-  onClose,
   initialPath = import.meta.env.VITE_BASE_DIR, // Default initial path from environment variable
   allowExternalPaths = false,
   onPathUpdate, // Destructure new prop
@@ -84,22 +80,6 @@ const DirectoryPickerDrawer: React.FC<DirectoryPickerDrawerProps> = ({
     }
   }, [currentBrowsingPath, projectRoot, allowExternalPaths, handlePathUpdateInternal]);
 
-  const handleOpenDirectory = useCallback(
-    (dirPath: string) => {
-      // This function now merely updates the *displayed* path without API interaction
-      handlePathUpdateInternal(dirPath);
-    },
-    [handlePathUpdateInternal],
-  );
-
-  const handleTempPathInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newPath = e.target.value;
-    setTempPathInput(newPath);
-    if (onPathUpdate) {
-      onPathUpdate(newPath); // Notify parent of manual input change
-    }
-  };
-
   const handleGoToPath = useCallback(() => {
     const trimmedPath = tempPathInput.trim();
     if (trimmedPath) {
@@ -108,6 +88,14 @@ const DirectoryPickerDrawer: React.FC<DirectoryPickerDrawerProps> = ({
       setError('Path cannot be empty.');
     }
   }, [tempPathInput, handlePathUpdateInternal]);
+
+  const handleTempPathInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPath = e.target.value;
+    setTempPathInput(newPath);
+    if (onPathUpdate) {
+      onPathUpdate(newPath); // Notify parent of manual input change
+    }
+  };
 
   const canGoUp = useMemo(() => {
     const normalizedPath = currentBrowsingPath.replace(/\\/g, '/');

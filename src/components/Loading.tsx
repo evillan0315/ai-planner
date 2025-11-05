@@ -69,7 +69,8 @@ const Loading: React.FC<LoadingProps> = ({
             }}
           />
         );
-      case 'dots':
+      case 'dots': {
+        // Wrapped in block to avoid 'no-case-declarations'
         const dotSize = size / 5; // Scale dot size based on overall size prop
         return (
           <Box className="flex space-x-2">
@@ -88,7 +89,9 @@ const Loading: React.FC<LoadingProps> = ({
             ))}
           </Box>
         );
-      case 'lines':
+      }
+      case 'lines': {
+        // Wrapped in block to avoid 'no-case-declarations'
         const lineWidth = size / 10; // Scale line width
         const lineHeight = size; // Max height
         return (
@@ -110,7 +113,9 @@ const Loading: React.FC<LoadingProps> = ({
             ))}
           </Box>
         );
-      case 'gradient':
+      }
+      case 'gradient': {
+        // Wrapped in block to avoid 'no-case-declarations'
         return (
           <Box
             sx={{
@@ -137,6 +142,7 @@ const Loading: React.FC<LoadingProps> = ({
             />
           </Box>
         );
+      }
       case 'skeleton':
         return (
           <Box sx={{ width: skeletonWidth }}>
