@@ -46,7 +46,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
-import ClearIcon from '@mui/icons-material/Clear';
+// Removed unused import: import ClearIcon from '@mui/icons-material/Clear';
 
 import CustomDrawer from '@/components/Drawer/CustomDrawer';
 import DirectoryPickerDrawer from '@/components/planner/drawerContent/DirectoryPickerDrawer';
@@ -264,9 +264,9 @@ const PlanGenerator: React.FC = () => {
       setPlan(response.planId, response.plan);
       setCurrentPlanId(response.planId);
       navigate(`/planner-generator/${response.planId}`); // Navigate to the generated plan's URL
-    } catch (err: any) {
+    } catch (err: unknown) { // Changed 'any' to 'unknown'
       console.error(err, 'Plan generation error');
-      setError(err.message || 'Failed to generate plan.');
+      setError((err as Error).message || 'Failed to generate plan.');
     } finally {
       // setIsLoading(false) is handled by setPlan or setError
     }
@@ -579,9 +579,9 @@ const PlanGenerator: React.FC = () => {
             /* This onSelect is now primarily handled by the footer actions. */
           }}
           onClose={() => setIsProjectRootPickerDialogOpen(false)}
-          initialPath={tempDrawerProjectRootInput || '/'} // Pass local state
+          initialPath={tempDrawerProjectRootInput || '/'}
           allowExternalPaths
-          onPathUpdate={setTempDrawerProjectRootInput} // Callback to update local state
+          onPathUpdate={setTempDrawerProjectRootInput}
         />
       </CustomDrawer>
 
@@ -595,10 +595,10 @@ const PlanGenerator: React.FC = () => {
         footerActionButton={scanPathsDrawerActions}
       >
         <ScanPathsDrawer
-          currentScanPaths={localScanPaths} // Pass local state to be managed by the drawer
+          currentScanPaths={localScanPaths}
           availablePaths={scanPathAutocompleteOptions}
           allowExternalPaths
-          onLocalPathsChange={setLocalScanPaths} // Callback to update local state
+          onLocalPathsChange={setLocalScanPaths}
         />
       </CustomDrawer>
 
