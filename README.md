@@ -71,7 +71,7 @@ Before you begin, ensure you have the following installed:
 Create a `.env` file in the `ai-planner` directory for local development:
 
 ```env
-VITE_APP_API_BASE_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:5000/api
 VITE_FRONTEND_PORT=3003
 VITE_BASE_DIR=/media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner
 # ^^^ IMPORTANT: VITE_BASE_DIR is the default ABSOLUTE path of this 'ai-planner' project root
@@ -86,7 +86,7 @@ VITE_BASE_DIR=/media/eddie/Data/projects/nestJS/nest-modules/project-board-serve
 VITE_PREVIEW_APP_URL=http://localhost:3002
 ```
 
--   `VITE_APP_API_BASE_URL`: The base URL of your backend API. Ensure this matches the URL where your `project-board-server` is running.
+-   `VITE_API_URL`: The base URL of your backend API. Ensure this matches the URL where your `project-board-server` is running.
 -   `VITE_FRONTEND_PORT`: The port your frontend application runs on during development (e.g., `3003`). This is used for OAuth callback URLs.
 -   `VITE_BASE_DIR`: **Crucial for the AI Code Planner.** This environment variable now serves as the default `projectRoot` in the frontend's AI Planner (see `src/components/planner/stores/plannerStore.ts`). It should point to the **absolute path** of the `ai-planner` project root directory on your local filesystem. The AI backend uses the `projectRoot` specified in the frontend request to locate and apply file changes. **Misconfiguring this will prevent the AI Code Planner from working correctly.**
 -   `VITE_PREVIEW_APP_URL`: The URL for previewing the application, if applicable.
@@ -104,7 +104,7 @@ GOOGLE_CLIENT_SECRET='your_google_client_secret'
 GOOGLE_CALLBACK_URL='http://localhost:3003/auth/callback' # Must match this frontend's callback route
 
 # GitHub OAuth2 Credentials
-HUB_CLIENT_ID='your_github_client_id'
+GITHUB_CLIENT_ID='your_github_client_id'
 GITHUB_CLIENT_SECRET='your_github_client_secret'
 GITHUB_CALLBACK_URL='http://localhost:3003/auth/callback' # Must match this frontend's callback route
 
@@ -214,7 +214,7 @@ ai-planner/
 
 ## Backend Endpoints
 
-This frontend interacts with the following backend endpoints (assuming `VITE_APP_API_BASE_URL` is configured):
+This frontend interacts with the following backend endpoints (assuming `VITE_API_URL` is configured):
 
 ### Authentication Endpoints
 -   `POST /api/auth/login`: Authenticates with email and password.
@@ -249,7 +249,7 @@ This frontend interacts with the following backend endpoints (assuming `VITE_APP
     -   **Response:** A JSON object containing `items` (an array of `IPlannerListItem`), `total`, `page`, `pageSize`, and `totalPages` (conforms to `IPaginatedPlansResponse` in `src/components/planner/types.ts`).
 -   `POST /api/plan/apply`: Applies a specified AI-generated plan (all changes) to the local filesystem (requires authentication).
     -   **Description:** Executes the file modification instructions from a given plan (identified by `planId`) against the local project files.
-    -   **Request Body (JSON):**
+    -   **Request Body (JSON):`
         ```json
         {
           "planId": "unique-plan-id",
@@ -259,7 +259,7 @@ This frontend interacts with the following backend endpoints (assuming `VITE_APP
     -   **Response:** A JSON object indicating success or failure, with details of the application process (conforms to `IApplyPlanResult`).
 -   `POST /api/plan/:planId/apply-chunk/:changeIndex`: Applies a specific file change from a given plan to the local filesystem (requires authentication).
     -   **Description:** Executes a single file modification instruction from a plan, identified by its index within the plan's `changes` array, against the local project files.
-    -   **Request Body (JSON):**
+    -   **Request Body (JSON):`
         ```json
         {
           "projectRoot": "/path/to/project" // Optional, falls back to server-side configured root
