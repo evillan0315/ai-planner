@@ -103,14 +103,18 @@ const PlanGenerator: React.FC = () => {
     setTempDrawerProjectRootInput(projectRoot || '');
   }, [globalProjectRoot, projectRoot]);
 
-  // Sync localScanPaths with plannerStore's scanPathsInput when the drawer is opened or parent changes it
+  // Sync localScanPaths with plannerStore's scanPathsInput when the drawer is opened
+  // This ensures that `localScanPaths` starts with the current global state, but can then
+  // be modified independently within the drawer until saved on close.
   useEffect(() => {
-    const currentPaths = scanPathsInput
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-    setLocalScanPaths(currentPaths);
-  }, [scanPathsInput]);
+    if (isScanPathsDialogOpen) {
+      const currentPaths = scanPathsInput
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      setLocalScanPaths(currentPaths);
+    }
+  }, [scanPathsInput, isScanPathsDialogOpen]);
 
   // Effect to populate generator fields when a plan is loaded
   useEffect(() => {
@@ -190,11 +194,6 @@ const PlanGenerator: React.FC = () => {
       setError('');
       setPlan(null, null); // Clear existing plan on new project root selection
     },
-    [],
-  );
-
-  const updateScanPaths = useCallback(
-    (paths: string[]) => setScanPathsInput([...new Set(paths)].sort().join(', ')),
     [],
   );
 
@@ -291,7 +290,7 @@ const PlanGenerator: React.FC = () => {
       action: () => setIsProjectRootPickerDialogOpen(false),
       icon: <CloseIcon />,
     },
-    {
+    {s
       label: 'Select',
       color: 'primary',
       variant: 'contained',
@@ -309,7 +308,11 @@ const PlanGenerator: React.FC = () => {
       label: 'Close',
       color: 'inherit',
       variant: 'outlined',
-      action: () => setIsScanPathsDialogOpen(false),
+      action: () => {
+        setIsScanPathsDialogOpen(false);
+        // Commit the locally managed scan paths to the global store's scanPathsInput
+        setScanPathsInput(localScanPaths.join(', '));
+      },
       icon: <CloseIcon />,
     },
   ];
@@ -409,7 +412,11 @@ const PlanGenerator: React.FC = () => {
 
       <CustomDrawer
         open={isScanPathsDialogOpen}
-        onClose={() => setIsScanPathsDialogOpen(false)}
+        onClose={() => {
+          setIsScanPathsDialogOpen(false);
+          // Commit the locally managed scan paths to the global store's scanPathsInput
+          setScanPathsInput(localScanPaths.join(', '));
+        }}
         position="right"
         size="medium" // Increased size for more browsing space
         title="Manage AI Scan Paths"
