@@ -10,10 +10,10 @@ import {
   InputAdornment,
   useTheme,
   Tooltip,
-  ListItemButton,
   Button,
   CircularProgress,
   Alert,
+  ListItemButton,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -40,7 +40,7 @@ const EXCLUDED_NAMES = ['node_modules', 'dist', 'logs', '.git', '.github', '.vsc
  */
 const truncate = (filePath: string, maxLength = 30): string => {
   if (!filePath) return '';
-  const parts = filePath.split(/[\\/]/); // Split by / or \\
+  const parts = filePath.split(/[\\/]/); // Split by / or \\ // Double quotes escaped
   const fileName = parts[parts.length - 1];
 
   if (fileName.length > maxLength - 3) {
@@ -82,6 +82,7 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
   const [loadingContents, setLoadingContents] = useState(false);
   const [fetchContentsError, setFetchContentsError] = useState<string | null>(null);
   const [manualPathToAdd, setManualPathToAdd] = useState(''); // For the "Add custom path" input
+  const [searchTerm, setSearchTerm] = useState(''); // New: for searching suggested paths
 
   // Sync internal localSelectedPaths with prop `currentScanPaths`
   useEffect(() => {
@@ -132,11 +133,10 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
   }, [currentBrowsingPath]);
 
   // Filter suggested paths based on search term
-  const [searchTerm, setSearchTerm] = useState('');
   const filteredSuggestedPaths = useMemo(() => {
     if (!searchTerm) return suggestedPaths;
-    const lower = searchTerm.toLowerCase();
-    return suggestedPaths.filter((p) => p.toLowerCase().includes(lower));
+    const lowercasedSearchTerm = searchTerm.toLowerCase();
+    return suggestedPaths.filter((p) => p.toLowerCase().includes(lowercasedSearchTerm));
   }, [suggestedPaths, searchTerm]);
 
   const addPath = useCallback(
@@ -156,7 +156,7 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
     (pathToRemove: string) => {
       setLocalSelectedPaths((prev) => {
         const newPaths = prev.filter((p) => p !== pathToRemove);
-        onLocalPathsChange(newPaths); // Notify parent
+        onLocalPathsChange(newPaths);
         return newPaths;
       });
     },
@@ -172,14 +172,13 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
     // Root check for various OS
     const isCurrentPathRoot =
       normalizedCurrentPath === '/' || /^[a-zA-Z]:[\\/]{0,1}$/.test(normalizedCurrentPath);
-    // const isParentPathRoot = // Not explicitly used but good for context
-    //   normalizedParentPath === '/' || /^[a-zA-Z]:\\/$/.test(normalizedParentPath);
-
     if (isCurrentPathRoot) return; // Cannot go up from a root directory
 
     // If external paths are not allowed, ensure we don't go above the initialBrowsingPath
     if (!allowExternalPaths && !normalizedParentPath.startsWith(normalizedInitialPath)) {
-      // If parent is not within initial path, but current is (meaning parent is initial or higher), go to initial
+      // If parent is not within initial path, but current is (meaning current is initial path or deeper),
+      // and parent is not the initial path itself (to avoid infinite loop if initial is a root),
+      // then navigate to initial path.
       if (
         normalizedCurrentPath.startsWith(normalizedInitialPath) &&
         normalizedParentPath !== normalizedInitialPath
@@ -256,7 +255,7 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
 
     // If external paths are not allowed, ensure we are not at or below the initial path
     if (!allowExternalPaths) {
-      return normalizedCurrentPath !== normalizedInitialPath;
+      return normalizedCurrentPath !== normalizedInitialPath; // Only allow going up if not at the initial root itself
     }
 
     return true; // Can always go up if external paths are allowed and not at a root
@@ -273,106 +272,113 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
         color: theme.palette.text.primary,
       }}
     >
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        **Current Path:**{' '}
-        <Typography component="span" fontWeight="bold">
+      {/* Current Path and Navigation */}
+      <Box className="mb-4">
+        <Typography variant="body2" color="text.secondary" className="mb-2">
+          <span className="font-semibold text-text-primary">Current Browsing:</span>{' '}
           {currentBrowsingPath}
         </Typography>
-      </Typography>
-
-      {/* Path Navigation and Input */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-        <TextField
-          fullWidth
-          size="small"
-          placeholder="Enter path to browse..."
-          value={tempPathInput}
-          onChange={handleTempPathInputChange}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <FolderOpenIcon color="action" />
-              </InputAdornment>
-            ),
-          }}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') handleGoToPath();
-          }}
-        />
-        <Tooltip title="Go to path">
-          <Button
-            variant="contained"
-            onClick={handleGoToPath}
-            disabled={!tempPathInput.trim() || loadingContents}
+        <Box className="flex items-center gap-2">
+          <TextField
+            fullWidth
             size="small"
-            sx={{ whiteSpace: 'nowrap' }}
-          >
-            Go
-          </Button>
-        </Tooltip>
-        <Tooltip title="Go up one level">
-          <span>
-            <IconButton
-              onClick={handleGoUp}
-              disabled={!canGoUp || loadingContents}
+            placeholder="Enter path to browse..."
+            value={tempPathInput}
+            onChange={handleTempPathInputChange}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <FolderOpenIcon color="action" />
+                </InputAdornment>
+              ),
+            }}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') handleGoToPath();
+            }}
+          />
+          <Tooltip title="Go to path">
+            <Button
+              variant="contained"
+              onClick={handleGoToPath}
+              disabled={!tempPathInput.trim() || loadingContents}
               size="small"
-              sx={{ color: theme.palette.text.secondary }}
+              className="whitespace-nowrap"
             >
-              <ArrowUpwardIcon fontSize="small" />
-            </IconButton>
-          </span>
-        </Tooltip>
+              Go
+            </Button>
+          </Tooltip>
+          <Tooltip title="Go up one level">
+            <span>
+              <IconButton
+                onClick={handleGoUp}
+                disabled={!canGoUp || loadingContents}
+                size="small"
+                color="inherit" // Inherit color for icon, will be secondary from theme.
+              >
+                <ArrowUpwardIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </Box>
       </Box>
 
       {fetchContentsError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="error" className="mb-4">
           {fetchContentsError}
         </Alert>
       )}
 
       {/* Directory Contents */}
-      <Box sx={{ flexGrow: 1, overflowY: 'auto', mb: 2 }}>
+      <Box className="flex-grow overflow-y-auto border border-divider rounded-md p-2 mb-4">
         {loadingContents ? (
           <Box className="flex justify-center items-center h-full">
             <CircularProgress size={30} />
-            <Typography variant="body2" sx={{ ml: 2 }}>
+            <Typography variant="body2" className="ml-2">
               Loading contents...
             </Typography>
           </Box>
         ) : fetchedContents && fetchedContents.length > 0 ? (
-          <List dense>
+          <List dense disablePadding>
             {fetchedContents.map((entry) => (
               <ListItemButton
                 key={entry.path}
                 onClick={() => handleSelectEntry(entry)}
-                sx={{ py: 0.5, px: 1, '&:hover': { bgcolor: theme.palette.action.hover } }}
+                className="py-1 px-2 hover:bg-action-hover"
+                sx={{ borderRadius: 1 }}
               >
                 {entry.isDirectory ? (
-                  <FolderOpenIcon sx={{ mr: 1, color: theme.palette.info.main }} />
+                  <FolderOpenIcon sx={{ mr: 1, color: 'info.main' }} />
                 ) : (
-                  <InsertDriveFileIcon sx={{ mr: 1, color: theme.palette.success.main }} />
+                  <InsertDriveFileIcon sx={{ mr: 1, color: 'success.main' }} />
                 )}
-                <ListItemText primary={entry.name} />
+                <ListItemText
+                  primary={entry.name}
+                  primaryTypographyProps={{
+                    sx: localSelectedPaths.includes(entry.path)
+                      ? { fontWeight: 'bold', color: 'primary.main' } // Highlight selected files
+                      : {},
+                  }}
+                />
                 {!entry.isDirectory && localSelectedPaths.includes(entry.path) && (
                   <Tooltip title="Already selected">
-                    <CheckIcon color="success" fontSize="small" sx={{ ml: 1 }} />
+                    <CheckIcon color="success" fontSize="small" className="ml-2" />
                   </Tooltip>
                 )}
               </ListItemButton>
             ))}
           </List>
         ) : (
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" className="text-center pt-4 w-full">
             No items found in this directory.
           </Typography>
         )}
       </Box>
 
       {/* Manual path input */}
-      <Typography variant="subtitle2" sx={{ mt: 1 }}>
+      <Typography variant="subtitle2" className="font-semibold mb-1">
         Add Custom Path:
       </Typography>
-      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+      <Box className="flex gap-2 mb-4">
         <TextField
           fullWidth
           size="small"
@@ -381,7 +387,7 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
           onChange={(e) => setManualPathToAdd(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleAddManualPathInput()}
           sx={{
-            backgroundColor: theme.palette.background.default,
+            bgcolor: 'background.default',
           }}
         />
         <Tooltip title="Add Path">
@@ -397,29 +403,63 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
         </Tooltip>
       </Box>
 
-      {/* Suggested Paths - now integrated or kept as separate static list */}
-      {filteredSuggestedPaths.length > 0 && (
-        <>
-          <Typography variant="subtitle2" sx={{ mt: 1 }}>Suggested Paths:</Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, p: 1, border: `1px solid ${theme.palette.divider}`, borderRadius: 1, maxHeight: '100px', overflowY: 'auto', mb: 2 }}>
-            {filteredSuggestedPaths.map((pathItem) => (
-              <Chip
-                key={`suggested-${pathItem}`}
-                label={truncate(pathItem)}
-                onClick={() => addPath(pathItem)}
-                color={localSelectedPaths.includes(pathItem) ? 'secondary' : 'default'}
-                variant={localSelectedPaths.includes(pathItem) ? 'filled' : 'outlined'}
-                size="small"
-                sx={{ cursor: 'pointer' }}
-              />
-            ))}
+      {/* Suggested Paths */}
+      {suggestedPaths.length > 0 && (
+        <Box className="mb-4">
+          <Typography variant="subtitle2" className="font-semibold mb-1">
+            Suggested Paths:
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Search suggested paths..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon color="action" />
+                </InputAdornment>
+              ),
+            }}
+            className="mb-2"
+          />
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 0.5,
+              p: 1,
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: 1,
+              maxHeight: '100px',
+              overflowY: 'auto',
+              bgcolor: 'background.default',
+            }}
+          >
+            {filteredSuggestedPaths.length > 0 ? (
+              filteredSuggestedPaths.map((pathItem) => (
+                <Chip
+                  key={`suggested-${pathItem}`}
+                  label={truncate(pathItem)}
+                  onClick={() => addPath(pathItem)}
+                  color={localSelectedPaths.includes(pathItem) ? 'secondary' : 'default'}
+                  variant={localSelectedPaths.includes(pathItem) ? 'filled' : 'outlined'}
+                  size="small"
+                  sx={{ cursor: 'pointer' }}
+                />
+              ))
+            ) : (
+              <Typography variant="body2" color="text.secondary" className="text-center w-full">
+                No matching suggestions.
+              </Typography>
+            )}
           </Box>
-        </>
+        </Box>
       )}
 
-
-      {/* Selected Paths - displayed as chips */}
-      <Typography variant="subtitle2" sx={{ mt: 1 }}>
+      {/* Selected Paths */}
+      <Typography variant="subtitle2" className="font-semibold mb-1">
         Currently Selected for Scan:
       </Typography>
       <Box
@@ -432,11 +472,12 @@ const ScanPathsDrawer: React.FC<ScanPathsDrawerProps> = ({
           p: 1,
           border: `1px solid ${theme.palette.divider}`,
           borderRadius: 1,
-          flexShrink: 0, // Prevent this box from shrinking
+          flexShrink: 0,
+          bgcolor: 'background.default',
         }}
       >
         {localSelectedPaths.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" className="text-center w-full">
             No paths selected. Add from suggestions or by browsing.
           </Typography>
         ) : (
