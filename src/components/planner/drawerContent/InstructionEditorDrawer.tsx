@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { TextField, Typography, Box } from '@mui/material';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Typography, Box } from '@mui/material'; // Removed TextField
 import { useStore } from '@nanostores/react';
 import {
   plannerStore,
@@ -10,12 +10,23 @@ import CustomDrawer from '@/components/Drawer/CustomDrawer';
 import type { GlobalAction } from '@/types/action';
 import ClearIcon from '@mui/icons-material/Clear';
 import SaveIcon from '@mui/icons-material/Save';
+import MonacoEditor from '@/components/editor/monaco/MonacoEditor'; // Import MonacoEditor
 
 interface InstructionEditorDrawerProps {
   open: boolean;
   onClose: () => void;
   type: 'ai' | 'expected';
 }
+
+// Style for Monaco Editor to ensure it grows and fills vertical space
+const monacoEditorSx = {
+  flexGrow: 1,
+  minHeight: '200px', // Ensure a minimum height if the content is short
+  border: '1px solid',
+  borderColor: 'divider',
+  borderRadius: 1,
+  overflow: 'hidden', // Ensure content inside editor doesn't overflow
+};
 
 const InstructionEditorDrawer: React.FC<InstructionEditorDrawerProps> = ({
   open,
@@ -58,6 +69,10 @@ const InstructionEditorDrawer: React.FC<InstructionEditorDrawerProps> = ({
 
   const drawerTitle = type === 'ai' ? 'Edit AI Instructions' : 'Edit Expected Output Format';
 
+  const monacoLanguage = useMemo(() => {
+    return type === 'ai' ? 'markdown' : 'json';
+  }, [type]);
+
   const drawerActions: GlobalAction[] = [
     {
       label: 'Cancel',
@@ -91,18 +106,18 @@ const InstructionEditorDrawer: React.FC<InstructionEditorDrawerProps> = ({
             ? 'Define the overall instructions for the AI. This is Markdown-compatible and acts as the system prompt.'
             : 'Provide the desired output format and structure, typically a JSON schema or an example of a valid response.'}
         </Typography>
-        <TextField
-          multiline
-          rows={10}
-          value={localValue}
-          onChange={(e) => setLocalValue(e.target.value)}
-          fullWidth
-          size="small"
-          autoFocus
-          variant="outlined"
-          sx={{ flexGrow: 1, '.MuiInputBase-root': { height: '100%', alignItems: 'flex-start' }, '.MuiInputBase-root .MuiInputBase-input': { height: '100% !important', alignItems: 'flex-start' } }}
-          InputProps={{ style: { fontFamily: 'monospace' } }}
-        />
+        <Box sx={monacoEditorSx}> {/* Apply flexGrow to the container Box */}
+          <MonacoEditor
+            value={localValue}
+            onChange={(value) => setLocalValue(value || '')}
+            language={monacoLanguage}
+            options={{
+              readOnly: false,
+              minimap: { enabled: false },
+              wordWrap: 'on',
+            }}
+          />
+        </Box>
       </Box>
     </CustomDrawer>
   );
