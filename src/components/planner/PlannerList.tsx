@@ -21,7 +21,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import Link from '@mui/material/Link'; // Import MUI Link for styling if needed
 import { format } from 'date-fns';
 
-interface PlannerListProps {}
+type PlannerListProps = {}; // Changed from interface to type to resolve empty interface lint error
 
 const TABLE_HEAD_CELL_STYLE = {
   fontWeight: 'bold',
@@ -36,8 +36,7 @@ const PlannerList: React.FC<PlannerListProps> = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10); // Default page size
-  const [totalItems, setTotalItems] = useState(0);
+  const pageSize = 10; // Default page size, removed setPageSize as it was unused
   const [totalPages, setTotalPages] = useState(0);
 
   const fetchPlans = useCallback(async () => {
@@ -54,10 +53,10 @@ const PlannerList: React.FC<PlannerListProps> = () => {
         pageSize,
       );
       setPlans(response.items);
-      setTotalItems(response.total);
+      // Removed totalItems as it was unused
       setTotalPages(response.totalPages);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch plans.');
+    } catch (err: unknown) { // Changed 'any' to 'unknown'
+      setError((err as Error).message || 'Failed to fetch plans.');
       setPlans([]);
     } finally {
       setLoading(false);
@@ -159,4 +158,3 @@ const PlannerList: React.FC<PlannerListProps> = () => {
 };
 
 export default PlannerList;
-
