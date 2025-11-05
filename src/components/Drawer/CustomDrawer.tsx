@@ -6,7 +6,6 @@ import {
   IconButton,
   Typography,
   useTheme,
-  DialogContent,
   AppBar,
   Toolbar,
   DialogActions,
@@ -50,7 +49,9 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({
   title,
 }) => {
   const theme = useTheme();
-  const { theme: currentThemeMode } = useStore(themeAtom); // Changed from { mode } = useStore(themeStore) to { theme } = useStore(themeAtom)
+  // currentThemeMode was destructured but not used, relying on useTheme() for styling.
+  // No need to destructure `theme` from themeAtom explicitly if it's not directly consumed in the JSX or logic here.
+  // const { theme: currentThemeMode } = useStore(themeAtom);
 
   const drawerWidth = `${drawerWidthPercentage[size] * 100}%`;
   const isFullScreen = size === 'fullscreen';
@@ -159,7 +160,7 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({
                 p: 2,
                 bgcolor: theme.palette.background.default,
                 borderTop: `1px solid ${theme.palette.divider}`,
-                justifyContent: `${position === 'left' || position === 'bottom' ? 'flex-end' : 'flex-start'}`, // Adjust alignment based on position
+                justifyContent: `${position === 'left' || position === 'bottom' ? 'flex-end' : 'flex-start'}`,
               }}
             >
               <GlobalActionButton globalActions={footerActionButton} />
