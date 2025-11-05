@@ -40,7 +40,7 @@ const EXCLUDED_NAMES = ['node_modules', 'dist', 'logs', '.git', '.github', '.vsc
  */
 const truncate = (filePath: string, maxLength = 30): string => {
   if (!filePath) return '';
-  const parts = filePath.split(/[\\/]/); // Split by / or \ // Double quotes escaped
+  const parts = filePath.split(/[\\/]/); // Split by / or \
   const fileName = parts[parts.length - 1];
 
   if (fileName.length > maxLength - 3) {

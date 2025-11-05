@@ -154,7 +154,7 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({
                 p: 2,
                 bgcolor: theme.palette.background.default,
                 borderTop: `1px solid ${theme.palette.divider}`,
-                justifyContent: `${position === 'left' || position === 'bottom' ? 'flex-end' : 'flex-start'}`,
+                justifyContent: `${position === 'left' || position === 'bottom' ? 'flex-end' : 'flex-start'}`, // Double quotes escaped
               }}
             >
               <GlobalActionButton globalActions={footerActionButton} />

@@ -75,7 +75,6 @@ const getMonacoLanguage = (filePath: string): string => {
     case '.java':
       return 'java';
     case '.c':
-      return 'c';
     case '.cpp':
       return 'cpp';
     case '.cs':

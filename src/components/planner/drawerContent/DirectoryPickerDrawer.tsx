@@ -137,7 +137,7 @@ const DirectoryPickerDrawer: React.FC<DirectoryPickerDrawerProps> = ({
     if (onPathUpdate) {
       onPathUpdate(newPath); // Notify parent of manual input change
     }
-    setError(null); // Clear path error as user types
+    setError(null); // Clear any path errors as user types
   };
 
   const handleSelectDirectory = useCallback(
