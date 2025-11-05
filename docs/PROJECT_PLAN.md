@@ -4,7 +4,7 @@
 
 This document outlines the project plan, encompassing the vision, goals, key features, technology stack, architectural overview, development workflow, design principles, and processes for the AI Code Planner frontend application. It serves as a guiding document for all stakeholders, ensuring alignment and providing a clear understanding of how the project is conceived, built, and maintained.
 
-It complements other detailed documentation found in this `docs/` directory, such as the [Overview and Architecture](OVERVIEW_ARCHITECTURE.md), [Developer Guide](DEVELOPER_GUIDE.md), and [Project Roadmap](ROADMAP.md).
+It complements other detailed documentation found in this `docs/` directory, such as the [Overview and Architecture](OVERVIEW_ARCHITECTURE.md), [Developer Guide](DEVELOPER_GUIDE.md), and the [Project Roadmap](ROADMAP.md).
 
 ## 2. Project Vision & Goals
 
@@ -20,16 +20,17 @@ It complements other detailed documentation found in this `docs/` directory, suc
 
 ## 3. Key Features
 
-Based on the project's `README.md`, the AI Code Planner offers the following core features:
+Based on the project's `README.md` and current implementation, the AI Code Planner offers the following core features:
 
 *   **Authentication:** JWT-based authentication with OAuth2 support (Google, GitHub) via the backend.
-*   **AI Code Planning & Generation:** Natural language prompts, configurable scan paths, customizable AI instructions (system prompt), and specified JSON output format for structured code modification plans.
-*   **Multimodal Input:** Ability to upload images or other files to provide additional context to the AI.
-*   **Dynamic Folder Browsing:** In-app browsing of the local file system for selecting project roots and scan paths.
-*   **Granular Plan Review & Editing:** Detailed review of generated plans (metadata, individual file changes) with full editing capabilities before application.
+*   **AI Code Planning & Generation:** Natural language prompts, configurable scan paths, customizable AI instructions (system prompt), and specified JSON output format for structured code modification plans (add, modify, delete, repair, analyze files, install, run).
+*   **Multimodal Input for Planner:** Ability to upload images or other files to provide additional context to the AI during plan generation.
+*   **Dynamic Folder Browsing:** In-app browsing of the local file system (for both project root and scan paths) directly within the `DirectoryPickerDrawer` and `ScanPathsDrawer` to enhance user experience for setting up AI planning contexts.
+*   **Granular Plan Review & Editing:** Detailed review of generated plans, including overall metadata (title, summary, thought process, documentation, git instructions) and individual file changes. Full editing capabilities for any aspect of the plan or its file changes (path, action, reason, new content) directly in the UI before application.
+*   **Plan Management & History:** Ability to view a paginated list of all past AI plans and load them into the generator for further review or re-application.
 *   **Granular Plan Application:** Apply entire plans or individual file changes to the local project directory, with clear status feedback.
-*   **User Feedback & Error Details:** Visual cues for loading states, comprehensive error handling, and dedicated UI for detailed AI generation error messages.
-*   **Theming:** Light/Dark mode toggle.
+*   **User Feedback & Error Details:** Visual cues for loading states, comprehensive error handling, and a dedicated UI for detailed AI generation error messages.
+*   **Theming:** Light/Dark mode toggle for personalized viewing.
 
 ## 4. Technology Stack
 
@@ -57,10 +58,10 @@ Key architectural considerations:
 *   **Client-Side Rendering (CSR):** The application is a single-page application (SPA) rendered client-side with Vite.
 *   **Modular Design:** Components are organized by feature (`planner/`, `auth/`), with clear separation of concerns (UI components, hooks, services, stores).
 *   **Global State Management:** Nanostores are used for application-wide state (e.g., `authStore`, `themeStore`, `plannerStore`, `fileTreeStore`), offering a lean and reactive approach.
-*   **Services Layer:** `api/` directory contains services (`authService.ts`, `plannerService.ts`) responsible for encapsulating API calls using Axios, abstracting backend interactions from components and stores.
+*   **Services Layer:** `api/` directory (including `src/components/planner/api`) contains services (`authService.ts`, `plannerService.ts`) responsible for encapsulating API calls using Axios, abstracting backend interactions from components and stores.
 *   **Routing:** React Router DOM manages navigation and view rendering based on URL paths.
 *   **Theming:** Material UI's `ThemeProvider` combined with Nanostores provides dynamic light/dark mode switching, with Tailwind CSS classes used for utility-first styling.
-*   **Code Editing:** Integration of Monaco Editor for rich code viewing and editing experiences within the planner feature.
+*   **Code Editing:** Integration of Monaco Editor (`src/components/editor/monaco/MonacoEditor.tsx`) for rich code viewing and editing experiences within the planner feature, especially for `FileChangeEditorDrawer`.
 
 For a detailed breakdown of the system architecture, refer to the [Overview and Architecture document](docs/OVERVIEW_ARCHITECTURE.md).
 
@@ -119,13 +120,13 @@ The project utilizes a simplified GitHub Flow, aiming for clear separation of de
 ## 8. State Management Strategy
 
 *   **Global/Application State:** Managed using **Nanostores**. This includes authentication status (`authStore`), theme preference (`themeStore`), global project root (`fileTreeStore`), and the primary AI planner state (`plannerStore`). Nanostores provide a lightweight, reactive, and performant solution for global state.
-*   **Persistent State:** For values that need to survive page refreshes, `nanostores` combined with `localStorage` (via a `persistentAtom` utility) is used.
+*   **Persistent State:** For values that need to survive page refreshes, `nanostores` combined with `localStorage` (via a `persistentAtom` utility) is used, e.g., for `projectRootDirectoryStore`.
 *   **Local Component State:** For ephemeral state that is only relevant within a single component, React's `useState` and `useReducer` hooks are utilized.
 
 ## 9. API Interaction & Error Handling
 
 *   **API Client:** Axios is used for all HTTP requests to the backend.
-*   **Service Layer:** Dedicated service files (`authService.ts`, `plannerService.ts`) encapsulate API calls, ensuring consistency, handling common headers (e.g., JWT token), and providing type-safe request/response interfaces.
+*   **Service Layer:** Dedicated service files (`authService.ts`, `plannerService.ts` in `src/components/planner/api`) encapsulate API calls, ensuring consistency, handling common headers (e.g., JWT token), and providing type-safe request/response interfaces.
 *   **Authentication Token:** JWT tokens are stored in `localStorage` and managed by `authStore`, automatically attached to authenticated requests.
 *   **Centralized Error Handling:** Errors from API calls are caught in service layers or hooks, propagated to Nanostores (e.g., `authStore.error`, `plannerStore.error`), and displayed to the user via UI components (e.g., `Alert`, `Snackbar`). Detailed error messages from the AI backend are explicitly handled and presented.
 
@@ -144,6 +145,4 @@ The project maintains comprehensive documentation to support development, usage,
 
 ## 11. Future Considerations (Integration with Roadmap)
 
-The project's evolution is guided by the [Project Roadmap](ROADMAP.md), which outlines planned enhancements and new features. This plan provides the foundational processes and principles that will enable the successful implementation of those roadmap items.
-
-Continuous feedback from users and developers will be incorporated to refine features and prioritize development efforts, maintaining a responsive and adaptable project direction.
+The project's evolution is guided by the [Project Roadmap](ROADMAP.md), which outlines planned enhancements and new features. This plan provides the foundational processes and principles that will enable the successful implementation of those roadmap items. Continuous feedback from users and developers will be incorporated to refine features and prioritize development efforts, maintaining a responsive and adaptable project direction.
