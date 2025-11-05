@@ -74,7 +74,9 @@ const DirectoryPickerDrawer: React.FC<DirectoryPickerDrawerProps> = ({
       setFetchContentsError(null);
       try {
         const contents = await plannerService.fetchDirectoryContents(currentBrowsingPath);
-        setDirectoryContents(contents);
+        // Filter out files, only show directories for a directory picker
+        const directoriesOnly = contents.filter(entry => entry.isDirectory);
+        setDirectoryContents(directoriesOnly);
       } catch (err: unknown) {
         setFetchContentsError(
           (err as Error).message || `Failed to load contents for ${currentBrowsingPath}`,
@@ -256,16 +258,16 @@ const DirectoryPickerDrawer: React.FC<DirectoryPickerDrawerProps> = ({
         </Box>
       ) : (
         <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
-          {directoryContents && directoryContents.directories.length > 0 ? (
+          {directoryContents && directoryContents.length > 0 ? (
             <List dense>
-              {directoryContents.directories.map((dir) => (
+              {directoryContents.map((dir) => (
                 <ListItemButton
-                  key={dir}
-                  onClick={() => handleSelectDirectory(dir)}
+                  key={dir.path} // Use unique path as key
+                  onClick={() => handleSelectDirectory(dir.name)}
                   sx={{ py: 0.5, px: 1, '&:hover': { bgcolor: theme.palette.action.hover } }}
                 >
                   <FolderIcon sx={{ mr: 1, color: theme.palette.info.main }} />
-                  <ListItemText primary={dir} />
+                  <ListItemText primary={dir.name} />
                 </ListItemButton>
               ))}
             </List>

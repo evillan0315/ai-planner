@@ -111,7 +111,7 @@ export const plannerService = {
   /**
    * Fetches the contents of a directory (subdirectories and files).
    * @param targetPath The absolute path of the directory to browse.
-   * @returns A promise that resolves to an IDirectoryListing.
+   * @returns A promise that resolves to an IDirectoryListing (array of IFileSystemEntry).
    */
   async fetchDirectoryContents(targetPath: string): Promise<IDirectoryListing> {
     try {
@@ -119,7 +119,6 @@ export const plannerService = {
         `${API_BASE_URL}/file/list?directory=${encodeURIComponent(targetPath)}&recursive=false`,
         { headers: getAuthHeaders() },
       );
-      console.log(response.data, 'response.data');
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {

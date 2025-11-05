@@ -176,10 +176,23 @@ export interface IApplyPlanResult {
 }
 
 /**
- * Represents the structure of a directory listing from the backend.
+ * Represents a single file system entry (file or directory) from the backend.
+ * Matches the structure of the file/list endpoint response items.
  */
-export interface IDirectoryListing {
+export interface IFileSystemEntry {
+  name: string;
   path: string;
-  directories: string[];
-  files: string[]; // Files are typically not needed for folder selection, but kept for completeness
+  isDirectory: boolean;
+  type: string;
+  mimeType?: string;
+  size?: number;
+  createdAt: string; // ISO 8601 string
+  updatedAt: string; // ISO 8601 string
+  children?: IFileSystemEntry[]; // Only populated if recursive is true, not relevant for this feature
 }
+
+/**
+ * Represents a directory listing from the backend.
+ * It's an array of IFileSystemEntry, as shown in the example.
+ */
+export type IDirectoryListing = IFileSystemEntry[];

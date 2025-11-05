@@ -10,7 +10,7 @@ import { plannerService } from '../api/plannerService'; // Import plannerService
 
 // Define a reasonable default project root path if none is set
 // This path is specific to the user's environment, based on the project structure.
-const DEFAULT_PROJECT_ROOT_FROM_ENV = import.meta.env.VITE_BASE_DIR; // Get default from environment
+const DEFAULT_PROJECT_ROOT_FROM_ENV = import.meta.env.VITE_BASE_DIR;
 
 // Initialize projectRootDirectoryStore with a default if it's empty or null
 const initialProjectRoot = projectRootDirectoryStore.get();

@@ -17,6 +17,7 @@ For a deep dive into the application's architecture and design principles, pleas
 *   **Authentication:** Seamless integration with JWT-based authentication, supporting Google OAuth2 and GitHub OAuth2 via the backend server.
 *   **AI Code Planning & Generation:** Define project context through user prompts, specify scan paths for relevant files, provide detailed AI instructions (system prompt), and define the expected JSON output format to generate structured code modification plans (add, modify, delete, repair, analyze files, install, run).
 *   **Multimodal Input for Planner:** Upload images or other files to provide additional context for the AI during plan generation.
+*   **Dynamic Folder Browsing:** Browse your local file system directly within the application to easily select a project root directory, enhancing the user experience for setting up AI planning contexts.
 *   **Granular Plan Review & Editing:** Review detailed plans including overall metadata (title, summary, thought process, documentation, git instructions) and individual file changes. Edit any aspect of the plan or its file changes (path, action, reason, new content) directly in the UI before application.
 *   **Granular Plan Application:** Apply entire generated plans or individual file changes to your local project directory, automating code modifications with clear status feedback.
 *   **User Feedback & Error Details:** Provides clear visual cues for loading states, comprehensive error handling, and a dedicated UI to view detailed error messages from AI generation.
@@ -222,6 +223,9 @@ This frontend interacts with the following backend endpoints (assuming `VITE_API
 -   `GET /api/auth/google`: Initiates Google OAuth2 login redirect.
 -   `GET /api/auth/github`: Initiates GitHub OAuth2 login redirect.
 -   `GET /api/auth/me`: Fetches the profile of the currently authenticated user.
+
+### File System Endpoints
+-   `GET /api/file/list?directory=<path>&recursive=false`: Retrieves a listing of subdirectories and files within the specified `path`.
 
 ### AI Code Planner Endpoints
 -   `POST /api/plan`: Generates a new code modification plan based on an LLM input prompt and project context (requires authentication).
