@@ -183,7 +183,7 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
   };
 
   return (
-    <Box className="space-y-6" sx={{ position: 'relative' }}>
+    <Box className="space-y-6 p-2" sx={{ position: 'relative' }}>
       {applyStatus === 'applying' && (
         <Box sx={styles.loadingOverlay}>
           <CircularProgress color="primary" size={60} />
