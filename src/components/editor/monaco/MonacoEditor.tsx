@@ -35,7 +35,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
   language = 'typescript',
   theme,
   options = {},
-  height = '500px',
+  height = '100%',
   width = '100%',
   className,
   sx,
