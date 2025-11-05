@@ -575,9 +575,6 @@ const PlanGenerator: React.FC = () => {
         footerActionButton={directoryPickerDrawerActions}
       >
         <DirectoryPickerDrawer
-          onSelect={() => {
-            /* This onSelect is now primarily handled by the footer actions. */
-          }}
           onClose={() => setIsProjectRootPickerDialogOpen(false)}
           initialPath={tempDrawerProjectRootInput || '/'}
           allowExternalPaths
