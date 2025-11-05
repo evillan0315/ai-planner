@@ -22,10 +22,10 @@ export default defineConfig(({ mode }) => {
       port: 4173, // Default preview server port
     },
     server: {
-      port: 3004,
+      port: env.VITE_FRONTEND_PORT,
       proxy: {
         '/api': {
-          target: env.VITE_APP_API_BASE_URL,
+          target: env.VITE_API_URL,
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
         },
@@ -44,9 +44,9 @@ export default defineConfig(({ mode }) => {
       // Current services use relative '/api' paths handled by proxy/rewrites.
       'import.meta.env.GITHUB_CALLBACK_URL': JSON.stringify(env.GITHUB_CALLBACK_URL),
       'import.meta.env.GOOGLE_CALLBACK_URL': JSON.stringify(env.GOOGLE_CALLBACK_URL),
-      'import.meta.env.FRONTEND_URL': JSON.stringify(env.VITE_FRONTEND_URL),
-      'import.meta.env.VITE_APP_API_BASE_URL': JSON.stringify(env.VITE_APP_API_BASE_URL),
-      'import.meta.env.VITE_FRONTEND_PORT': JSON.stringify(env.VITE_FRONTEND_PORT),
+      'import.meta.env.VITE_API_URL': JSON.stringify(env.VITE_API_URL),
+      'import.meta.env.VITE_API_PORT': env.VITE_API_PORT,
+      'import.meta.env.VITE_FRONTEND_PORT': env.VITE_FRONTEND_PORT,
     },
   };
 });
