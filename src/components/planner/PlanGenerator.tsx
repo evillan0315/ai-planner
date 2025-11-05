@@ -133,8 +133,6 @@ const PlanGenerator: React.FC = () => {
   useEffect(() => {
     if (error) {
       setSnackbarOpen(true);
-    } else {
-      setSnackbarOpen(false);
     }
   }, [error]);
 
@@ -290,7 +288,7 @@ const PlanGenerator: React.FC = () => {
       action: () => setIsProjectRootPickerDialogOpen(false),
       icon: <CloseIcon />,
     },
-    {s
+    {
       label: 'Select',
       color: 'primary',
       variant: 'contained',
