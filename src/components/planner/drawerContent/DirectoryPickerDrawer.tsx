@@ -11,11 +11,18 @@ import {
   useTheme,
   Tooltip,
   Button,
+  List,
+  ListItemButton,
+  ListItemText,
+  CircularProgress,
 } from '@mui/material';
 import FolderOpenIcon from '@mui/icons-material/FolderOutlined';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import FolderIcon from '@mui/icons-material/Folder'; // New icon for subdirectories
 import * as path from 'path-browserify';
 import { projectRootDirectoryStore } from '@/stores/fileTreeStore';
+import { plannerService } from '../api/plannerService';
+import type { IDirectoryListing } from '../types';
 
 interface DirectoryPickerDrawerProps {
   initialPath?: string;
@@ -32,6 +39,9 @@ const DirectoryPickerDrawer: React.FC<DirectoryPickerDrawerProps> = ({
   const [currentBrowsingPath, setCurrentBrowsingPath] = useState<string>('');
   const [tempPathInput, setTempPathInput] = useState<string>('');
   const [error, setError] = useState<string | null>(null); // Re-purposed for path validation errors
+  const [directoryContents, setDirectoryContents] = useState<IDirectoryListing | null>(null);
+  const [loadingContents, setLoadingContents] = useState(false);
+  const [fetchContentsError, setFetchContentsError] = useState<string | null>(null);
 
   const projectRoot = useStore(projectRootDirectoryStore);
 
@@ -45,6 +55,7 @@ const DirectoryPickerDrawer: React.FC<DirectoryPickerDrawerProps> = ({
         onPathUpdate(normalizedPath);
       }
       setError(null); // Clear any path errors on update
+      setFetchContentsError(null); // Clear any content fetch errors on path update
     },
     [onPathUpdate],
   );
@@ -54,6 +65,27 @@ const DirectoryPickerDrawer: React.FC<DirectoryPickerDrawerProps> = ({
     const effectiveInitialPath = initialPath || projectRoot || '/';
     handlePathUpdateInternal(effectiveInitialPath);
   }, [initialPath, projectRoot, handlePathUpdateInternal]);
+
+  // Effect to fetch directory contents whenever currentBrowsingPath changes
+  useEffect(() => {
+    const fetchContents = async () => {
+      if (!currentBrowsingPath) return;
+      setLoadingContents(true);
+      setFetchContentsError(null);
+      try {
+        const contents = await plannerService.fetchDirectoryContents(currentBrowsingPath);
+        setDirectoryContents(contents);
+      } catch (err: unknown) {
+        setFetchContentsError(
+          (err as Error).message || `Failed to load contents for ${currentBrowsingPath}`,
+        );
+        setDirectoryContents(null); // Clear contents on error
+      } finally {
+        setLoadingContents(false);
+      }
+    };
+    fetchContents();
+  }, [currentBrowsingPath]);
 
   const handleGoUp = useCallback(() => {
     // Ensure projectRoot is a string before calling replace
@@ -82,12 +114,20 @@ const DirectoryPickerDrawer: React.FC<DirectoryPickerDrawerProps> = ({
 
   const handleGoToPath = useCallback(() => {
     const trimmedPath = tempPathInput.trim();
-    if (trimmedPath) {
-      handlePathUpdateInternal(trimmedPath);
-    } else {
+    if (!trimmedPath) {
       setError('Path cannot be empty.');
+      return;
     }
-  }, [tempPathInput, handlePathUpdateInternal]);
+
+    const normalizedPath = path.normalize(trimmedPath.replace(/\\/g, '/'));
+    // If external paths are not allowed, ensure the path starts with the project root
+    if (!allowExternalPaths && projectRoot && !normalizedPath.startsWith(projectRoot.replace(/\\/g, '/'))) {
+      setError('Cannot navigate outside the defined project root.');
+      return;
+    }
+
+    handlePathUpdateInternal(normalizedPath);
+  }, [tempPathInput, allowExternalPaths, projectRoot, handlePathUpdateInternal]);
 
   const handleTempPathInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPath = e.target.value;
@@ -95,7 +135,16 @@ const DirectoryPickerDrawer: React.FC<DirectoryPickerDrawerProps> = ({
     if (onPathUpdate) {
       onPathUpdate(newPath); // Notify parent of manual input change
     }
+    setError(null); // Clear path error as user types
   };
+
+  const handleSelectDirectory = useCallback(
+    (directoryName: string) => {
+      const newPath = path.join(currentBrowsingPath, directoryName);
+      handlePathUpdateInternal(newPath);
+    },
+    [currentBrowsingPath, handlePathUpdateInternal],
+  );
 
   const canGoUp = useMemo(() => {
     const normalizedPath = currentBrowsingPath.replace(/\\/g, '/');
@@ -158,7 +207,7 @@ const DirectoryPickerDrawer: React.FC<DirectoryPickerDrawerProps> = ({
           <Button
             variant="contained"
             onClick={handleGoToPath}
-            disabled={!tempPathInput.trim()}
+            disabled={!tempPathInput.trim() || loadingContents}
             size="small"
             sx={{ whiteSpace: 'nowrap' }}
           >
@@ -169,7 +218,7 @@ const DirectoryPickerDrawer: React.FC<DirectoryPickerDrawerProps> = ({
           <span>
             <IconButton
               onClick={handleGoUp}
-              disabled={!canGoUp}
+              disabled={!canGoUp || loadingContents}
               size="small"
               sx={{ color: theme.palette.text.secondary }}
             >
@@ -187,14 +236,46 @@ const DirectoryPickerDrawer: React.FC<DirectoryPickerDrawerProps> = ({
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mt: 2 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
 
-      <Alert severity="info" sx={{ mt: 2 }}>
-        This dialog is for manually selecting a path. Dynamic folder browsing is disabled.
-      </Alert>
+      {fetchContentsError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {fetchContentsError}
+        </Alert>
+      )}
+
+      {loadingContents ? (
+        <Box className="flex justify-center items-center flex-grow">
+          <CircularProgress />
+          <Typography variant="body2" sx={{ ml: 2 }}>
+            Loading directory contents...
+          </Typography>
+        </Box>
+      ) : (
+        <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
+          {directoryContents && directoryContents.directories.length > 0 ? (
+            <List dense>
+              {directoryContents.directories.map((dir) => (
+                <ListItemButton
+                  key={dir}
+                  onClick={() => handleSelectDirectory(dir)}
+                  sx={{ py: 0.5, px: 1, '&:hover': { bgcolor: theme.palette.action.hover } }}
+                >
+                  <FolderIcon sx={{ mr: 1, color: theme.palette.info.main }} />
+                  <ListItemText primary={dir} />
+                </ListItemButton>
+              ))}
+            </List>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No subdirectories found in this path.
+            </Typography>
+          )}
+        </Box>
+      )}
     </Box>
   );
 };

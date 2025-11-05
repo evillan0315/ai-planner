@@ -15,6 +15,7 @@ For a deep dive into the application's architecture and design principles, pleas
 *   **Authentication:** Seamless integration with JWT-based authentication, supporting Google OAuth2 and GitHub OAuth2 via the backend server.
 *   **AI Code Planning & Generation:** Define project context through user prompts, specify scan paths for relevant files, provide detailed AI instructions (system prompt), and define the expected JSON output format to generate structured code modification plans (add, modify, delete, repair, analyze files, install, run).
 *   **Multimodal Input for Planner:** Upload images or other files to provide additional context for the AI during plan generation.
+*   **Dynamic Folder Browsing:** Browse your local file system directly within the application to easily select a project root directory, enhancing the user experience for setting up AI planning contexts.
 *   **Granular Plan Review & Editing:** Review detailed plans including overall metadata (title, summary, thought process, documentation, git instructions) and individual file changes. Edit any aspect of the plan or its file changes (path, action, reason, new content) directly in the UI before application.
 *   **Granular Plan Application:** Apply entire generated plans or individual file changes to your local project directory, automating code modifications with clear status feedback.
 *   **User Feedback & Error Details:** Provides clear visual cues for loading states, comprehensive error handling, and a dedicated UI to view detailed error messages from AI generation.
@@ -212,6 +213,9 @@ This frontend interacts with the following backend endpoints (assuming `VITE_APP
 -   `GET /api/auth/github`: Initiates GitHub OAuth2 login redirect.
 -   `GET /api/auth/me`: Fetches the profile of the currently authenticated user.
 
+### File System Endpoints
+-   `GET /api/file-system/browse?path=<path>`: **(NEW - assumed backend endpoint)** Retrieves a listing of subdirectories and files within the specified `path`. This is used for dynamic folder browsing in the frontend.
+
 ### AI Code Planner Endpoints
 -   `POST /api/plan`: Generates a new code modification plan based on an LLM input prompt and project context (requires authentication).
     -   **Description:** Sends a user prompt, project context (root, scan paths, instructions), expected output format, and optionally a base64 encoded file as multimodal input to the backend to generate a detailed plan of file changes.
@@ -238,7 +242,7 @@ This frontend interacts with the following backend endpoints (assuming `VITE_APP
     -   **Response:** A JSON object containing `items` (an array of `IPlannerListItem`), `total`, `page`, `pageSize`, and `totalPages` (conforms to `IPaginatedPlansResponse` in `src/components/planner/types.ts`).
 -   `POST /api/plan/apply`: Applies a specified AI-generated plan (all changes) to the local filesystem (requires authentication).
     -   **Description:** Executes the file modification instructions from a given plan (identified by `planId`) against the local project files.
-    -   **Request Body (JSON):**
+    -   **Request Body (JSON):`
         ```json
         {
           "planId": "unique-plan-id",
@@ -248,7 +252,7 @@ This frontend interacts with the following backend endpoints (assuming `VITE_APP
     -   **Response:** A JSON object indicating success or failure, with details of the application process (conforms to `IApplyPlanResult`).
 -   `POST /api/plan/:planId/apply-chunk/:changeIndex`: Applies a specific file change from a given plan to the local filesystem (requires authentication).
     -   **Description:** Executes a single file modification instruction from a plan, identified by its index within the plan's `changes` array, against the local project files.
-    -   **Request Body (JSON):**
+    -   **Request Body (JSON):`
         ```json
         {
           "projectRoot": "/path/to/project" // Optional, falls back to server-side configured root
@@ -261,7 +265,7 @@ This frontend interacts with the following backend endpoints (assuming `VITE_APP
 -   **Theme:** The Material UI theme can be customized in `src/theme/index.ts`.
 -   **Tailwind CSS:** Modify `tailwind.config.js` for custom classes and design system adaptations.
 -   **AI Planner Defaults:** The default AI instructions (system prompt) and expected output JSON schema for the AI Planner can be found and customized in `src/components/planner/constants/instructions.ts`. These values are loaded into the `plannerStore` on initialization.
--   **AI Planner Default Project Root:** The default local project root for the AI Planner can be configured in your `.env` file via `VITE_BASE_DIR`.
+-   **AI Planner Default Project Root:** The default local project root for the AI Planner can be configured in your `.env` file via `VITE_BASE_DIR`. This environment variable is now used as the starting point for dynamic folder browsing.
 
 ## Contributing
 

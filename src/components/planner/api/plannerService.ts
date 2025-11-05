@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { authStore } from '@/stores/authStore';
-import type { IApplyPlanResult, IGeneratePlanResponse, ILlmInput, IPlan, IPaginatedPlansResponse } from '../types'; // Updated imports
+import type { IApplyPlanResult, IGeneratePlanResponse, ILlmInput, IPlan, IPaginatedPlansResponse, IDirectoryListing } from '../types'; // Updated imports
 
 const API_BASE_URL = `${import.meta.env.VITE_API_URL}` || '/api';
 
@@ -105,6 +105,30 @@ export const plannerService = {
         throw new Error(error.response.data.message || 'Failed to apply single file change.');
       }
       throw new Error('An unexpected error occurred during single file change application.');
+    }
+  },
+
+  /**
+   * Fetches the contents of a directory (subdirectories and files).
+   * @param targetPath The absolute path of the directory to browse.
+   * @returns A promise that resolves to an IDirectoryListing.
+   */
+  async fetchDirectoryContents(targetPath: string): Promise<IDirectoryListing> {
+    try {
+      const response = await axios.get<IDirectoryListing>(
+        `${API_BASE_URL}/file-system/browse?path=${encodeURIComponent(targetPath)}`,
+        { headers: getAuthHeaders() },
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(
+          error.response.data.message || `Failed to browse directory: ${targetPath}`,
+        );
+      }
+      throw new Error(
+        `An unexpected error occurred while browsing directory: ${targetPath}.`,
+      );
     }
   },
 };

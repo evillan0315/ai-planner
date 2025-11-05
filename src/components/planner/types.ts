@@ -174,3 +174,12 @@ export interface IApplyPlanResult {
   newHead?: string; // Git commit hash after applying changes
   results?: IFileApplyResult[]; // Detailed results of each change application (e.g., file: 'x', ok: true)
 }
+
+/**
+ * Represents the structure of a directory listing from the backend.
+ */
+export interface IDirectoryListing {
+  path: string;
+  directories: string[];
+  files: string[]; // Files are typically not needed for folder selection, but kept for completeness
+}
