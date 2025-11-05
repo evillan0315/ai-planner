@@ -15,6 +15,8 @@ import type { GlobalAction } from '@/types/action';
 import ClearIcon from '@mui/icons-material/Clear';
 import SaveIcon from '@mui/icons-material/Save';
 import type { FileAction, IFileChange } from '@/components/planner/types';
+import MonacoEditor from '@/components/editor/monaco/MonacoEditor'; // Import MonacoEditor
+import * as path from 'path-browserify'; // Import path-browserify for file extension detection
 
 interface FileChangeEditorDrawerProps {
   open: boolean;
@@ -22,6 +24,98 @@ interface FileChangeEditorDrawerProps {
   initialFileChange: IFileChange;
   onSave: (updatedChange: IFileChange) => void;
 }
+
+// Helper to truncate file paths for display purposes
+const truncate = (filePath: string, maxLength = 30): string => {
+  if (!filePath) return '';
+  const parts = filePath.split(/[\\/]/); // Split by / or \
+  const fileName = parts[parts.length - 1];
+
+  if (fileName.length > maxLength - 3) {
+    return `...${fileName.substring(fileName.length - (maxLength - 3))}`;
+  } else if (filePath.length > maxLength) {
+    const availableLength = maxLength - fileName.length - 3;
+    if (availableLength > 0) {
+      return `${filePath.substring(0, availableLength)}...${fileName}`;
+    }
+    return `...${fileName}`;
+  }
+  return filePath;
+};
+
+// Helper to determine Monaco Editor language based on file extension
+const getMonacoLanguage = (filePath: string): string => {
+  if (!filePath) return 'plaintext';
+  const ext = path.extname(filePath).toLowerCase();
+  switch (ext) {
+    case '.ts':
+    case '.tsx':
+      return 'typescript';
+    case '.js':
+    case '.jsx':
+      return 'javascript';
+    case '.json':
+      return 'json';
+    case '.css':
+      return 'css';
+    case '.scss':
+      return 'scss';
+    case '.less':
+      return 'less';
+    case '.html':
+    case '.htm':
+      return 'html';
+    case '.xml':
+      return 'xml';
+    case '.md':
+    case '.markdown':
+      return 'markdown';
+    case '.py':
+      return 'python';
+    case '.java':
+      return 'java';
+    case '.c':
+      return 'c';
+    case '.cpp':
+      return 'cpp';
+    case '.cs':
+      return 'csharp';
+    case '.go':
+      return 'go';
+    case '.php':
+      return 'php';
+    case '.rb':
+      return 'ruby';
+    case '.rs':
+      return 'rust';
+    case '.sql':
+      return 'sql';
+    case '.sh':
+    case '.bash':
+      return 'shell';
+    case '.yml':
+    case '.yaml':
+      return 'yaml';
+    case '.env':
+      return 'plaintext'; // .env files are typically plaintext
+    case '.dockerfile':
+      return 'dockerfile';
+    case '.gitignore':
+      return 'plaintext';
+    default:
+      return 'plaintext';
+  }
+};
+
+// Style for Monaco Editor to ensure it grows and fills vertical space
+const monacoEditorSx = {
+  flexGrow: 1,
+  minHeight: '200px', // Ensure a minimum height if the content is short
+  border: '1px solid',
+  borderColor: 'divider',
+  borderRadius: 1,
+  overflow: 'hidden', // Ensure content inside editor doesn't overflow
+};
 
 const FileChangeEditorDrawer: React.FC<FileChangeEditorDrawerProps> = ({
   open,
@@ -147,41 +241,22 @@ const FileChangeEditorDrawer: React.FC<FileChangeEditorDrawerProps> = ({
           InputProps={{ style: { fontFamily: 'monospace' } }}
         />
         {requiresNewContent && (
-          <TextField
-            label="New Content (full file content, Markdown/Code)"
-            multiline
-            rows={10}
-            value={newContent}
-            onChange={(e) => setNewContent(e.target.value)}
-            fullWidth
-            size="small"
-            variant="outlined"
-            required
-            InputProps={{ style: { fontFamily: 'monospace' } }}
-            sx={{ flexGrow: 1, '.MuiInputBase-root': { height: '100%', alignItems: 'flex-start' }, '.MuiInputBase-root .MuiInputBase-input': { height: '100% !important', alignItems: 'flex-start' } }}
-          />
+          <Box sx={monacoEditorSx}> {/* Apply flexGrow to the container Box */}
+            <MonacoEditor
+              value={newContent}
+              onChange={(value) => setNewContent(value || '')}
+              language={getMonacoLanguage(filePath)}
+              options={{
+                readOnly: false,
+                minimap: { enabled: false },
+                wordWrap: 'on',
+              }}
+            />
+          </Box>
         )}
       </Box>
     </CustomDrawer>
   );
-};
-
-// Helper to truncate file paths for display, same as in ScanPathsDrawer
-const truncate = (filePath: string, maxLength = 30): string => {
-  if (!filePath) return '';
-  const parts = filePath.split(/[\\/]/); // Split by / or \\ // Double quotes escaped
-  const fileName = parts[parts.length - 1];
-
-  if (fileName.length > maxLength - 3) {
-    return `...${fileName.substring(fileName.length - (maxLength - 3))}`;
-  } else if (filePath.length > maxLength) {
-    const availableLength = maxLength - fileName.length - 3;
-    if (availableLength > 0) {
-      return `${filePath.substring(0, availableLength)}...${fileName}`;
-    }
-    return `...${fileName}`;
-  }
-  return filePath;
 };
 
 export default FileChangeEditorDrawer;
