@@ -21,6 +21,7 @@ interface InstructionEditorDrawerProps {
 // Style for Monaco Editor to ensure it grows and fills vertical space
 const monacoEditorSx = {
   flexGrow: 1,
+  height: '100%', // Explicitly set height to 100% to ensure Monaco Editor can calculate its dimensions
   minHeight: '200px', // Ensure a minimum height if the content is short
   border: '1px solid',
   borderColor: 'divider',
@@ -100,8 +101,8 @@ const InstructionEditorDrawer: React.FC<InstructionEditorDrawerProps> = ({
       hasBackdrop={true}
       footerActionButton={drawerActions}
     >
-      <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+      <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Typography variant="body2" color="text.secondary">
           {type === 'ai'
             ? 'Define the overall instructions for the AI. This is Markdown-compatible and acts as the system prompt.'
             : 'Provide the desired output format and structure, typically a JSON schema or an example of a valid response.'}

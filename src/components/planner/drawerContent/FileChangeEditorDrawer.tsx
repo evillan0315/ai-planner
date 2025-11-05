@@ -110,6 +110,7 @@ const getMonacoLanguage = (filePath: string): string => {
 // Style for Monaco Editor to ensure it grows and fills vertical space
 const monacoEditorSx = {
   flexGrow: 1,
+  height: '100%', // Explicitly set height to 100% to ensure Monaco Editor can calculate its dimensions
   minHeight: '200px', // Ensure a minimum height if the content is short
   border: '1px solid',
   borderColor: 'divider',
