@@ -2,17 +2,11 @@ import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import {
   Box,
   Typography,
-  TextField,
-  Button,
-  CircularProgress,
-  Alert,
-  Card,
-  CardContent,
-  Tooltip,
-  IconButton,
   Snackbar,
   useTheme,
-  Chip,
+  IconButton,
+  Tooltip,
+  Alert,
 } from '@mui/material';
 import { useStore } from '@nanostores/react';
 import {
@@ -32,21 +26,13 @@ import {
   setFileDataAndMimeType,
 } from './stores/plannerStore';
 import { plannerService } from './api/plannerService';
-import PlanDisplay from './PlanDisplay';
 import type { GlobalAction } from '@/types/action';
 import type { ILlmInput, IFileChange } from './types';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 
-import FolderOpenIcon from '@mui/icons-material/FolderOpen';
-import AddRoadIcon from '@mui/icons-material/AddRoad';
-import DescriptionIcon from '@mui/icons-material/Description';
-import SchemaIcon from '@mui/icons-material/Schema';
+import BugReportIcon from '@mui/icons-material/BugReport';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
-import ListAltIcon from '@mui/icons-material/ListAlt';
-import BugReportIcon from '@mui/icons-material/BugReport';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
-// Removed unused import: import ClearIcon from '@mui/icons-material/Clear';
 
 import CustomDrawer from '@/components/Drawer/CustomDrawer';
 import DirectoryPickerDrawer from '@/components/planner/drawerContent/DirectoryPickerDrawer';
@@ -56,32 +42,10 @@ import PlanMetadataEditorDrawer from '@/components/planner/drawerContent/PlanMet
 import FileChangeEditorDrawer from '@/components/planner/drawerContent/FileChangeEditorDrawer';
 import PlannerList from '@/components/planner/PlannerList';
 import { projectRootDirectoryStore } from '@/stores/fileTreeStore';
-import Loading from '@/components/Loading';
 
-const styles = {
-  card: {
-    marginBottom: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255, 255, 255, 0.12)',
-    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-    borderRadius: '12px',
-  },
-  formSection: {
-    padding: 3,
-  },
-  generateButton: {
-    marginTop: 2,
-    marginBottom: 2,
-  },
-  buttonGroup: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 1,
-    mt: 2,
-    justifyContent: 'flex-end',
-  },
-};
+// New components
+import { PlanInputForm } from './PlanInputForm';
+import { PlanGenerationStatus } from './PlanGenerationStatus';
 
 // Styles for the error drawer content
 const drawerErrorContentSx = {
@@ -105,7 +69,7 @@ const PlanGenerator: React.FC = () => {
     fileMimeType,
   } = useStore(plannerStore);
   const globalProjectRoot = useStore(projectRootDirectoryStore);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
   const theme = useTheme();
 
   const [isProjectRootPickerDialogOpen, setIsProjectRootPickerDialogOpen] = useState(false);
@@ -118,15 +82,15 @@ const PlanGenerator: React.FC = () => {
   const [editingFileChangeIndex, setEditingFileChangeIndex] = useState<number | null>(null);
   const [isPlannerListDrawerOpen, setIsPlannerListDrawerOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [isErrorDetailsDrawerOpen, setIsErrorDetailsDrawerOpen] = useState(false); // New state for error details drawer
+  const [isErrorDetailsDrawerOpen, setIsErrorDetailsDrawerOpen] = useState(false);
 
-  const fileInputRef = useRef<HTMLInputElement>(null); // Ref for hidden file input
-  const [selectedFile, setSelectedFile] = useState<File | null>(null); // State for selected file object
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Local state for the project root input field within the DirectoryPickerDrawer
   const [tempDrawerProjectRootInput, setTempDrawerProjectRootInput] = useState(projectRoot || '');
   // Local state for scan paths within the drawer before confirming
-  const [localScanPaths, setLocalScanPaths] = useState<string[]>([]); // Initialize as empty array
+  const [localScanPaths, setLocalScanPaths] = useState<string[]>([]);
 
   // Effect to ensure plannerStore's projectRoot is in sync with globalProjectRoot
   // and also to update tempDrawerProjectRootInput when plannerStore.projectRoot changes
@@ -137,7 +101,7 @@ const PlanGenerator: React.FC = () => {
     }
     // Always update tempDrawerProjectRootInput to reflect the current projectRoot from store
     setTempDrawerProjectRootInput(projectRoot || '');
-  }, [globalProjectRoot, projectRoot]); // Removed setProjectRoot as it is a stable nanostore setter
+  }, [globalProjectRoot, projectRoot]);
 
   // Sync localScanPaths with plannerStore's scanPathsInput when the drawer is opened or parent changes it
   useEffect(() => {
@@ -190,7 +154,7 @@ const PlanGenerator: React.FC = () => {
       const reader = new FileReader();
       reader.onload = (e) => {
         // Ensure result is a string before splitting. Data URL format is 'data:[<MIME-type>][;charset=<encoding>][;base64],<data>'
-        const base64Data = (e.target?.result as string)?.split(',')[1]; 
+        const base64Data = (e.target?.result as string)?.split(',')[1];
         const mimeType = file.type;
         setFileDataAndMimeType(base64Data, mimeType);
       };
@@ -225,17 +189,16 @@ const PlanGenerator: React.FC = () => {
       setError('');
       setPlan(null, null); // Clear existing plan on new project root selection
     },
-    [], // Removed setError, setPlan, setProjectRoot as they are stable nanostore setters
+    [],
   );
 
   const updateScanPaths = useCallback(
     (paths: string[]) => setScanPathsInput([...new Set(paths)].sort().join(', ')),
-    [], // Removed setScanPathsInput as it is a stable nanostore setter
+    [],
   );
 
   const handleGeneratePlan = async () => {
     setIsLoading(true);
-    //resetPlannerState(); // Decide if full reset is desired before generation
     try {
       const llmInput: ILlmInput = {
         userPrompt,
@@ -264,7 +227,7 @@ const PlanGenerator: React.FC = () => {
       setPlan(response.planId, response.plan);
       setCurrentPlanId(response.planId);
       navigate(`/planner-generator/${response.planId}`); // Navigate to the generated plan's URL
-    } catch (err: unknown) { // Changed 'any' to 'unknown'
+    } catch (err: unknown) {
       console.error(err, 'Plan generation error');
       setError((err as Error).message || 'Failed to generate plan.');
     } finally {
@@ -281,7 +244,7 @@ const PlanGenerator: React.FC = () => {
         .map((s) => s.trim())
         .filter(Boolean),
     );
-    setSelectedFile(null); // Clear selected file on plan clear
+    setSelectedFile(null);
     navigate('/planner-generator');
   };
 
@@ -402,168 +365,40 @@ const PlanGenerator: React.FC = () => {
         AI Plan Generator
       </Typography>
 
-      <Card sx={styles.card} className="mb-6 flex-shrink-0">
-        <CardContent sx={styles.formSection}>
-          <Box className="flex items-center justify-between mb-4">
-            <Typography variant="h6" gutterBottom className="text-text-primary mb-0">
-              Generate a New Plan
-            </Typography>
-            {error && (
-              <Tooltip title="View Error Details">
-                <IconButton
-                  color="error"
-                  onClick={() => setIsErrorDetailsDrawerOpen(true)}
-                  aria-label="view error details"
-                >
-                  <BugReportIcon />
-                </IconButton>
-              </Tooltip>
-            )}
-          </Box>
-          <TextField
-            label="Enter your prompt for the AI"
-            multiline
-            rows={6}
-            fullWidth
-            value={userPrompt}
-            onChange={(e) => setUserPrompt(e.target.value)}
-            variant="outlined"
-            disabled={isLoading}
-            sx={{ mb: 2 }}
-          />
+      <PlanInputForm
+        userPrompt={userPrompt}
+        setUserPrompt={setUserPrompt}
+        projectRoot={projectRoot}
+        scanPathsInput={scanPathsInput}
+        additionalInstructions={additionalInstructions}
+        expectedOutputFormat={expectedOutputFormat}
+        fileData={fileData}
+        fileMimeType={fileMimeType}
+        selectedFile={selectedFile}
+        isLoading={isLoading}
+        error={error}
+        fileInputRef={fileInputRef}
+        handleFileChange={handleFileChange}
+        handleClearFile={handleClearFile}
+        handleGeneratePlan={handleGeneratePlan}
+        handleClearPlan={handleClearPlan}
+        openProjectRootPicker={() => {
+          setTempDrawerProjectRootInput(projectRoot);
+          setIsProjectRootPickerDialogOpen(true);
+        }}
+        openScanPathsDrawer={() => setIsScanPathsDialogOpen(true)}
+        openPlannerListDrawer={() => setIsPlannerListDrawerOpen(true)}
+        openAiInstructionDrawer={() => setIsAiInstructionDrawerOpen(true)}
+        openExpectedOutputDrawer={() => setIsExpectedOutputDrawerOpen(true)}
+        openErrorDetailsDrawer={() => setIsErrorDetailsDrawerOpen(true)}
+      />
 
-          <Box className="flex justify-between items-center mt-2 flex-wrap gap-2">
-            <Box className="flex flex-wrap gap-2">
-              <Tooltip title="Select Project Root Directory">
-                <IconButton
-                  color="primary"
-                  onClick={() => {
-                    setTempDrawerProjectRootInput(projectRoot);
-                    setIsProjectRootPickerDialogOpen(true);
-                  }}
-                  aria-label="select project root directory"
-                  disabled={isLoading}
-                >
-                  <FolderOpenIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Manage AI Scan Paths">
-                <IconButton
-                  color="primary"
-                  onClick={() => setIsScanPathsDialogOpen(true)}
-                  aria-label="manage ai scan paths"
-                  disabled={isLoading}
-                >
-                  <AddRoadIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="View All Saved Plans">
-                <IconButton
-                  color="primary"
-                  onClick={() => setIsPlannerListDrawerOpen(true)}
-                  aria-label="view all saved plans"
-                  disabled={isLoading}
-                >
-                  <ListAltIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Upload Image or File for AI Context">
-                <IconButton
-                  color="primary"
-                  onClick={() => fileInputRef.current?.click()}
-                  aria-label="upload file"
-                  disabled={isLoading}
-                >
-                  <UploadFileIcon />
-                </IconButton>
-              </Tooltip>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                style={{ display: 'none' }}
-                disabled={isLoading}
-              />
-            </Box>
-
-            <Box className="flex flex-wrap gap-2">
-              <Tooltip title="Edit AI Instructions (System Prompt)">
-                <IconButton
-                  color="primary"
-                  onClick={() => setIsAiInstructionDrawerOpen(true)}
-                  aria-label="edit ai instructions"
-                  disabled={isLoading}
-                >
-                  <DescriptionIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Edit Expected Output Format (JSON Schema)">
-                <IconButton
-                  color="primary"
-                  onClick={() => setIsExpectedOutputDrawerOpen(true)}
-                  aria-label="edit expected output format"
-                  disabled={isLoading}
-                >
-                  <SchemaIcon />
-                </IconButton>
-              </Tooltip>
-            </Box>
-          </Box>
-
-          {selectedFile && (
-            <Box className="flex items-center gap-2 mt-4">
-              <Chip
-                label={`File: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(2)} KB)`}
-                color="info"
-                variant="outlined"
-                onDelete={handleClearFile}
-                sx={{ color: theme.palette.text.primary, borderColor: theme.palette.info.main }}
-              />
-            </Box>
-          )}
-
-          <Box className="flex justify-end gap-2 mt-4">
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={handleClearPlan}
-              disabled={isLoading && !plan}
-            >
-              Clear Plan
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleGeneratePlan}
-              disabled={isLoading || !userPrompt.trim() || !projectRoot.trim()}
-              startIcon={isLoading && <CircularProgress size={20} color="inherit" />}
-              sx={styles.generateButton}
-            >
-              {isLoading ? 'Generating Plan...' : 'Generate Plan'}
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
-
-      {isLoading ? (
-        <Box className="flex-grow flex items-center justify-center">
-          <Loading type="circular" message="Generating Plan..." />
-        </Box>
-      ) : plan ? (
-        <Box className="flex-grow overflow-y-auto pt-4">
-          <PlanDisplay
-            plan={plan}
-            onEditPlanMetadata={() => setIsPlanMetadataEditorOpen(true)}
-            onEditFileChange={handleEditFileChangeRequest}
-          />
-        </Box>
-      ) : (
-        <Box className="flex-grow flex items-center justify-center pt-4">
-          <Typography variant="h6" color="text.secondary">
-            Enter a prompt and click "Generate Plan" to begin.
-          </Typography>
-        </Box>
-      )}
+      <PlanGenerationStatus
+        isLoading={isLoading}
+        plan={plan}
+        onEditPlanMetadata={() => setIsPlanMetadataEditorOpen(true)}
+        onEditFileChange={handleEditFileChangeRequest}
+      />
 
       <CustomDrawer
         open={isProjectRootPickerDialogOpen}
@@ -644,7 +479,6 @@ const PlanGenerator: React.FC = () => {
         <PlannerList />
       </CustomDrawer>
 
-      {/* New: Error Details Drawer */}
       <CustomDrawer
         open={isErrorDetailsDrawerOpen}
         onClose={() => setIsErrorDetailsDrawerOpen(false)}
@@ -658,17 +492,9 @@ const PlanGenerator: React.FC = () => {
           <Typography variant="body2" color="text.secondary">
             Detailed information about the last error encountered during plan generation.
           </Typography>
-          <TextField
-            label="Error Message"
-            multiline
-            rows={15}
-            value={error || 'No error details available.'}
-            fullWidth
-            size="small"
-            variant="outlined"
-            InputProps={{ style: { fontFamily: 'monospace', color: theme.palette.error.main } }}
-            sx={drawerErrorContentSx}
-          />
+          <Alert severity="error" sx={{ my: 2 }}>
+            {error || 'No error details available.'}
+          </Alert>
         </Box>
       </CustomDrawer>
 
