@@ -17,75 +17,73 @@ import {
   Tooltip,
   IconButton,
   Snackbar,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import { useStore } from '@nanostores/react';
 import { plannerStore, setApplyStatus } from './stores/plannerStore';
 import { plannerService } from './api/plannerService';
-import type { IPlan, IFileChange } from './types'; // Updated import to include IFileChange
+import type { IPlan, IFileChange } from './types';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
-import CloseIcon from '@mui/icons-material/Close'; // Import CloseIcon for Snackbar
-import EditIcon from '@mui/icons-material/Edit'; // Import EditIcon
+import CloseIcon from '@mui/icons-material/Close';
+import EditIcon from '@mui/icons-material/Edit';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // Import ExpandMoreIcon
 
 interface PlanDisplayProps {
   plan: IPlan;
   onEditPlanMetadata: () => void;
-  onEditFileChange: (changeIndex: number, fileChange: IFileChange) => void; // New prop for editing individual file changes
+  onEditFileChange: (changeIndex: number, fileChange: IFileChange) => void;
 }
 
 type ChangeApplyStatus = 'idle' | 'applying' | 'success' | 'failure';
 
-const styles = {
-  card: {
-    marginBottom: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255, 255, 255, 0.12)',
-    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-    borderRadius: '12px',
-  },
-  sectionTitle: {
-    marginBottom: 1,
-    color: 'primary.main',
-    fontWeight: 'bold',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 1,
-  },
-  tableContainer: {
-    borderRadius: '8px',
-    overflowY: 'auto', // Changed from 'hidden' to 'auto'
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  tableHeadCell: {
-    fontWeight: 'bold',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  codeBlock: {
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    padding: 2,
-    borderRadius: '8px',
-    fontFamily: 'monospace',
-    whiteSpace: 'pre-wrap',
-    wordBreak: 'break-all',
-    maxHeight: '300px',
-    overflowY: 'auto',
-    color: 'text.secondary',
-  },
-  loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
-    borderRadius: '12px',
-  },
+const sectionTitleSx = {
+  marginBottom: 1,
+  color: 'primary.main',
+  fontWeight: 'bold',
+  display: 'flex',
+  alignItems: 'center',
+  gap: 1,
+};
+
+const tableContainerSx = {
+  borderRadius: '8px',
+  overflowY: 'auto',
+  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+};
+
+const tableHeadCellSx = {
+  fontWeight: 'bold',
+  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+};
+
+const codeBlockSx = {
+  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+  padding: 2,
+  borderRadius: '8px',
+  fontFamily: 'monospace',
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-all',
+  maxHeight: '300px',
+  overflowY: 'auto',
+  color: 'text.secondary',
+};
+
+const loadingOverlaySx = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 10,
+  borderRadius: '12px',
 };
 
 const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onEditFileChange }) => {
@@ -132,7 +130,6 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
       const result = await plannerService.applyPlan(plan, projectRoot);
       if (result.ok) {
         setApplyStatus('success');
-        // Optionally update individual statuses if all are successful
         const newStatuses = new Map(individualChangeStatus);
         plan.changes.forEach((_, index) => {
           newStatuses.set(index, { status: 'success', error: null });
@@ -141,7 +138,7 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
       } else {
         setApplyStatus('failure', result.error || 'Failed to apply plan.');
       }
-    } catch (err: unknown) { // Changed 'any' to 'unknown'
+    } catch (err: unknown) {
       setApplyStatus('failure', (err as Error).message || 'An unexpected error occurred during application.');
     }
   };
@@ -172,7 +169,7 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
           }),
         );
       }
-    } catch (err: unknown) { // Changed 'any' to 'unknown'
+    } catch (err: unknown) {
       setIndividualChangeStatus((prev) =>
         new Map(prev).set(changeIndex, {
           status: 'failure',
@@ -183,9 +180,9 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
   };
 
   return (
-    <Box className="space-y-6 p-2" sx={{ position: 'relative' }}>
+    <Box className="space-y-4 p-2 relative">
       {applyStatus === 'applying' && (
-        <Box sx={styles.loadingOverlay}>
+        <Box sx={loadingOverlaySx}>
           <CircularProgress color="primary" size={60} />
           <Typography variant="h6" color="primary.contrastText" sx={{ mt: 2 }}>
             Applying Plan...
@@ -193,10 +190,12 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
         </Box>
       )}
 
-      <Card sx={styles.card}>
+      <Card className="mb-4 rounded-xl shadow-lg border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md">
         <CardContent>
-          <Typography variant="h5" component="h2" gutterBottom sx={styles.sectionTitle}>
-            {plan.title}
+          <Box className="flex items-center justify-between mb-2">
+            <Typography variant="h5" component="h2" gutterBottom sx={sectionTitleSx}>
+              {plan.title}
+            </Typography>
             <Tooltip title="Edit Plan Metadata">
               <IconButton
                 onClick={onEditPlanMetadata}
@@ -207,58 +206,74 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
                 <EditIcon fontSize="small" />
               </IconButton>
             </Tooltip>
-          </Typography>
+          </Box>
           {plan.summary && (
             <Typography variant="body1" paragraph color="text.secondary">
               {plan.summary}
             </Typography>
           )}
-          {plan.thoughtProcess && (
-            <Box mb={2}>
-              <Typography variant="h6" sx={styles.sectionTitle}>
-                Thought Process
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={styles.codeBlock}>
-                {plan.thoughtProcess}
-              </Typography>
-            </Box>
-          )}
         </CardContent>
       </Card>
 
-      {plan.documentation && (
-        <Card sx={styles.card}>
-          <CardContent>
-            <Typography variant="h6" sx={styles.sectionTitle}>
-              Documentation
+      <Accordion defaultExpanded className="rounded-xl shadow-lg border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md">
+        <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="thought-process-content" id="thought-process-header">
+          <Typography variant="h6" sx={sectionTitleSx} className="mb-0">
+            Thought Process
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          {plan.thoughtProcess ? (
+            <Typography variant="body2" color="text.secondary" sx={codeBlockSx}>
+              {plan.thoughtProcess}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={styles.codeBlock}>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No detailed thought process provided.
+            </Typography>
+          )}
+        </AccordionDetails>
+      </Accordion>
+
+      <Accordion className="rounded-xl shadow-lg border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md">
+        <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="documentation-content" id="documentation-header">
+          <Typography variant="h6" sx={sectionTitleSx} className="mb-0">
+            Documentation
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          {plan.documentation ? (
+            <Typography variant="body2" color="text.secondary" sx={codeBlockSx}>
               {plan.documentation}
             </Typography>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No documentation provided.
+            </Typography>
+          )}
+        </AccordionDetails>
+      </Accordion>
 
-      <Card sx={styles.card}>
-        <CardContent>
-          <Typography variant="h6" sx={styles.sectionTitle}>
+      <Accordion defaultExpanded className="rounded-xl shadow-lg border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md">
+        <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="file-changes-content" id="file-changes-header">
+          <Typography variant="h6" sx={sectionTitleSx} className="mb-0">
             File Changes ({plan.changes.length})
           </Typography>
+        </AccordionSummary>
+        <AccordionDetails sx={{ px: 0 }}> {/* Remove horizontal padding for table */} 
           {plan.changes.length > 0 ? (
-            <TableContainer sx={styles.tableContainer} className="max-h-[400px]">
+            <TableContainer sx={tableContainerSx} className="max-h-[400px] shadow-none">
               <Table stickyHeader size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={styles.tableHeadCell}>File Path</TableCell>
-                    <TableCell sx={styles.tableHeadCell}>Action</TableCell>
-                    <TableCell sx={styles.tableHeadCell}>Reason</TableCell>
-                    <TableCell sx={styles.tableHeadCell} align="center" width="120px">Actions</TableCell> {/* Changed width to accommodate both icons */}
+                    <TableCell sx={tableHeadCellSx}>File Path</TableCell>
+                    <TableCell sx={tableHeadCellSx}>Action</TableCell>
+                    <TableCell sx={tableHeadCellSx}>Reason</TableCell>
+                    <TableCell sx={tableHeadCellSx} align="center" width="120px">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {plan.changes.map((change, index) => {
                     const status = individualChangeStatus.get(index)?.status || 'idle';
-                    // const error = individualChangeStatus.get(index)?.error; // Not currently used here
                     return (
                       <TableRow key={index} hover>
                         <TableCell>{change.filePath}</TableCell>
@@ -278,7 +293,7 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
                           />
                         </TableCell>
                         <TableCell>{change.reason || '-'}</TableCell>
-                        <TableCell sx={{ display: 'flex', gap: 0.5, alignItems: 'center', justifyContent: 'center' }}> {/* Center align content */}
+                        <TableCell sx={{ display: 'flex', gap: 0.5, alignItems: 'center', justifyContent: 'center' }}>
                           {status === 'applying' ? (
                             <CircularProgress size={20} color="inherit" />
                           ) : status === 'success' ? (
@@ -315,29 +330,35 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
               </Table>
             </TableContainer>
           ) : (
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
               No file changes proposed.
             </Typography>
           )}
-        </CardContent>
-      </Card>
+        </AccordionDetails>
+      </Accordion>
 
-      {plan.gitInstructions && plan.gitInstructions.length > 0 && (
-        <Card sx={styles.card}>
-          <CardContent>
-            <Typography variant="h6" sx={styles.sectionTitle}>
-              Git Instructions
-            </Typography>
-            <Box sx={styles.codeBlock}>
+      <Accordion className="rounded-xl shadow-lg border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md">
+        <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="git-instructions-content" id="git-instructions-header">
+          <Typography variant="h6" sx={sectionTitleSx} className="mb-0">
+            Git Instructions
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          {plan.gitInstructions && plan.gitInstructions.length > 0 ? (
+            <Box sx={codeBlockSx}>
               {plan.gitInstructions.map((instruction, index) => (
                 <Typography key={index} variant="body2" color="text.secondary">
                   {instruction}
                 </Typography>
               ))}
             </Box>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No specific Git instructions provided.
+            </Typography>
+          )}
+        </AccordionDetails>
+      </Accordion>
 
       <Box className="flex justify-end p-4">
         <Button

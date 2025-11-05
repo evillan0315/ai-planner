@@ -12,6 +12,9 @@ import {
   Chip,
   useTheme,
   Stack,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import AddRoadIcon from '@mui/icons-material/AddRoad';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -21,8 +24,9 @@ import BugReportIcon from '@mui/icons-material/BugReport';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import CloseIcon from '@mui/icons-material/Close';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // Import ExpandMoreIcon
 
-import type { IFileChange, IPlan } from './types'; // Import necessary types
+import type { IPlan } from './types'; // Import necessary types
 
 interface PlanInputFormProps {
   userPrompt: string;
@@ -50,29 +54,22 @@ interface PlanInputFormProps {
   plan: IPlan | null;
 }
 
-const styles = {
-  card: {
-    marginBottom: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255, 255, 255, 0.12)',
-    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-    borderRadius: '12px',
-  },
-  formSection: {
-    padding: 3,
-  },
-  generateButton: {
-    marginTop: 2,
-    marginBottom: 2,
-  },
-  buttonGroup: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 1,
-    mt: 2,
-    justifyContent: 'flex-end',
-  },
+const cardSx = {
+  marginBottom: 4,
+  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.12)',
+  boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+  borderRadius: '12px',
+};
+
+const formSectionSx = {
+  padding: 3,
+};
+
+const generateButtonSx = {
+  marginTop: 2,
+  marginBottom: 2,
 };
 
 export const PlanInputForm: React.FC<PlanInputFormProps> = ({
@@ -103,8 +100,8 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
   const theme = useTheme();
 
   return (
-    <Card sx={styles.card} className="mb-6 flex-shrink-0">
-      <CardContent sx={styles.formSection}>
+    <Card sx={cardSx} className="mb-6 flex-shrink-0">
+      <CardContent sx={formSectionSx} className="flex flex-col">
         <Box className="flex items-center justify-between mb-4">
           <Typography variant="h6" gutterBottom className="text-text-primary mb-0">
             Generate a New Plan
@@ -121,114 +118,126 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
             </Tooltip>
           )}
         </Box>
-        <TextField
-          label="Enter your prompt for the AI"
-          multiline
-          rows={6}
-          fullWidth
-          value={userPrompt}
-          onChange={(e) => setUserPrompt(e.target.value)}
-          variant="outlined"
-          disabled={isLoading}
-          sx={{ mb: 2 }}
-        />
+
+        {/* User Prompt Section - Always expanded by default */}
+        <Accordion defaultExpanded className="rounded-lg shadow-sm border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md mb-4">
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="user-prompt-content" id="user-prompt-header">
+            <Typography variant="subtitle1" className="font-semibold">User Prompt</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <TextField
+              label="Enter your prompt for the AI"
+              multiline
+              rows={6}
+              fullWidth
+              value={userPrompt}
+              onChange={(e) => setUserPrompt(e.target.value)}
+              variant="outlined"
+              disabled={isLoading}
+            />
+          </AccordionDetails>
+        </Accordion>
 
         {/* Project Context Section */}
-        <Box sx={{ mt: 3, mb: 2 }}>
-          <Typography variant="subtitle1" className="font-semibold mb-2">
-            Project Context
-          </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="center" className="mb-2">
-            <TextField label="Project Root" value={projectRoot} disabled fullWidth size="small" />
-            <Tooltip title="Select Project Root Directory">
-              <IconButton
-                color="primary"
-                onClick={openProjectRootPicker}
-                aria-label="select project root directory"
-                disabled={isLoading}
-              >
-                <FolderOpenIcon />
-              </IconButton>
-            </Tooltip>
-          </Stack>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="center" className="mb-2">
-            <TextField
-              label="Scan Paths (comma-separated)"
-              value={scanPathsInput}
-              disabled
-              fullWidth
-              size="small"
-              placeholder="e.g., src, public, package.json"
-            />
-            <Tooltip title="Manage AI Scan Paths">
-              <IconButton
-                color="primary"
-                onClick={openScanPathsDrawer}
-                aria-label="manage ai scan paths"
-                disabled={isLoading}
-              >
-                <AddRoadIcon />
-              </IconButton>
-            </Tooltip>
-          </Stack>
-          {/* Multimodal File Upload */}
-          <Stack direction="row" spacing={1} alignItems="center" className="mt-2">
-            <Button
-              variant="outlined"
-              startIcon={<UploadFileIcon />}
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading}
-              size="small"
-            >
-              Upload Context File
-            </Button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              style={{ display: 'none' }}
-              disabled={isLoading}
-            />
-            {selectedFile && (
-              <Chip
-                label={`File: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(2)} KB)`}
-                onDelete={handleClearFile}
-                color="info"
+        <Accordion className="rounded-lg shadow-sm border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md mb-4">
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="project-context-content" id="project-context-header">
+            <Typography variant="subtitle1" className="font-semibold">Project Context</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="center" className="mb-2">
+              <TextField label="Project Root" value={projectRoot} disabled fullWidth size="small" />
+              <Tooltip title="Select Project Root Directory">
+                <IconButton
+                  color="primary"
+                  onClick={openProjectRootPicker}
+                  aria-label="select project root directory"
+                  disabled={isLoading}
+                >
+                  <FolderOpenIcon />
+                </IconButton>
+              </Tooltip>
+            </Stack>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="center" className="mb-2">
+              <TextField
+                label="Scan Paths (comma-separated)"
+                value={scanPathsInput}
+                disabled
+                fullWidth
                 size="small"
-                sx={{ color: theme.palette.text.primary, borderColor: theme.palette.info.main }}
+                placeholder="e.g., src, public, package.json"
               />
-            )}
-          </Stack>
-        </Box>
+              <Tooltip title="Manage AI Scan Paths">
+                <IconButton
+                  color="primary"
+                  onClick={openScanPathsDrawer}
+                  aria-label="manage ai scan paths"
+                  disabled={isLoading}
+                >
+                  <AddRoadIcon />
+                </IconButton>
+              </Tooltip>
+            </Stack>
+            {/* Multimodal File Upload */}
+            <Stack direction="row" spacing={1} alignItems="center" className="mt-2">
+              <Button
+                variant="outlined"
+                startIcon={<UploadFileIcon />}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+                size="small"
+              >
+                Upload Context File
+              </Button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+                disabled={isLoading}
+              />
+              {selectedFile && (
+                <Chip
+                  label={`File: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(2)} KB)`}
+                  onDelete={handleClearFile}
+                  color="info"
+                  size="small"
+                  sx={{ color: theme.palette.text.primary, borderColor: theme.palette.info.main }}
+                />
+              )}
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
 
         {/* AI Configuration Section */}
-        <Box sx={{ mt: 3, mb: 2 }}>
-          <Typography variant="subtitle1" className="font-semibold mb-2">
-            AI Configuration
-          </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} className="mb-2">
-            <Button
-              variant="outlined"
-              startIcon={<DescriptionIcon />}
-              onClick={openAiInstructionDrawer}
-              disabled={isLoading}
-              fullWidth
-              size="small"
-            >
-              Edit AI Instructions
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<SchemaIcon />}
-              onClick={openExpectedOutputDrawer}
-              disabled={isLoading}
-              fullWidth
-              size="small"
-            >
-              Edit Expected Output Format
-            </Button>
-          </Stack>
-        </Box>
+        <Accordion className="rounded-lg shadow-sm border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md mb-4">
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="ai-config-content" id="ai-config-header">
+            <Typography variant="subtitle1" className="font-semibold">AI Configuration</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} className="mb-2">
+              <Button
+                variant="outlined"
+                startIcon={<DescriptionIcon />}
+                onClick={openAiInstructionDrawer}
+                disabled={isLoading}
+                fullWidth
+                size="small"
+              >
+                Edit AI Instructions
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<SchemaIcon />}
+                onClick={openExpectedOutputDrawer}
+                disabled={isLoading}
+                fullWidth
+                size="small"
+              >
+                Edit Expected Output Format
+              </Button>
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
 
         {/* Actions Section */}
         <Box className="flex justify-between gap-2 mt-4">
@@ -247,7 +256,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
               variant="outlined"
               color="secondary"
               onClick={handleClearPlan}
-              disabled={isLoading && !plan} // 'plan' might not be defined in this scope if moved. Check context.
+              disabled={isLoading && !plan} 
             >
               Clear Plan
             </Button>
@@ -257,7 +266,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
               onClick={handleGeneratePlan}
               disabled={isLoading || !userPrompt.trim() || !projectRoot.trim()}
               startIcon={isLoading && <CircularProgress size={20} color="inherit" />}
-              sx={styles.generateButton}
+              sx={generateButtonSx}
             >
               {isLoading ? 'Generating Plan...' : 'Generate Plan'}
             </Button>
