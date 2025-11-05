@@ -34,7 +34,7 @@ _Visualizing the AI-driven code planning interface and plan management._
 
 ## Technologies Used
 
--   **Frontend**: React v18, Vite, TypeScript, Material UI v6, Material Icons v6, Tailwind CSS v4, Nanostores, Axios, React Router DOM, path-browserify.
+-   **Frontend**: React v18, Vite, TypeScript, Material UI v6, Material Icons v6, Tailwind CSS v4, Nanostores, Axios, React Router DOM, path-browserify, **Monaco Editor**.
 -   **Backend (Interacts with)**: Node.js, NestJS, Google Gemini API.
 
 ## Getting Started
@@ -53,8 +53,8 @@ Before you begin, ensure you have the following installed:
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/evillan0315/project-board-server.git # Assuming this repo is part of a monorepo
-    cd apps/ai-planner
+    git clone https://github.com/evillan0315/ai-planner.git
+    cd ai-planner
     ```
 
 2.  **Install dependencies:**
@@ -69,7 +69,7 @@ Before you begin, ensure you have the following installed:
 
 ### Configuration
 
-Create a `.env` file in the `apps/ai-planner` directory for local development:
+Create a `.env` file in the `ai-planner` directory for local development:
 
 ```env
 VITE_API_URL=http://localhost:5000/api
@@ -105,9 +105,9 @@ GOOGLE_CLIENT_SECRET='your_google_client_secret'
 GOOGLE_CALLBACK_URL='http://localhost:3003/auth/callback' # Must match this frontend's callback route
 
 # GitHub OAuth2 Credentials
-GITHUB_CLIENT_ID='your_github_client_id'
-GITHUB_CLIENT_SECRET='your_github_client_secret'
-GITHUB_CALLBACK_URL='http://localhost:3003/auth/callback' # Must match this frontend's callback route
+HUB_CLIENT_ID='your_github_client_id'
+HUB_CLIENT_SECRET='your_github_client_secret'
+HUB_CALLBACK_URL='http://localhost:3003/auth/callback' # Must match this frontend's callback route
 
 # ...
 FRONTEND_URL='http://localhost:3003' # Ensure this is correctly set in backend too
@@ -158,6 +158,9 @@ ai-planner/
 │   │   │   └── CustomDrawer.tsx
 │   │   ├── Layout.tsx          # Main application layout with navigation
 │   │   ├── Loading.tsx         # Generic loading indicator
+│   │   ├── editor/             # Code Editor components
+│   │   │   └── monaco/         # Monaco Editor specific components
+│   │   │       └── MonacoEditor.tsx
 │   │   ├── planner/            # AI Code Planner specific components and logic
 │   │   │   ├── api/            # Planner API services
 │   │   │   │   └── plannerService.ts
@@ -295,4 +298,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 Eddie Villanueva - [evillan0315@gmail.com](mailto:evillan0315@gmail.com)
 [LinkedIn](https://www.linkedin.com/in/eddie-villalon/)
-[GitHub](https://github.com/evillan0315)
+[GitHub](https://github.com/evillan0315/ai-planner)
