@@ -391,6 +391,7 @@ const PlanGenerator: React.FC = () => {
         openAiInstructionDrawer={() => setIsAiInstructionDrawerOpen(true)}
         openExpectedOutputDrawer={() => setIsExpectedOutputDrawerOpen(true)}
         openErrorDetailsDrawer={() => setIsErrorDetailsDrawerOpen(true)}
+        plan={plan}
       />
 
       <PlanGenerationStatus

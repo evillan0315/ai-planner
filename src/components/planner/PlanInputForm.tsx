@@ -46,6 +46,7 @@ interface PlanInputFormProps {
   openAiInstructionDrawer: () => void;
   openExpectedOutputDrawer: () => void;
   openErrorDetailsDrawer: () => void;
+  plan: IPlan | null;
 }
 
 const styles = {
@@ -96,6 +97,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
   openAiInstructionDrawer,
   openExpectedOutputDrawer,
   openErrorDetailsDrawer,
+  plan
 }) => {
   const theme = useTheme();
 
