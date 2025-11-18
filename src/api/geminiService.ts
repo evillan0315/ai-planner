@@ -302,7 +302,6 @@ export class GeminiService {
     const controller = new AbortController();
     const userSignal = options?.signal;
     const onAbort = () => controller.abort();
-    
 
     let resp: Response;
     try {

@@ -37,11 +37,11 @@ export const setApiKey = (key: string | null) => {
  * @param chunk - The text delta to append.
  */
 export const appendStreamingContent = (chunk: string) => {
-    const current = geminiStore.get();
-    geminiStore.set({
-        ...current,
-        streamingContent: current.streamingContent + chunk,
-    });
+  const current = geminiStore.get();
+  geminiStore.set({
+    ...current,
+    streamingContent: current.streamingContent + chunk,
+  });
 };
 
 /**
@@ -49,22 +49,25 @@ export const appendStreamingContent = (chunk: string) => {
  * @param isStreaming - Boolean indicating if a stream is currently active.
  * @param error - Optional error message if streaming failed to start or stopped unexpectedly.
  */
-export const setStreamingStatus = (isStreaming: boolean, error: string | null = null) => {
-    const current = geminiStore.get();
-    geminiStore.set({
-        ...current,
-        isStreaming: isStreaming,
-        streamingError: error,
-    });
+export const setStreamingStatus = (
+  isStreaming: boolean,
+  error: string | null = null,
+) => {
+  const current = geminiStore.get();
+  geminiStore.set({
+    ...current,
+    isStreaming: isStreaming,
+    streamingError: error,
+  });
 };
 
 /**
  * Action to clear all streaming content and error state.
  */
 export const clearStreamingData = () => {
-    geminiStore.set({
-        ...geminiStore.get(),
-        streamingContent: '',
-        streamingError: null,
-    });
+  geminiStore.set({
+    ...geminiStore.get(),
+    streamingContent: '',
+    streamingError: null,
+  });
 };

@@ -1,5 +1,5 @@
 // Import MonacoEditor
-import * as path from 'path-browserify'; 
+import * as path from 'path-browserify';
 
 export const getMonacoLanguage = (filePath: string): string => {
   if (!filePath) return 'plaintext';

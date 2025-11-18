@@ -11,7 +11,7 @@ import {
   MenuItem,
   IconButton,
   Paper,
-  useTheme
+  useTheme,
 } from '@mui/material';
 import { ThemeToggle } from './ThemeToggle';
 import { Link as RouterLink, useLocation } from 'react-router-dom'; // ADD useLocation
@@ -38,7 +38,11 @@ import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile'; // Generi
 
 import CustomDrawer from './Drawer/CustomDrawer';
 import FloatingResizableDraggableBox from './ui/FloatingResizableDraggableBox';
-import { editorStore, closeEditor, saveFileContent } from '@/components/editor/stores/editorStore';
+import {
+  editorStore,
+  closeEditor,
+  saveFileContent,
+} from '@/components/editor/stores/editorStore';
 import FileEditorViewer from './editor/FileEditorViewer';
 import { GlobalAction } from '@/types/action';
 import GlobalActionButton from './ui/GlobalActionButton';
@@ -53,7 +57,7 @@ import {
 } from '@/components/editor/stores/floatingWindowsStore';
 
 // Media Constants and Types
-import type { IFileSystemEntry } from '@/components/file-explorer/types'; 
+import type { IFileSystemEntry } from '@/components/file-explorer/types';
 import {
   IMAGE_MIME_TYPES,
   VIDEO_MIME_TYPES,
@@ -63,7 +67,6 @@ import {
 interface LayoutProps {
   children: ReactNode;
 }
-
 
 const NAVBAR_HEIGHT = 64;
 const FOOTER_HEIGHT = 50; // Adjusted to accommodate both original footer controls (40px) and MediaPlayerContainer (80px)
@@ -75,7 +78,7 @@ const SIDEBAR_RESIZER_WIDTH = 2;
 // Helper function to map mimeType to an Icon component
 const getMediaIcon = (mimeType?: string | null): React.ReactNode => {
   if (!mimeType) return <InsertDriveFileIcon fontSize="small" color="action" />;
-  
+
   if (IMAGE_MIME_TYPES.has(mimeType)) {
     return <ImageIcon fontSize="small" color="primary" />;
   }
@@ -91,20 +94,19 @@ const getMediaIcon = (mimeType?: string | null): React.ReactNode => {
   return <InsertDriveFileIcon fontSize="small" color="action" />;
 };
 
-
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const theme = useTheme();
   const { isLoggedIn, logout, user } = useAuth();
   const location = useLocation(); // Use location hook
-  
+
   // 1. Code Editor Drawer State (Singleton)
-  const { 
-    isOpen: isEditorOpen, 
-    fileEntry, 
-    hasUnsavedChanges, 
-    isLoading, 
+  const {
+    isOpen: isEditorOpen,
+    fileEntry,
+    hasUnsavedChanges,
+    isLoading,
   } = useStore(editorStore); // Listen to editor store
-  
+
   // 2. Floating Window State (Collection)
   const { windows } = useStore(floatingWindowsStore);
 
@@ -122,10 +124,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const handleSaveFile = async () => {
     const result = await saveFileContent();
     if (result.success) {
-        // Optionally show success notification
+      // Optionally show success notification
     } else {
-        // Error handling is managed by editorStore internally, but we can log/show externally if needed.
-        console.error("File save failed:", result.message);
+      // Error handling is managed by editorStore internally, but we can log/show externally if needed.
+      console.error('File save failed:', result.message);
     }
   };
 
@@ -150,7 +152,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   // Determine which wrapper to use based on content type
   const isCodeOrText = isEditorOpen; // editorStore now only handles code/text
-  
+
   // NEW: Check if the user is on the Codejector page, where the editor is persistent.
   const isCodejectorPage = location.pathname === '/codejector/editor';
 
@@ -163,7 +165,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       className="transition-colors duration-200"
     >
       <AppBar position="sticky" className="shadow-md">
-        <Toolbar elevation={2} sx={{ justifyContent: 'space-between', backgroundColor: 'background.paper', color: 'text.primary' }}>
+        <Toolbar
+          elevation={2}
+          sx={{
+            justifyContent: 'space-between',
+            backgroundColor: 'background.paper',
+            color: 'text.primary',
+          }}
+        >
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RouterLink
               to="/"
@@ -287,7 +296,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Box>
         </Toolbar>
       </AppBar>
-      <Box component="main" sx={{ flexGrow: 1, p: 0, backgroundColor: theme.palette.background.default }}>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 0,
+          backgroundColor: theme.palette.background.default,
+        }}
+      >
         {children}
       </Box>
       {/* Sticky footer */}
@@ -315,13 +331,17 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         {/* FileEditorViewer reads its context from the singleton editorStore here */}
         <FileEditorViewer onClose={closeEditor} />
       </CustomDrawer>
-      
+
       {/* 2. Global Floating Viewers (for media/read-only, multi-instance) */}
       {windows.map((window) => (
         <FloatingResizableDraggableBox
           key={window.id}
           id={window.id}
-          title={window.fileEntry ? `Viewer: ${window.fileEntry.name}` : 'File Viewer'}
+          title={
+            window.fileEntry
+              ? `Viewer: ${window.fileEntry.name}`
+              : 'File Viewer'
+          }
           currentX={window.position.x}
           currentY={window.position.y}
           currentWidth={window.size.width}
@@ -338,7 +358,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           headerLeftActions={getMediaIcon(window.fileEntry?.mimeType)}
         >
           {/* Pass the specific window context to FileEditorViewer. */}
-          <FileEditorViewer 
+          <FileEditorViewer
             onClose={() => closeFloatingWindow(window.id)}
             contextEntry={window.fileEntry}
             contextContent={window.content}

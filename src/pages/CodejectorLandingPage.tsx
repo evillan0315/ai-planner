@@ -37,7 +37,9 @@ function CodejectorLandingPage() {
             variant="body1"
             className="text-text-secondary mb-4 max-w-xl"
           >
-            Access a dedicated, split-view workspace featuring a persistent file explorer and code editor for deep context integration and rapid file modification.
+            Access a dedicated, split-view workspace featuring a persistent file
+            explorer and code editor for deep context integration and rapid file
+            modification.
           </Typography>
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
