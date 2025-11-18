@@ -1,0 +1,117 @@
+import { Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { getMuiTheme } from './theme';
+import { Layout } from './components/Layout';
+import { themeAtom } from './stores/themeStore';
+import { useStore } from '@nanostores/react';
+import { useMemo, Suspense, lazy } from 'react';
+import { initAuth } from './stores/authStore';
+import Loading from './components/Loading';
+import ErrorBoundary from './components/ErrorBoundary'; // Import the new ErrorBoundary
+import GlobalDialogManager from '@/components/ui/dialogs/GlobalDialogManager'; // ADD IMPORT
+
+// Lazy load page components
+const HomePage = lazy(() => import('./pages/HomePage'));
+const PlannerLandingPage = lazy(() => import('./pages/PlannerLandingPage'));
+const PlannerList = lazy(() => import('./components/planner/PlannerList'));
+const PlannerPage = lazy(() => import('./pages/PlannerPage'));
+const PromptGeneratorPage = lazy(() => import('./components/generator/PromptGeneratorPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const AuthCallback = lazy(() => import('./pages/AuthCallback'));
+const StreamDemoPage = lazy(() => import('./pages/StreamDemoPage')); // Lazy load new Stream Demo Page
+const FileExplorerPage = lazy(() => import('./pages/FileExplorerPage')); // ADD File Explorer Page
+const CodejectorLandingPage = lazy(() => import('./pages/CodejectorLandingPage')); // ADDED
+const CodejectorPage = lazy(() => import('./pages/CodejectorPage')); // ADDED
+
+// Initialize authentication store on app start
+initAuth();
+
+function App() {
+  const { theme: currentThemeMode } = useStore(themeAtom);
+  // Ensure currentThemeMode is never undefined for getMuiTheme
+  // Provide 'light' as a fallback if currentThemeMode is momentarily undefined.
+  const muiTheme = useMemo(() => getMuiTheme(currentThemeMode || 'dark'), [currentThemeMode]);
+
+  return (
+    <ThemeProvider theme={muiTheme}>
+      <CssBaseline />
+      <ErrorBoundary> {/* Wrap the entire layout with the ErrorBoundary */}
+        <Layout>
+          <Routes>
+            <Route path="/" element={
+              <Suspense fallback={<Loading />}>
+                <HomePage />
+              </Suspense>
+            } /> 
+            <Route path="/planner" element={
+              <Suspense fallback={<Loading />}>
+                <PlannerLandingPage />
+              </Suspense>
+            } />
+            <Route path="/planner/list" element={
+              <Suspense fallback={<Loading />}>
+                <PlannerList />
+              </Suspense>
+            } /> 
+            <Route path="/planner-generator" element={
+              <Suspense fallback={<Loading />}>
+                <PlannerPage />
+              </Suspense>
+            }/>
+            <Route path="/planner-generator/:planId" element={
+               <Suspense fallback={<Loading />}>
+                <PlannerPage />
+              </Suspense>
+            } />
+            <Route path="/prompt-generator" element={
+               <Suspense fallback={<Loading />}>
+                <PromptGeneratorPage />
+              </Suspense>
+            } />
+            <Route path="/files" element={
+              <Suspense fallback={<Loading />}>
+                <FileExplorerPage />
+              </Suspense>
+            } />
+            
+            {/* CODEJECTOR ROUTES (NEW) */}
+            <Route path="/codejector" element={
+              <Suspense fallback={<Loading />}>
+                <CodejectorLandingPage />
+              </Suspense>
+            } />
+            <Route path="/codejector/editor" element={
+              <Suspense fallback={<Loading />}>
+                <CodejectorPage />
+              </Suspense>
+            } />
+            
+            <Route path="/stream-demo" element={
+              <Suspense fallback={<Loading />}>
+                <StreamDemoPage />
+              </Suspense>
+            } />
+            <Route path="/login" element={
+              <Suspense fallback={<Loading />}>
+                <LoginPage />
+              </Suspense>
+            } />
+            <Route
+              path="/auth/callback"
+              element={
+                <Suspense fallback={<Loading />}>
+                  <AuthCallback />
+                </Suspense>
+              }
+            />
+          </Routes>
+        </Layout>
+      </ErrorBoundary>
+      {/* Global Dialog Manager for Alert/Confirm/Prompt functionality */}
+      <GlobalDialogManager /> 
+    </ThemeProvider>
+  );
+}
+
+export default App;

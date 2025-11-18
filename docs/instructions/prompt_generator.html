@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompt Generator Demo</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+</head>
+<body class="bg-gray-100 p-6 font-sans">
+
+  <div class="max-w-3xl mx-auto bg-white shadow-md rounded p-6">
+    <h1 class="text-2xl font-bold mb-4">Prompt & Instruction Generator</h1>
+
+    <div class="mb-4">
+      <label class="block font-medium mb-1">Prompt:</label>
+      <textarea id="promptInput" rows="4" class="w-full border rounded p-2"></textarea>
+    </div>
+
+    <div class="mb-4">
+      <label class="block font-medium mb-1">Instructions (JSON format):</label>
+      <textarea id="instructionInput" rows="4" class="w-full border rounded p-2"></textarea>
+    </div>
+
+    <button id="generateBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Generate</button>
+
+    <h2 class="text-xl font-semibold mt-6 mb-2">Generated JSON Schema Output:</h2>
+    <pre id="outputArea" class="bg-gray-100 p-4 rounded border overflow-x-auto"></pre>
+  </div>
+
+  <script>
+    // Retry utility
+    const retryWithBackoff = async (fn, options = {}) => {
+      const maxAttempts = options.maxAttempts || 4;
+      const baseDelay = options.baseMs || 500;
+      const jitterFactor = options.jitterFactor || 0.2;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          return await fn();
+        } catch (err) {
+          if (attempt === maxAttempts) throw err;
+          let delay = baseDelay * Math.pow(2, attempt - 1);
+          delay += (Math.random() * 2 - 1) * jitterFactor * delay;
+          console.warn(`Retry attempt ${attempt} failed. Retrying in ${Math.round(delay)}ms`, err);
+          await new Promise(r => setTimeout(r, delay));
+        }
+      }
+    };
+
+    // Low-level prompt generator module
+    const PromptGenerator = {
+      generate: async ({ prompt, instructions }) => {
+        const payload = { prompt, instructions };
+        // Simulate async JSON schema generation
+        return retryWithBackoff(async () => {
+          if (!prompt) throw new Error("Prompt cannot be empty");
+          const schema = {
+            type: "object",
+            properties: {
+              prompt: { type: "string" },
+              instructions: { type: "string" },
+            },
+            required: ["prompt"]
+          };
+          const data = { prompt, instructions };
+          return {
+            schema,
+            data,
+            generatedAt: new Date().toISOString(),
+            valid: true,
+            errors: []
+          };
+        });
+      }
+    };
+
+    // Demo UI binding
+    document.getElementById('generateBtn').addEventListener('click', async () => {
+      const prompt = document.getElementById('promptInput').value;
+      const instructions = document.getElementById('instructionInput').value;
+
+      const outputArea = document.getElementById('outputArea');
+      outputArea.textContent = 'Generating...';
+
+      try {
+        const result = await PromptGenerator.generate({ prompt, instructions });
+        outputArea.textContent = JSON.stringify(result, null, 2);
+      } catch (err) {
+        outputArea.textContent = JSON.stringify({ error: err.message }, null, 2);
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,352 @@
+import type { ReactNode } from 'react';
+import React from 'react';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Box,
+  Button,
+  Stack,
+  Menu,
+  MenuItem,
+  IconButton,
+  Paper,
+  useTheme
+} from '@mui/material';
+import { ThemeToggle } from './ThemeToggle';
+import { Link as RouterLink, useLocation } from 'react-router-dom'; // ADD useLocation
+import { useAuth } from '../hooks/useAuth';
+import { useStore } from '@nanostores/react';
+
+// UI Icons
+import LoginIcon from '@mui/icons-material/Login';
+import LogoutIcon from '@mui/icons-material/Logout';
+import AddRoadIcon from '@mui/icons-material/AddRoad';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import MenuIcon from '@mui/icons-material/Menu';
+import SendIcon from '@mui/icons-material/Send';
+import FolderSharedIcon from '@mui/icons-material/FolderShared';
+import SaveIcon from '@mui/icons-material/Save';
+import CloseIcon from '@mui/icons-material/Close';
+import CodeIcon from '@mui/icons-material/Code'; // ADDED CodeIcon
+
+// Media Icons
+import VideocamIcon from '@mui/icons-material/Videocam';
+import AudiotrackIcon from '@mui/icons-material/Audiotrack';
+import ImageIcon from '@mui/icons-material/Image';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile'; // Generic file icon
+
+import CustomDrawer from './Drawer/CustomDrawer';
+import FloatingResizableDraggableBox from './ui/FloatingResizableDraggableBox';
+import { editorStore, closeEditor, saveFileContent } from '@/components/editor/stores/editorStore';
+import FileEditorViewer from './editor/FileEditorViewer';
+import { GlobalAction } from '@/types/action';
+import GlobalActionButton from './ui/GlobalActionButton';
+import Footer from './Footer';
+// NEW IMPORTS FOR MULTI-WINDOW SUPPORT
+import {
+  floatingWindowsStore,
+  closeFloatingWindow,
+  updateWindowPosition,
+  updateWindowSize,
+  bringWindowToFront,
+} from '@/components/editor/stores/floatingWindowsStore';
+
+// Media Constants and Types
+import type { IFileSystemEntry } from '@/components/file-explorer/types'; 
+import {
+  IMAGE_MIME_TYPES,
+  VIDEO_MIME_TYPES,
+  AUDIO_MIME_TYPES,
+} from '@/constants';
+
+interface LayoutProps {
+  children: ReactNode;
+}
+
+
+const NAVBAR_HEIGHT = 64;
+const FOOTER_HEIGHT = 50; // Adjusted to accommodate both original footer controls (40px) and MediaPlayerContainer (80px)
+
+const MIN_SIDEBAR_WIDTH = 300;
+const MAX_SIDEBAR_WIDTH = 1000;
+const SIDEBAR_RESIZER_WIDTH = 2;
+
+// Helper function to map mimeType to an Icon component
+const getMediaIcon = (mimeType?: string | null): React.ReactNode => {
+  if (!mimeType) return <InsertDriveFileIcon fontSize="small" color="action" />;
+  
+  if (IMAGE_MIME_TYPES.has(mimeType)) {
+    return <ImageIcon fontSize="small" color="primary" />;
+  }
+  if (VIDEO_MIME_TYPES.has(mimeType)) {
+    // Assuming video is typically large/important
+    return <VideocamIcon fontSize="small" color="error" />;
+  }
+  if (AUDIO_MIME_TYPES.has(mimeType)) {
+    // Assuming audio needs secondary color
+    return <AudiotrackIcon fontSize="small" color="secondary" />;
+  }
+  // Default for non-media files opened contextually (e.g., large logs, plaintext in floating viewer)
+  return <InsertDriveFileIcon fontSize="small" color="action" />;
+};
+
+
+export const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const theme = useTheme();
+  const { isLoggedIn, logout, user } = useAuth();
+  const location = useLocation(); // Use location hook
+  
+  // 1. Code Editor Drawer State (Singleton)
+  const { 
+    isOpen: isEditorOpen, 
+    fileEntry, 
+    hasUnsavedChanges, 
+    isLoading, 
+  } = useStore(editorStore); // Listen to editor store
+  
+  // 2. Floating Window State (Collection)
+  const { windows } = useStore(floatingWindowsStore);
+
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
+  const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleSaveFile = async () => {
+    const result = await saveFileContent();
+    if (result.success) {
+        // Optionally show success notification
+    } else {
+        // Error handling is managed by editorStore internally, but we can log/show externally if needed.
+        console.error("File save failed:", result.message);
+    }
+  };
+
+  // Actions for the code/text editor drawer
+  const editorActions: GlobalAction[] = [
+    {
+      label: 'Close',
+      action: closeEditor,
+      icon: <CloseIcon />,
+      color: 'inherit',
+      variant: 'outlined',
+    },
+    {
+      label: 'Save',
+      action: handleSaveFile,
+      icon: <SaveIcon />,
+      color: 'primary',
+      variant: 'contained',
+      disabled: !hasUnsavedChanges || isLoading,
+    },
+  ];
+
+  // Determine which wrapper to use based on content type
+  const isCodeOrText = isEditorOpen; // editorStore now only handles code/text
+  
+  // NEW: Check if the user is on the Codejector page, where the editor is persistent.
+  const isCodejectorPage = location.pathname === '/codejector/editor';
+
+  // If we are on the Codejector page, suppress the drawer even if the store says a file is open.
+  const shouldOpenDrawer = isCodeOrText && !isCodejectorPage;
+
+  return (
+    <Box
+      sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
+      className="transition-colors duration-200"
+    >
+      <AppBar position="sticky" className="shadow-md">
+        <Toolbar elevation={2} sx={{ justifyContent: 'space-between', backgroundColor: 'background.paper', color: 'text.primary' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <RouterLink
+              to="/"
+              style={{ textDecoration: 'none', color: 'inherit' }}
+            >
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <AddRoadIcon sx={{ fontSize: 30 }} />
+                <Typography
+                  variant="h6"
+                  component="div"
+                  sx={{ color: 'inherit' }}
+                >
+                  AI Planner
+                </Typography>
+              </Stack>
+            </RouterLink>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton
+              size="large"
+              edge="end"
+              color="inherit"
+              aria-label="menu"
+              onClick={handleMenuClick}
+              sx={{ mr: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleMenuClose}
+              MenuListProps={{
+                'aria-labelledby': 'basic-button',
+              }}
+            >
+              {/* Added Codejector Link */}
+              <MenuItem
+                component={RouterLink}
+                to="/codejector"
+                onClick={handleMenuClose}
+              >
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <CodeIcon fontSize="small" />
+                  <Typography>Codejector Workspace</Typography>
+                </Stack>
+              </MenuItem>
+              {/* Existing Links */}
+              <MenuItem
+                component={RouterLink}
+                to="/planner"
+                onClick={handleMenuClose}
+              >
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <AddRoadIcon fontSize="small" />
+                  <Typography>AI Plan Generator</Typography>
+                </Stack>
+              </MenuItem>
+              <MenuItem
+                component={RouterLink}
+                to="/prompt-generator"
+                onClick={handleMenuClose}
+              >
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <AutoAwesomeIcon fontSize="small" />
+                  <Typography>Prompt Generator</Typography>
+                </Stack>
+              </MenuItem>
+              <MenuItem
+                component={RouterLink}
+                to="/files"
+                onClick={handleMenuClose}
+              >
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <FolderSharedIcon fontSize="small" />
+                  <Typography>File Explorer</Typography>
+                </Stack>
+              </MenuItem>
+              <MenuItem
+                component={RouterLink}
+                to="/stream-demo"
+                onClick={handleMenuClose}
+              >
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <SendIcon fontSize="small" />
+                  <Typography>Stream Demo</Typography>
+                </Stack>
+              </MenuItem>
+            </Menu>
+
+            {isLoggedIn ? (
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="body1" sx={{ mr: 2, color: 'inherit' }}>
+                  Welcome, {user?.firstName || user?.email || 'User'}
+                </Typography>
+                <Button
+                  onClick={logout}
+                  color="inherit"
+                  variant="text"
+                  size="small"
+                  startIcon={<LogoutIcon fontSize="small" />}
+                  sx={{ mr: 1 }}
+                >
+                  Logout
+                </Button>
+              </Box>
+            ) : (
+              <RouterLink to="/login" style={{ textDecoration: 'none' }}>
+                <Button
+                  color="inherit"
+                  variant="text"
+                  size="small"
+                  startIcon={<LoginIcon fontSize="small" />}
+                  sx={{ mr: 1 }}
+                >
+                  Login
+                </Button>
+              </RouterLink>
+            )}
+            <ThemeToggle />
+          </Box>
+        </Toolbar>
+      </AppBar>
+      <Box component="main" sx={{ flexGrow: 1, p: 0, backgroundColor: theme.palette.background.default }}>
+        {children}
+      </Box>
+      {/* Sticky footer */}
+      <Paper
+        elevation={1}
+        className="sticky bottom-0 z-[300] w-full flex flex-col justify-center items-center border-t radius-0" // Changed to flex-col
+        sx={{
+          height: FOOTER_HEIGHT,
+          backgroundColor: theme.palette.background.paper,
+          borderColor: theme.palette.divider,
+        }}
+      >
+        <Footer />
+      </Paper>
+      {/* 1. Global File Editor/Viewer Drawer (for code/text, singleton) */}
+      <CustomDrawer
+        open={shouldOpenDrawer} // Conditional opening based on route
+        onClose={closeEditor}
+        position="right"
+        size="large" // Use large size for code editing
+        title={fileEntry ? `Editor: ${fileEntry.name}` : 'File Editor/Viewer'}
+        hasBackdrop={true}
+        footerActionButton={editorActions}
+      >
+        {/* FileEditorViewer reads its context from the singleton editorStore here */}
+        <FileEditorViewer onClose={closeEditor} />
+      </CustomDrawer>
+      
+      {/* 2. Global Floating Viewers (for media/read-only, multi-instance) */}
+      {windows.map((window) => (
+        <FloatingResizableDraggableBox
+          key={window.id}
+          id={window.id}
+          title={window.fileEntry ? `Viewer: ${window.fileEntry.name}` : 'File Viewer'}
+          currentX={window.position.x}
+          currentY={window.position.y}
+          currentWidth={window.size.width}
+          currentHeight={window.size.height}
+          currentZIndex={window.zIndex}
+          onMove={updateWindowPosition}
+          onResize={updateWindowSize}
+          onFocus={bringWindowToFront}
+          onClose={closeFloatingWindow}
+          minWidth={200}
+          minHeight={150}
+          className="shadow-2xl"
+          // Pass dynamic icon based on file type
+          headerLeftActions={getMediaIcon(window.fileEntry?.mimeType)}
+        >
+          {/* Pass the specific window context to FileEditorViewer. */}
+          <FileEditorViewer 
+            onClose={() => closeFloatingWindow(window.id)}
+            contextEntry={window.fileEntry}
+            contextContent={window.content}
+            contextIsLoading={window.isLoading}
+            contextError={window.error}
+          />
+        </FloatingResizableDraggableBox>
+      ))}
+    </Box>
+  );
+};
