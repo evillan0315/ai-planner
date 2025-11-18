@@ -1,3 +1,6 @@
+--- a//media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/pages/CodejectorPage.tsx
++++ b//media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/pages/CodejectorPage.tsx
+@@
 import React, { useEffect, useRef } from 'react';
 import { Box, Paper, SxProps, useTheme, Typography } from '@mui/material';
 import FileEditorViewer from '@/components/editor/FileEditorViewer';
@@ -88,3 +91,4 @@ const CodejectorPage: React.FC = () => {
 };
 
 export default CodejectorPage;
+
