@@ -1,3 +1,6 @@
+--- a//media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/Layout.tsx
++++ b//media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/Layout.tsx
+@@
 import type { ReactNode } from 'react';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
@@ -522,3 +525,4 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     </Box>
   );
 };
+
