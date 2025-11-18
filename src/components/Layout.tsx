@@ -42,6 +42,9 @@ import { editorStore, closeEditor, saveFileContent } from '@/components/editor/s
 import FileEditorViewer from './editor/FileEditorViewer';
 import { GlobalAction } from '@/types/action';
 import GlobalActionButton from './ui/GlobalActionButton';
+import FileExplorer from '@/components/file-explorer/FileExplorer'; 
+import PlanGenerator from '@/components/planner/PlanGenerator'; 
+
 import Footer from './Footer';
 // NEW IMPORTS FOR MULTI-WINDOW SUPPORT
 import {
@@ -388,15 +391,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 width: $leftSidebarWidth,
                 backgroundColor: theme.palette.background.paper,
                 borderColor: theme.palette.divider,
+                p: 0, // Ensure FileExplorer manages its own padding
               }}
             >
-              {/* Placeholder for Left Sidebar Content (e.g., File Explorer) */}
-              <Box className="p-4">
-                  <Typography variant="h6">File Explorer</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    (Content goes here)
-                  </Typography>
-              </Box>
+              {/* === File Explorer Component === */}
+              <FileExplorer />
+              {/* =============================== */}
             </Box>
             {/* Draggable resizer */}
             <Box

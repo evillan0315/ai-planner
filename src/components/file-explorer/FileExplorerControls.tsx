@@ -35,7 +35,8 @@ interface FileExplorerControlsProps {
 // ================================================
 
 const controlsContainerSx: SxProps = {
-  p: 2,
+  px: 1,
+  py: 0.5,
   borderBottom: '1px solid',
   borderColor: 'divider',
   bgcolor: 'background.paper',

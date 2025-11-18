@@ -38,7 +38,7 @@ function PlannerPage() {
   }, [planId, storedPlanId, plan]); // Add 'plan' to dependency array to react to plan object changes
 
   return (
-    <Box className="h-full w-full max-w-7xl mx-auto overflow-hidden">
+    <Box className="h-full w-full  overflow-hidden">
       <PlanGenerator />
     </Box>
   );

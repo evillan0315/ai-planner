@@ -25,7 +25,7 @@ import {
   setFileDataAndMimeType,
 } from './stores/plannerStore';
 import { plannerService } from './api/plannerService';
-import type { GlobalAction } from '@/types/action';
+import type { GlobalAction } from '@/components/ui/GlobalActionButton';
 import type { ILlmInput, IFileChange, IGitInstructions } from './types'; // ADDED IGitInstructions
 import { useNavigate } from 'react-router-dom';
 
@@ -363,15 +363,8 @@ const PlanGenerator: React.FC = () => {
   };
 
   return (
-    <Box className="flex flex-col h-full overflow-hidden p-4 sm:p-6 lg:p-8">
-      <Typography
-        variant="h4"
-        component="h1"
-        gutterBottom
-        className="text-primary-light font-bold mb-6"
-      >
-        AI Plan Generator
-      </Typography>
+    <Box className="flex flex-col h-full w-full overflow-auto p-2">
+     
 
       <PlanInputForm
         userPrompt={userPrompt}

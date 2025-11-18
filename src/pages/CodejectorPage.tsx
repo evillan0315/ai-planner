@@ -61,10 +61,7 @@ const CodejectorPage: React.FC = () => {
         overflow: 'hidden', // Contain scrolling within the flex children
       }}
     >
-      {/* Left Sidebar: File Explorer */}
-      <Paper elevation={2} sx={fileExplorerSx} className="bg-background-paper">
-        <FileExplorer />
-      </Paper>
+ 
 
       {/* Right Content: File Editor Viewer */}
       <Paper

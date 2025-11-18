@@ -31,7 +31,14 @@ import { dialogService } from '@/services/dialogService'; // ADD IMPORT
 // New Imports
 import { useFileTreeState } from './hooks/useFileTreeState';
 import FileTreeRenderer from './FileTreeRenderer';
-
+import  {
+  CODE_MIME_TYPES,
+  IMAGE_MIME_TYPES,
+  VIDEO_MIME_TYPES,
+  AUDIO_MIME_TYPES,
+  MARKDOWN_EXTENSIONS,
+  HTML_EXTENSIONS,
+} from '@/constants';
 
 interface FileExplorerProps {
   initialPath?: string;

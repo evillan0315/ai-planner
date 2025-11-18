@@ -25,7 +25,7 @@ export const PlanGenerationStatus: React.FC<PlanGenerationStatusProps> = ({
     );
   } else if (plan) {
     return (
-      <Box className="flex-grow overflow-y-auto pt-4">
+      <Box className="flex-grow h-full">
         <PlanDisplay
           plan={plan}
           onEditPlanMetadata={onEditPlanMetadata}
