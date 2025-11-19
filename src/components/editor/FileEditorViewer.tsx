@@ -51,8 +51,8 @@ import {
   MARKDOWN_EXTENSIONS,
   HTML_EXTENSIONS,
 } from '@/constants';
-import AudioPlayer from '@/components/ui/player/AudioPlayer';
-import VideoPlayer from '@/components/ui/player/VideoPlayer';
+//import AudioPlayer from '@/components/ui/player/AudioPlayer';
+//import VideoPlayer from '@/components/ui/player/VideoPlayer';
 
 
 interface FileEditorViewerProps {
@@ -132,6 +132,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   let error: string | null;
   let draftContent: string | null;
   let hasUnsavedChanges: boolean;
+  let isCodeEditable: boolean = true;
 
   if (isContextualMode) {
       currentTabOrContent = contextContent;
@@ -407,6 +408,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
             {tabs.map((tab) => (
                 <Tooltip title={tab.filePath} key={tab.id}>
                     <Tab 
+                        component="div"
                         value={tab.id}
                         label={
                             <Box className="flex items-center">
@@ -427,7 +429,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
                             </Box>
                         }
                         sx={{
-                            minHeight: '36px',
+                            minHeight: '38px',
                             height: '38px', // Ensure tabs are explicitly 38px high to match header
                             py: 0,
                             px: 2,
@@ -536,7 +538,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
         // Define footer content 
         if (!isMedia) { 
              footerContentNode = (
-                <Box className="flex justify-between items-center px-4 py-1 h-[30px]" sx={{backgroundColor: theme.palette.background.default, borderTop: `1px solid ${theme.palette.divider}` }}>
+                <Box className="flex justify-between items-center px-4 py-1 h-[30px]" >
                     <Typography variant="caption" color="text.secondary">
                         Path: <span className="font-mono">{activeTab.filePath}</span>
                     </Typography>
