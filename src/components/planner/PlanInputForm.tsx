@@ -32,6 +32,7 @@ import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import type { IPlan } from './types'; // Import necessary types
 import FloatingIconTextField from '@/components/ui/FloatingIconTextField'; 
 import { GlobalAction } from '@/components/ui/GlobalActionButton'; // Import GlobalAction type
+import { GlobalActionGroup } from '@/components/ui/GlobalActioButtonGroup'; // NEW: Import GlobalActionGroup
 
 interface PlanInputFormProps {
   userPrompt: string;
@@ -100,57 +101,73 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
 }) => {
   const theme = useTheme();
 
-  const floatingActionsArray: GlobalAction[] = useMemo(() => [
-    {
-      label: "New Plan (Clear existing content)",
-      action: handleClearPlan,
-      icon: <NoteAddIcon fontSize="small" />,
-      color: 'secondary',
-      disabled: isLoading && !plan,
-    },
-    {
-      label: "Generate Plan",
-      action: handleGeneratePlan,
-      icon: isLoading ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon fontSize="small" />,
-      color: 'primary',
-      disabled: isLoading || !userPrompt.trim() || !projectRoot.trim(),
-    },
-    {
-      label: "AI Instructions (System Prompt)",
-      action: openAiInstructionDrawer,
-      icon: <SettingsIcon fontSize="small" />,
-      color: 'secondary',
-      disabled: isLoading,
-    },
-    {
-      label: `Expected Output Format (Schema)`,
-      action: openExpectedOutputDrawer,
-      icon: <SchemaIcon fontSize="small" />,
-      color: 'secondary',
-      disabled: isLoading,
-    },
-    {
-      label: `Select Project Root Directory: ${projectRoot}`,
-      action: openProjectRootPicker,
-      icon: <FolderOpenIcon fontSize="small" />,
-      color: 'secondary',
-      disabled: isLoading,
-    },
-    {
-      label: `Manage AI Scan Paths: ${scanPathsInput}`,
-      action: openScanPathsDrawer,
-      icon: <AddRoadIcon fontSize="small" />,
-      color: 'secondary',
-      disabled: isLoading,
-    },
-    {
-      label: "Upload Context File (Image/Text)",
-      action: () => fileInputRef.current?.click(),
-      icon: <UploadFileIcon fontSize="small" />,
-      color: 'secondary',
-      disabled: isLoading || !!selectedFile,
-    },
-  ], [
+  // Split actions into logical groups
+  const floatingActionGroups: GlobalActionGroup[] = useMemo(() => {
+      
+    const primaryActions: GlobalAction[] = [
+        {
+          label: "Generate Plan",
+          action: handleGeneratePlan,
+          icon: isLoading ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon fontSize="small" />,
+          color: 'primary',
+          disabled: isLoading || !userPrompt.trim() || !projectRoot.trim(),
+        },
+        {
+          label: "New Plan (Clear existing content)",
+          action: handleClearPlan,
+          icon: <NoteAddIcon fontSize="small" />,
+          color: 'secondary',
+          disabled: isLoading && !plan,
+        },
+    ];
+
+    const contextActions: GlobalAction[] = [
+        {
+          label: "AI Instructions (System Prompt)",
+          action: openAiInstructionDrawer,
+          icon: <SettingsIcon fontSize="small" />,
+          color: 'secondary',
+          disabled: isLoading,
+        },
+        {
+          label: `Expected Output Format (Schema)`,
+          action: openExpectedOutputDrawer,
+          icon: <SchemaIcon fontSize="small" />,
+          color: 'secondary',
+          disabled: isLoading,
+        },
+        {
+          label: `Select Project Root Directory: ${projectRoot}`,
+          action: openProjectRootPicker,
+          icon: <FolderOpenIcon fontSize="small" />,
+          color: 'secondary',
+          disabled: isLoading,
+        },
+        {
+          label: `Manage AI Scan Paths: ${scanPathsInput}`,
+          action: openScanPathsDrawer,
+          icon: <AddRoadIcon fontSize="small" />,
+          color: 'secondary',
+          disabled: isLoading,
+        },
+        {
+          label: "Upload Context File (Image/Text)",
+          action: () => fileInputRef.current?.click(),
+          icon: <UploadFileIcon fontSize="small" />,
+          color: 'secondary',
+          disabled: isLoading || !!selectedFile,
+        },
+    ];
+    
+    // Order: Context (less urgent) followed by Primary (Generate/Clear). 
+    // When using x: 'right' (flexDirection: row), this places Primary actions closest to the right edge.
+    return [
+      { actionGroup: contextActions, key: 'context' },
+      { actionGroup: primaryActions, key: 'primary' },
+    ];
+
+
+  }, [
     projectRoot, 
     scanPathsInput, 
     isLoading, 
@@ -201,14 +218,14 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
             <FloatingIconTextField
               label="Enter your prompt"
               multiline
-              rows={2}
+              rows={4} // Increased rows for better usability with floating icons
               fullWidth
               value={userPrompt}
               onChange={(e) => setUserPrompt(e.target.value)}
               //variant="contained"
               disabled={isLoading}
-              floatingActions={floatingActionsArray}
-              border={10}
+              floatingActionGroups={floatingActionGroups} // CHANGED PROP NAME
+              iconPositioning={{ x: 'right', y: 'bottom' }} // Force icons to the bottom right for standard UX
               sx={{backgroundColor:'background.paper'}}
             />
             {/* Display file status below the prompt field, if a file is attached */}

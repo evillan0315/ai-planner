@@ -8,6 +8,7 @@ import GlobalActionButton, { GlobalAction } from './GlobalActionButton';
 
 export interface GlobalActionGroup {
   actionGroup: GlobalAction[];
+  key?: string | number; // Added optional key for stable rendering of groups
 }
 
 export interface GlobalActioButtonGroupProps {
@@ -18,7 +19,7 @@ export interface GlobalActioButtonGroupProps {
   positionY?: 'top' | 'bottom';
   /** Presentation style (list, thumb, card) - currently controls size/style hints. */
   view?: 'list' | 'thumb' | 'card';
-  /** Layout direction of the buttons. */
+  /** Layout direction of the groups. */
   orientation?: 'horizontal' | 'vertical';
   /** Whether the buttons should render as icon-only (passed to GlobalActionButton). */
   iconOnly?: boolean;
@@ -93,10 +94,12 @@ const getButtonGroupSx = (
   // Flex container styles using MUI sx
   const flexStyles: SxProps = {
     display: 'flex',
-    // Apply flex direction to the container
+    // Apply flex direction to the container to manage group layout
     flexDirection: isVertical ? 'column' : 'row',
-    // Use MUI spacing units (1 = 8px, so 1 = gap of 8px)
+    // Use MUI spacing units (1 = 8px, so 1 = gap of 8px) to separate groups
     gap: 1,
+    alignItems: 'center',
+    flexWrap: 'wrap', // Allow wrapping if space runs out horizontally
   };
 
   return { ...positionStyles, ...flexStyles };
@@ -109,7 +112,7 @@ const getButtonGroupSx = (
 
 /**
  * A container component for grouping Global Actions, allowing flexible positioning and orientation.
- * For vertical orientation, it renders actions individually to control stacking.
+ * It iterates over action groups and renders each group using GlobalActionButton for internal button layout.
  */
 export default function GlobalActioButtonGroup({
   actionArray,
@@ -120,41 +123,27 @@ export default function GlobalActioButtonGroup({
   iconOnly = false,
 }: GlobalActioButtonGroupProps) {
 
+  // containerSx determines the fixed position and the layout of groups (group separation)
   const containerSx = useMemo(() => getButtonGroupSx(orientation, positionX, positionY), [orientation, positionX, positionY]);
   
   if (!actionArray || actionArray.length === 0) {
     return null;
   }
   
-  // Strategy 1: Horizontal orientation - delegate rendering to a single GlobalActionButton instance.
-  // This relies on GlobalActionButton applying horizontal spacing internally.
-  if (orientation === 'horizontal') {
-      return (
-          <Box sx={containerSx} className="GlobalActioButtonGroup">
-              <GlobalActionButton globalActions={actionArray} iconOnly={iconOnly} />
-          </Box>
-      );
-  }
-  
-  // Strategy 2: Vertical orientation - iterate and render each action individually.
-  // We use GlobalActionButton to handle the standard Button/IconButton rendering logic.
   return (
     <Box sx={containerSx} className="GlobalActioButtonGroup">
-      {actionArray.map((action, index) => {
-        
-        // If a custom component is provided, render it directly.
-        if (action.component) {
-             return <React.Fragment key={index}>{action.component}</React.Fragment>;
-        }
-        
-        // Render standard button/icon using GlobalActionButton instance for consistency.
-        // The outer Box (containerSx) ensures vertical stacking via flexDirection: 'column'.
-        return (
-            <Box key={index} className="flex-shrink-0">
-                <GlobalActionButton globalActions={[action]} iconOnly={iconOnly} />
-            </Box>
-        );
-      })}
+      {actionArray.map((group, groupIndex) => (
+        // Each group is rendered within a Box to maintain external spacing/alignment
+        <Box 
+          key={group.key || groupIndex} 
+          className="flex-shrink-0"
+        >
+          <GlobalActionButton 
+            globalActions={group.actionGroup} 
+            iconOnly={iconOnly} 
+          />
+        </Box>
+      ))}
     </Box>
   );
 }

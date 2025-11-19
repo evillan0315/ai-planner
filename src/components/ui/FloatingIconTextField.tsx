@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import TextField, { TextFieldProps } from '@mui/material/TextField';
 import { Box, SxProps } from '@mui/material';
 
-import GlobalActionButton, { GlobalAction } from './GlobalActionButton';
+import GlobalActioButtonGroup, { GlobalActionGroup } from './GlobalActioButtonGroup'; // Import GlobalActioButtonGroup
 
 // ---------------------------
 // 1. Interfaces & Types
@@ -18,8 +18,8 @@ interface IconPositioning {
  * Extends Material UI's TextFieldProps to allow all standard TextField props.
  */
 interface FloatingIconTextFieldProps extends TextFieldProps {
-  /** Actions/icons to float inside the TextField area. Must be GlobalAction array. */
-  floatingActions?: GlobalAction[];
+  /** Actions/icons to float inside the TextField area. Must be GlobalActionGroup array. */
+  floatingActionGroups?: GlobalActionGroup[]; // CHANGED PROP TYPE
   /** Optional position configuration for the floating icons. Defaults to { x: 'right', y: 'bottom' }. */
   iconPositioning?: IconPositioning;
 }
@@ -30,7 +30,7 @@ interface FloatingIconTextFieldProps extends TextFieldProps {
 
 const DEFAULT_POSITIONING: IconPositioning = { x: 'left', y: 'bottom' };
 const ICON_OFFSET = 6; // px offset from edge (to align with typical MUI padding)
-const MIN_CONTENT_AREA_CLEARANCE = 15; // Minimum vertical clearance needed for a row of icons (approx 24px button + padding)
+const MIN_CONTENT_AREA_CLEARANCE = 40; // Increased clearance needed for a row of icons + spacing
 
 
 const getFloatingActionsContainerSx = (
@@ -43,8 +43,8 @@ const getFloatingActionsContainerSx = (
   ...(positioning.y === 'bottom' ? { bottom: ICON_OFFSET, top: 'auto' } : { top: ICON_OFFSET, bottom: 'auto' }),
   // Horizontal positioning
   ...(positioning.x === 'right' ? 
-    { right: ICON_OFFSET, left: 'auto', flexDirection: 'row' } : 
-    { left: MIN_CONTENT_AREA_CLEARANCE, right: 'auto', flexDirection: 'row-reverse' }),
+    { right: ICON_OFFSET, left: 'auto', flexDirection: 'row' } : // Flow left-to-right from right edge anchor
+    { left: ICON_OFFSET, right: 'auto', flexDirection: 'row-reverse' }), // Flow right-to-left from left edge anchor
 });
 
 const getInputAreaPaddingSx = (
@@ -61,10 +61,9 @@ const getInputAreaPaddingSx = (
             ...(positioning.y === 'bottom' && { paddingBottom: `${MIN_CONTENT_AREA_CLEARANCE}px !important` }),
             ...(positioning.y === 'top' && { paddingTop: `${MIN_CONTENT_AREA_CLEARANCE}px !important` }),
             
-            // Apply horizontal padding as well, though the icons themselves might not be wide enough to require it fully.
-            // Using horizontal padding ensures space for a row of buttons if needed.
-            ...(positioning.x === 'right' && { paddingRight: `${MIN_CONTENT_AREA_CLEARANCE}px !important` }),
-            ...(positioning.x === 'left' && { paddingLeft: `${ICON_OFFSET}px !important` }),
+            // Apply minimal horizontal padding override to ensure text doesn't flow under icons
+            ...(positioning.x === 'right' && { paddingRight: `${ICON_OFFSET * 2}px !important` }),
+            ...(positioning.x === 'left' && { paddingLeft: `${ICON_OFFSET * 2}px !important` }),
         }
     };
 };
@@ -72,10 +71,10 @@ const getInputAreaPaddingSx = (
 
 /**
  * A TextField component with an optional floating action area positioned within the text area.
- * Uses GlobalActionButton in icon-only mode for consistent UI.
+ * Uses GlobalActioButtonGroup for flexible handling of multiple icon groups in icon-only mode.
  */
 export default function FloatingIconTextField({
-  floatingActions,
+  floatingActionGroups, // CHANGED PROP NAME
   iconPositioning = DEFAULT_POSITIONING,
   InputProps: userInputProps, // Capture user InputProps
   multiline, // Must be explicitly destructured if we need its value
@@ -90,7 +89,8 @@ export default function FloatingIconTextField({
   // Calculate padding only if isMultiline is true
   const inputPaddingSx = useMemo(() => getInputAreaPaddingSx(iconPositioning, isMultiline), [iconPositioning, isMultiline]);
 
-  const showActions = floatingActions && floatingActions.length > 0;
+  // Check if any groups are provided and have actions
+  const showActions = floatingActionGroups && floatingActionGroups.length > 0 && floatingActionGroups.some(g => g.actionGroup.length > 0);
   
   // Combine calculated padding SX with user-provided InputProps SX
   const combinedInputProps = useMemo(() => {
@@ -121,8 +121,11 @@ export default function FloatingIconTextField({
 
       {showActions && (
         <Box sx={containerSx}>
-          {/* Note: GlobalActionButton handles the internal stack/spacing */}
-          <GlobalActionButton globalActions={floatingActions} iconOnly={true} />
+          <GlobalActioButtonGroup 
+            actionArray={floatingActionGroups!} 
+            iconOnly={true} 
+            orientation="horizontal"
+          />
         </Box>
       )}
     </Box>
