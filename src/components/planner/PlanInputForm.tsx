@@ -118,8 +118,6 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
             </Tooltip>
           )}
         </Box>
-
-        {/* User Prompt Section - Always expanded by default */}
         <Accordion defaultExpanded className="rounded-lg shadow-sm border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md mb-4">
           <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="user-prompt-content" id="user-prompt-header">
             <Typography variant="subtitle1" className="font-semibold">User Prompt</Typography>
