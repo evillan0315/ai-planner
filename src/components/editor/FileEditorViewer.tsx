@@ -1,12 +1,12 @@
-
-
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom'; // ADDED
-import * as path from 'path-browserify'; // ADDED
+import { useSearchParams } from 'react-router-dom';
+import * as path from 'path-browserify';
 import { useStore } from '@nanostores/react';
-import { editorStore, updateDraftContent, saveFileContent, IEditorContent, loadFileContentFromPath } from '@/components/editor/stores/editorStore'; 
-import { IWindowContent } from '@/components/editor/stores/floatingWindowsStore'; // Import the new window content type
-import type { IFileSystemEntry } from '@/components/file-explorer/types'; // Import IFileSystemEntry
+import { editorStore, updateDraftContent, saveFileContent, IEditorContent, loadFileContentFromPath, closeEditor } from '@/components/editor/stores/editorStore'; 
+import { IWindowContent } from '@/components/editor/stores/floatingWindowsStore';
+import type { IFileSystemEntry } from '@/components/file-explorer/types';
+import { ContentLayout } from '@/components/ui/layouts/ContentLayout'; // NEW IMPORT
+import type { GlobalAction } from '@/components/ui/GlobalActionButton'; // NEW IMPORT
 
 import {
   Box,
@@ -15,8 +15,14 @@ import {
   Alert,
   SxProps,
   Chip,
-  useTheme
+  useTheme,
+  Tabs, // NEW
+  Tab, // NEW
+  IconButton, // NEW
+  Tooltip, // NEW
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close'; // NEW IMPORT
+import SaveIcon from '@mui/icons-material/Save'; // NEW IMPORT
 import MonacoEditor from '@/components/editor/monaco/MonacoEditor';
 import MarkdownRenderer from '@/components/markdown/MarkdownRenderer';
 import  { getMonacoLanguage } from '@/utils/editorUtils';
@@ -29,8 +35,8 @@ import  {
   HTML_EXTENSIONS,
 } from '@/constants';
 import { fileExplorerService } from '@/components/file-explorer/api/fileExplorerService'; // Import service
-import AudioPlayer from '@/components/ui/player/AudioPlayer'; // ADDED Import AudioPlayer
-import VideoPlayer from '@/components/ui/player/VideoPlayer'; // NEW Import VideoPlayer
+import AudioPlayer from '@/components/ui/player/AudioPlayer';
+import VideoPlayer from '@/components/ui/player/VideoPlayer';
 
 
 interface FileEditorViewerProps {
@@ -58,7 +64,7 @@ const contentContainerSx: SxProps = {
   //minHeight: '200px', // Minimum space for content
   overflow: 'auto',
   position: 'relative',
-  height: '100%',
+  height: '100%', // Crucial for embedding Monaco/Markdown viewers
 };
 
 const monacoContainerSx: SxProps = {
@@ -71,9 +77,10 @@ const monacoContainerSx: SxProps = {
 
 /**
  * Renders the file content using the appropriate viewer (Monaco, Markdown, Image, Video, IFrame).
- * It can operate in two modes:
+ * It can operate in three modes:
  * 1. Singleton (reading from global editorStore, typically for the code editor drawer).
  * 2. Contextual (reading from props, typically for floating media viewers).
+ * 3. Dedicated Route (reading from global store, wrapped in ContentLayout).
  */
 const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
     onClose,
@@ -105,9 +112,6 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
     // --- Route Initialization Effect ---
   // If we are in dedicated route mode, load the file content based on the URL path.
  useEffect(() => {
-     const urlPath = searchParams.get('path');
-
-  console.log(urlPath, 'urlPath');
     if (isDedicatedRouteMode && !isRouteInitialized) {
         const currentStorePath = globalState.fileEntry?.path;
        
@@ -124,20 +128,20 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
         }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]); 
+  }, [searchParams, isDedicatedRouteMode]); 
 
   
   const fileEntry = isContextualMode ? contextEntry : globalState.fileEntry;
   const content = isContextualMode ? contextContent : globalState.content;
+  
   // Determine final loading state: 
-  // If we are in dedicated route mode and haven't initialized yet, or if global store is loading, show loading.
   const isLoading = isContextualMode 
     ? contextIsLoading 
     : (globalState.isLoading || (isDedicatedRouteMode && !isRouteInitialized));
     
   const error = isContextualMode ? contextError : globalState.error;
   
-  // Draft content/saving only applies to the singleton Code Editor Drawer
+  // Draft content/saving
   const draftContent = isContextualMode ? null : globalState.draftContent;
   const hasUnsavedChanges = isContextualMode ? false : globalState.hasUnsavedChanges;
   
@@ -172,7 +176,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
     if (AUDIO_MIME_TYPES.has(type)) return 'audio';
     
     // 4. Code/Text (Monaco)
-    // In Contextual Mode, this is read-only. In Singleton Mode, it's editable.
+    // isCodeEditable logic relies on !isContextualMode, which covers both Drawer and Dedicated Route modes.
     if (CODE_MIME_TYPES.has(type) || !isLargeFile) {
         return 'code';
     }
@@ -197,8 +201,6 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
     : null;
     
   // FIX: Use useCallback to ensure a stable function reference for the VideoPlayer's prop.
-  // This prevents the VideoPlayer's useEffect hook from repeatedly running cleanup/setup cycles
-  // during parent re-renders (like resizing the FloatingResizableDraggableBox).
   const handleRegisterFullscreen = useCallback((requestFullscreenFn: (() => void) | null) => {
     if (onRegisterPlayerAction) {
         if (requestFullscreenFn) {
@@ -211,6 +213,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   const renderContent = () => {
     if (!content) return null;
     
+    // Editable if not contextual AND content is code/plaintext
     const isCodeEditable = !isContextualMode && (rendererType === 'code' || rendererType === 'plaintext');
     
     // --- Media Rendering Logic using stream URL (new implementation) ---
@@ -264,8 +267,6 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
             
             // Audio rendering
             if (rendererType === 'audio') {
-                // Ensure fullscreen action is unregistered if we switch from video to audio
-                // FIX: Removed call to onRegisterPlayerAction({}) here as it causes re-render churn during resize
                 return (
                     <Box className="flex justify-center items-center h-full p-1"> {/* Added padding for audio controls */}
                         <AudioPlayer src={url} fileName={fileEntry?.name} />
@@ -278,12 +279,8 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
         return <Alert severity="warning">Could not display media content. Check file path permissions.</Alert>
     }
     
-    // Non-media file rendering. Ensure actions are cleared.
-    // FIX: Removed call to onRegisterPlayerAction({}) here as it causes re-render churn during resize
-
-    // --- HTML Rendering Logic (Keeps client-side encoding for now, since this is smaller/text-based) ---
+    // --- HTML Rendering Logic ---
     if (isHtml) {
-        // Use srcDoc for displaying HTML content directly from the string
         // Note: This is read-only view
         return (
             <iframe
@@ -297,7 +294,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
 
 
     if (rendererType === 'markdown') {
-        // Markdown viewer (read-only for contextual, uses draft for singleton)
+        // Markdown viewer (read-only for contextual, uses draft for singleton/dedicated route)
         const displayContent = isContextualMode 
             ? content.content 
             : (draftContent || content.content);
@@ -339,46 +336,190 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
         </Alert>
     );
   };
-  
-  if (isLoading) {
-     return (
-         <Box className="flex flex-col items-center justify-center h-full">
-             <CircularProgress />
 
-            <Typography variant="h6" sx={{ mt: 2 }}>
-                Loading {fileEntry?.name || (decodedUrlPath ? path.basename(decodedUrlPath) : 'file')}...
-            </Typography>
-         </Box>
-     );
-   }
- 
-  // If we are in Route Mode and initialization failed or fileEntry is null, show error/empty state
-  if (!fileEntry && isDedicatedRouteMode && isRouteInitialized && !error) {
-      return (
-          <Box sx={{ p: 2 }}>
-              <Alert severity="error">
-                  No file content loaded or specified. Path: {decodedUrlPath || 'None'}
-              </Alert>
-          </Box>
-      );
+  // 2. Tab Renderer Function (Used by Dedicated Route Mode)
+  const fileName = fileEntry?.name || (decodedUrlPath ? path.basename(decodedUrlPath) : 'Untitled');
+  const fileId = fileEntry?.path || decodedUrlPath || 'editor-default-file';
+
+  const renderFileTabs = (path: string, fileName: string, hasUnsavedChanges: boolean) => {
+    const handleTabClose = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        closeEditor(); // Close editor state, resets view
+    };
+
+    return (
+        <Tabs 
+            value={path} 
+            onChange={() => {}} // Tab is read-only/single selection
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+                height: '100%', 
+                minHeight: '48px', 
+                alignItems: 'flex-end', 
+                borderBottom: 'none', 
+                // Ensure Tabs container takes up the space in ContentLayout toolbar
+                flexGrow: 1,
+                justifyContent: 'flex-start',
+            }}
+        >
+            <Tooltip title={path}>
+                <Tab 
+                    value={path}
+                    label={
+                        <Box className="flex items-center">
+                            <Typography variant="body2" component="span" sx={{ mr: 1, fontStyle: hasUnsavedChanges ? 'italic' : 'normal' }}>
+                                {fileName}
+                                {hasUnsavedChanges && ' *'}
+                            </Typography>
+                            <IconButton 
+                                size="small" 
+                                sx={{ p: 0, ml: 1, color: 'text.secondary' }}
+                                onClick={handleTabClose}
+                            >
+                                <CloseIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                        </Box>
+                    }
+                    sx={{
+                        minHeight: '48px',
+                        py: 0,
+                        px: 2,
+                        textTransform: 'none',
+                        // Styling to make it look like an active editor tab
+                        '&.Mui-selected': {
+                            backgroundColor: theme.palette.background.default, 
+                            borderLeft: `1px solid ${theme.palette.divider}`,
+                            borderRight: `1px solid ${theme.palette.divider}`,
+                            borderBottom: 'none',
+                            marginBottom: '-1px', // Overlay the toolbar bottom border
+                        },
+                        borderTopLeftRadius: theme.shape.borderRadius,
+                        borderTopRightRadius: theme.shape.borderRadius,
+                    }}
+                />
+            </Tooltip>
+        </Tabs>
+    );
+  };
+
+  // Actions for the dedicated route editor (Save if changes exist)
+  const isCodeEditable = !isContextualMode && (rendererType === 'code' || rendererType === 'plaintext');
+
+  const dedicatedRouteActions: GlobalAction[] = isCodeEditable && hasUnsavedChanges ? [
+    {
+      label: 'Save',
+      action: saveFileContent,
+      icon: <SaveIcon />,
+      color: 'primary',
+      variant: 'contained',
+      disabled: isLoading, // Use global store loading state
+      tooltip: 'Save file content (Ctrl+S)',
+    },
+  ] : [];
+
+  // --- Conditional Rendering by Mode ---
+
+  // 1. Contextual Mode (Floating Box)
+  if (isContextualMode) {
+    return (
+      <Box sx={getContainerSx(isMedia)}> 
+        {isLoading && (
+             <Box className="flex flex-col items-center justify-center h-full">
+                 <CircularProgress />
+
+                <Typography variant="h6" sx={{ mt: 2 }}>
+                    Loading {fileEntry?.name || 'File'}...
+                </Typography>
+             </Box>
+         )}
+         {error && (
+            <Box sx={{ p: 2 }}>
+                <Alert severity="error">
+                    Failed to load file: {error}
+                </Alert>
+            </Box>
+         )}
+         {!isLoading && !error && (
+            <Box sx={contentContainerSx}>
+                {renderContent()}
+            </Box>
+         )}
+      </Box>
+    );
   }
 
+  // 2. Dedicated Route Mode (Uses ContentLayout)
+  if (isDedicatedRouteMode) {
+    let contentNode: React.ReactNode;
+    let headerContentNode: React.ReactNode | null = null;
 
-  if (error) {
+    if (isLoading) {
+        contentNode = (
+            <Box className="flex flex-col items-center justify-center h-full">
+                <CircularProgress />
+                <Typography variant="h6" sx={{ mt: 2 }}>
+                    Loading {fileName}...
+                </Typography>
+            </Box>
+        );
+    } else if (error) {
+        contentNode = (
+            <Box sx={{ p: 4, height: '100%' }}>
+                <Alert severity="error">
+                    Failed to load file: {error}
+                </Alert>
+            </Box>
+        );
+    } else if (!fileEntry) {
+        contentNode = (
+            <Box sx={{ p: 4, height: '100%' }}>
+                <Alert severity="info">
+                    No file content loaded or specified. Path: {decodedUrlPath || 'None'}
+                </Alert>
+            </Box>
+        );
+    } else {
+        headerContentNode = renderFileTabs(fileId, fileName, hasUnsavedChanges);
+        contentNode = renderContent();
+    }
+
     return (
-        <Box sx={{ p: 2 }}>
-            <Alert severity="error">
-                Failed to load file: {error}
-            </Alert>
+        <ContentLayout
+            headerHeight={48} // Tabs look better at 48px
+            footerHeight={30}
+            headerContent={headerContentNode}
+            headerRightActions={dedicatedRouteActions}
+            // Ensure ContentLayout main area takes up all remaining space and is scrollable.
+            // We rely on contentContainerSx inside children to manage inner scrolling/sizing.
+            contentWrapperSx={{ p: 0 }}
+        >
+            <Box sx={contentContainerSx}>
+               {contentNode}
+            </Box>
+        </ContentLayout>
+    );
+  }
+
+  // 3. Default: Singleton Drawer Mode (Keep existing structure for internal header/footer)
+  // If we are here, we are using the drawer (isEditorOpen=true from AppLayout)
+  
+  // If loading/error in Drawer mode, show status overlay
+  if (isLoading || error) {
+    return (
+        <Box sx={getContainerSx(isMedia)} className="flex justify-center items-center">
+            {isLoading && <CircularProgress />}
+            {error && <Alert severity="error">Failed to load file: {error}</Alert>}
         </Box>
     );
   }
+
 
   return (
     <Box sx={getContainerSx(isMedia)}> {/* Use dynamic container styles */}
       {/* Status Bar (Only visible for the main code editor drawer) */}
       {!isMedia && !isContextualMode && (
-        <Box className="flex justify-between items-center px-4 py-3" sx={{borderBottom: `1px solid ${theme.palette.divider}}`}}>
+        <Box className="header flex justify-between items-center px-4 py-3" sx={{borderBottom: `1px solid ${theme.palette.divider}`}}>
           <Typography variant="subtitle2" color="text.secondary">
             Path: <span className="font-mono">{fileEntry?.path}</span>
           </Typography>
@@ -393,21 +534,11 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
         </Box>
       )}
       
-      {/* Contextual Mode Info Bar (Optional) 
-      {isContextualMode && (
-          <Box className="flex justify-between items-center px-4 py-3">
-              <Typography variant="caption" color="text.secondary">
-                  Path: <span className="font-mono">{fileEntry?.path}</span>
-              </Typography>
-        
-          </Box>
-      )}
-      */}
       <Box sx={contentContainerSx}>
         {renderContent()}
       </Box>
       {!isMedia && !isContextualMode && (
-        <Box className="flex justify-between items-center px-4 py-1" sx={{backgroundColor: theme.palette.background.default, borderTop: `1px solid ${theme.palette.divider}` }}>
+        <Box className="footer flex justify-between items-center px-4 py-1" sx={{backgroundColor: theme.palette.background.default, borderTop: `1px solid ${theme.palette.divider}` }}>
               <Typography variant="caption" color="text.secondary">
                   Path: <span className="font-mono">{fileEntry?.path}</span>
               </Typography>
