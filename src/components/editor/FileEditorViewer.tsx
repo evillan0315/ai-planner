@@ -490,6 +490,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
             footerHeight={30}
             headerContent={headerContentNode}
             headerRightActions={dedicatedRouteActions}
+            footerContent={footerContentNode}
             // Ensure ContentLayout main area takes up all remaining space and is scrollable.
             // We rely on contentContainerSx inside children to manage inner scrolling/sizing.
             contentWrapperSx={{ p: 0 }}
