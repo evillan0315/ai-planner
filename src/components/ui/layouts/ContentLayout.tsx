@@ -21,7 +21,7 @@ interface ContentLayoutProps {
   contentWrapperSx?: SxProps<Theme>;
 }
 
-const DEFAULT_HEADER_HEIGHT = 30;
+const DEFAULT_HEADER_HEIGHT = 48;
 const DEFAULT_FOOTER_HEIGHT = 30;
 
 const headerBarSx = (theme: Theme): SxProps => ({
@@ -38,6 +38,7 @@ const toolbarSx: SxProps = {
   alignItems: 'center',
   width: '100%',
   px: 2,
+  minHeight: `38px`
 };
 
 const mainContentSx = (hHeight: number, fHeight: number): SxProps => ({
@@ -80,7 +81,7 @@ export const ContentLayout: React.FC<ContentLayoutProps> = ({
     <Box className="flex flex-col h-full w-full">
 
       <AppBar position="static" className="sticky top-0 z-[400] shadow-sm" sx={headerBarSx(theme)}>
-        <Toolbar sx={{ ...toolbarSx, minHeight: `${DEFAULT_HEADER_HEIGHT}px` }}>
+        <Toolbar sx={{ ...toolbarSx, minHeight: `${DEFAULT_HEADER_HEIGHT}px !important` }}>
           <Box className="flex items-center flex-shrink-0 min-w-10">
             {renderedHeaderActionsLeft}
           </Box>
