@@ -101,9 +101,10 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
 }) => {
   const theme = useTheme();
 
-  // Split actions into logical groups
-  const floatingActionGroups: GlobalActionGroup[] = useMemo(() => {
+  // Split actions into logical groups and map them to corners
+  const floatingActionGroupsByCorner: Partial<Record<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right', GlobalActionGroup[]>> = useMemo(() => {
       
+    // 1. Primary Actions (Bottom Right)
     const primaryActions: GlobalAction[] = [
         {
           label: "Generate Plan",
@@ -120,22 +121,27 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           disabled: isLoading && !plan,
         },
     ];
-
-    const contextActions: GlobalAction[] = [
+    
+    // 2. Model Settings Actions (Top Right)
+    const modelSettingsActions: GlobalAction[] = [
         {
           label: "AI Instructions (System Prompt)",
           action: openAiInstructionDrawer,
           icon: <SettingsIcon fontSize="small" />,
-          color: 'secondary',
+          color: additionalInstructions.length > 50 ? 'primary' : 'secondary', // Highlight if custom instructions exist
           disabled: isLoading,
         },
         {
           label: `Expected Output Format (Schema)`,
           action: openExpectedOutputDrawer,
           icon: <SchemaIcon fontSize="small" />,
-          color: 'secondary',
+          color: expectedOutputFormat.length > 50 ? 'primary' : 'secondary', // Highlight if custom schema exists
           disabled: isLoading,
         },
+    ];
+
+    // 3. Context Actions (Bottom Left)
+    const contextActions: GlobalAction[] = [
         {
           label: `Select Project Root Directory: ${projectRoot}`,
           action: openProjectRootPicker,
@@ -159,12 +165,23 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
         },
     ];
     
-    // Order: Context (less urgent) followed by Primary (Generate/Clear). 
-    // When using x: 'right' (flexDirection: row), this places Primary actions closest to the right edge.
-    return [
-      { actionGroup: contextActions, key: 'context' },
-      { actionGroup: primaryActions, key: 'primary' },
-    ];
+    // Combine into corner groups
+    const cornerGroups: Partial<Record<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right', GlobalActionGroup[]>> = {};
+
+    if (modelSettingsActions.length > 0) {
+        cornerGroups['top-right'] = [{ actionGroup: modelSettingsActions, key: 'model-settings' }];
+    }
+    
+    if (primaryActions.length > 0) {
+        cornerGroups['bottom-right'] = [{ actionGroup: primaryActions, key: 'primary' }];
+    }
+    
+    if (contextActions.length > 0) {
+        // Grouping Context Actions together
+        cornerGroups['bottom-left'] = [{ actionGroup: contextActions, key: 'context' }]; 
+    }
+    
+    return cornerGroups;
 
 
   }, [
@@ -180,7 +197,9 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
     openAiInstructionDrawer,
     openExpectedOutputDrawer,
     userPrompt,
-    plan
+    plan,
+    additionalInstructions, // Added dependency
+    expectedOutputFormat, // Added dependency
   ]);
 
   return (
@@ -224,8 +243,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
               onChange={(e) => setUserPrompt(e.target.value)}
               //variant="contained"
               disabled={isLoading}
-              floatingActionGroups={floatingActionGroups} // CHANGED PROP NAME
-              iconPositioning={{ x: 'right', y: 'bottom' }} // Force icons to the bottom right for standard UX
+              floatingActionGroupsByCorner={floatingActionGroupsByCorner} // CHANGED PROP NAME
               sx={{backgroundColor:'background.paper'}}
             />
             {/* Display file status below the prompt field, if a file is attached */}
@@ -252,7 +270,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           <AccordionDetails>
             {/* Context fields are now displayed here without redundant buttons */}
             <Stack direction="column" spacing={1} className="mb-2">
-              <TextField label="Project Root" value={projectRoot} disabled fullWidth size="small" helperText="Set project root via the folder icon above the prompt." />
+              <TextField label="Project Root" value={projectRoot} disabled fullWidth size="small" helperText="Set project root via the folder icon in the prompt actions (bottom left)." />
               <TextField
                 label="Scan Paths (comma-separated)"
                 value={scanPathsInput}
@@ -260,7 +278,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
                 fullWidth
                 size="small"
                 placeholder="e.g., src, public, package.json"
-                helperText="Manage scan paths via the road icon above the prompt."
+                helperText="Manage scan paths via the road icon in the prompt actions (bottom left)."
               />
             </Stack>
           </AccordionDetails>
@@ -274,13 +292,13 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           <AccordionDetails>
             <Stack direction="column" spacing={1} className="mb-2">
                 <Typography variant="body2" color="text.secondary">
-                    AI Instructions Status: <span className="font-mono font-bold text-text-primary">{additionalInstructions.length > 50 ? 'Custom/Detailed' : 'Default'}</span>
+                    AI Instructions Status: <span className={`font-mono font-bold ${additionalInstructions.length > 50 ? 'text-primary-main' : 'text-text-secondary'}`}>{additionalInstructions.length > 50 ? 'Custom/Detailed' : 'Default'}</span>
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Output Format Status: <span className="font-mono font-bold text-text-primary">{expectedOutputFormat.length > 50 ? 'Schema Defined' : 'Default'}</span>
+                    Output Format Status: <span className={`font-mono font-bold ${expectedOutputFormat.length > 50 ? 'text-primary-main' : 'text-text-secondary'}`}>{expectedOutputFormat.length > 50 ? 'Schema Defined' : 'Default'}</span>
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                    Use the Settings (<SettingsIcon fontSize="inherit" />) icon in the prompt input field to edit configuration.
+                    Use the Settings (<SettingsIcon fontSize="inherit" />) icon in the prompt input field (top right corner) to edit configuration.
                 </Typography>
             </Stack>
           </AccordionDetails>
