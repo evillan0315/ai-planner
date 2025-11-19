@@ -1,9 +1,24 @@
 import React from 'react';
-import { Box, Button, Tooltip, IconButton } from '@mui/material';
+import { Box, Button, Tooltip, IconButton, ButtonProps } from '@mui/material';
 
 import type { GlobalAction } from '@/types/action'; // Corrected import path for GlobalAction
 
-interface GlobalActionButtonProps {
+
+// Define ButtonColor and ButtonVariant based on Material UI's ButtonProps
+export type ButtonColor = ButtonProps['color'];
+export type ButtonVariant = ButtonProps['variant'];
+
+export interface GlobalAction {
+  label?: string;
+  action?: () => void;
+  icon?: React.ReactNode;
+  color?: ButtonColor;
+  variant?: ButtonVariant;
+  disabled?: boolean;
+  component?: React.ReactNode;
+}
+
+export interface GlobalActionButtonProps {
   globalActions: GlobalAction[];
   iconOnly?: boolean; // New prop for icon-only mode
 }
