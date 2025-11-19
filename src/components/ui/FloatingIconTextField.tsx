@@ -38,7 +38,7 @@ const CornerMap: Record<CornerPosition, IconPositioning> = {
 // ---------------------------
 
 const ICON_OFFSET = 6; // px offset from edge (to align with typical MUI padding)
-const MIN_CONTENT_AREA_CLEARANCE = 10; // Clearance needed for a row of icons + spacing
+const MIN_CONTENT_AREA_CLEARANCE = 20; // Clearance needed for a row of icons + spacing
 
 
 const getFloatingActionsContainerSx = (

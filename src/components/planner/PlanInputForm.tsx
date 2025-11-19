@@ -237,7 +237,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
             <FloatingIconTextField
               label="Enter your prompt"
               multiline
-              rows={2} // Increased rows for better usability with floating icons
+              rows={1} // Increased rows for better usability with floating icons
               fullWidth
               value={userPrompt}
               onChange={(e) => setUserPrompt(e.target.value)}
