@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -27,6 +27,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // Import ExpandMoreIcon
 
 import type { IPlan } from './types'; // Import necessary types
+import FloatingIconTextField from '@/components/ui/FloatingIconTextField'; 
+import { GlobalAction } from '@/components/ui/GlobalActionButton'; // Import GlobalAction type
 
 interface PlanInputFormProps {
   userPrompt: string;
@@ -99,6 +101,30 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
 }) => {
   const theme = useTheme();
 
+  const floatingActionsArray: GlobalAction[] = useMemo(() => [
+    {
+      label: `Select Project Root Directory: ${projectRoot}`,
+      action: openProjectRootPicker,
+      icon: <FolderOpenIcon fontSize="small" />,
+      color: 'secondary',
+      disabled: isLoading,
+    },
+    {
+      label: `Manage AI Scan Paths: ${scanPathsInput}`,
+      action: openScanPathsDrawer,
+      icon: <AddRoadIcon fontSize="small" />,
+      color: 'secondary',
+      disabled: isLoading,
+    },
+    {
+      label: "Upload Context File (Image/Text)",
+      action: () => fileInputRef.current?.click(),
+      icon: <UploadFileIcon fontSize="small" />,
+      color: 'secondary',
+      disabled: isLoading || !!selectedFile, // Disable if file already selected
+    },
+  ], [projectRoot, scanPathsInput, isLoading, selectedFile, openProjectRootPicker, openScanPathsDrawer, fileInputRef]);
+
   return (
     <Card sx={cardSx} className="mb-6 flex-shrink-0">
       <CardContent sx={formSectionSx} className="flex flex-col">
@@ -123,16 +149,39 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
             <Typography variant="subtitle1" className="font-semibold">User Prompt</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <TextField
-              label="Enter your prompt for the AI"
+            {/* Hidden input for file upload, controls are floating in the text field */}
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+                disabled={isLoading}
+            />
+            <FloatingIconTextField
+              label="Enter your prompt"
               multiline
-              rows={6}
+              rows={2}
               fullWidth
               value={userPrompt}
               onChange={(e) => setUserPrompt(e.target.value)}
-              variant="outlined"
+              //variant="contained"
               disabled={isLoading}
+              floatingActions={floatingActionsArray}
+              border={10}
+              sx={{backgroundColor:'background.paper'}}
             />
+            {/* Display file status below the prompt field, if a file is attached */}
+            {selectedFile && (
+                <Stack direction="row" spacing={1} alignItems="center" className="mt-2">
+                    <Chip
+                        label={`Context File: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(2)} KB)`}
+                        onDelete={handleClearFile}
+                        color="info"
+                        size="small"
+                        sx={{ color: theme.palette.text.primary, borderColor: theme.palette.info.main }}
+                    />
+                </Stack>
+            )}
           </AccordionDetails>
         </Accordion>
 
@@ -142,20 +191,9 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
             <Typography variant="subtitle1" className="font-semibold">Project Context</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="center" className="mb-2">
-              <TextField label="Project Root" value={projectRoot} disabled fullWidth size="small" />
-              <Tooltip title="Select Project Root Directory">
-                <IconButton
-                  color="primary"
-                  onClick={openProjectRootPicker}
-                  aria-label="select project root directory"
-                  disabled={isLoading}
-                >
-                  <FolderOpenIcon />
-                </IconButton>
-              </Tooltip>
-            </Stack>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="center" className="mb-2">
+            {/* Context fields are now displayed here without redundant buttons */}
+            <Stack direction="column" spacing={1} className="mb-2">
+              <TextField label="Project Root" value={projectRoot} disabled fullWidth size="small" helperText="Set project root via the folder icon above the prompt." />
               <TextField
                 label="Scan Paths (comma-separated)"
                 value={scanPathsInput}
@@ -163,45 +201,8 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
                 fullWidth
                 size="small"
                 placeholder="e.g., src, public, package.json"
+                helperText="Manage scan paths via the road icon above the prompt."
               />
-              <Tooltip title="Manage AI Scan Paths">
-                <IconButton
-                  color="primary"
-                  onClick={openScanPathsDrawer}
-                  aria-label="manage ai scan paths"
-                  disabled={isLoading}
-                >
-                  <AddRoadIcon />
-                </IconButton>
-              </Tooltip>
-            </Stack>
-            {/* Multimodal File Upload */}
-            <Stack direction="row" spacing={1} alignItems="center" className="mt-2">
-              <Button
-                variant="outlined"
-                startIcon={<UploadFileIcon />}
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading}
-                size="small"
-              >
-                Upload Context File
-              </Button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                style={{ display: 'none' }}
-                disabled={isLoading}
-              />
-              {selectedFile && (
-                <Chip
-                  label={`File: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(2)} KB)`}
-                  onDelete={handleClearFile}
-                  color="info"
-                  size="small"
-                  sx={{ color: theme.palette.text.primary, borderColor: theme.palette.info.main }}
-                />
-              )}
             </Stack>
           </AccordionDetails>
         </Accordion>

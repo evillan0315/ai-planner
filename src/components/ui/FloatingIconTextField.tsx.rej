@@ -1,0 +1,44 @@
+diff a/src/components/ui/FloatingIconTextField.tsx b/src/components/ui/FloatingIconTextField.tsx	(rejected hunks)
+@@ -25,18 +25,40 @@
+ 
+ const DEFAULT_POSITIONING: IconPositioning = { x: 'right', y: 'bottom' };
+ const ICON_OFFSET = 6; // px offset from edge (to align with typical MUI padding)
++const MIN_CONTENT_AREA_CLEARANCE = 40; // Minimum vertical clearance needed for a row of icons (approx 24px button + padding)
+ 
+-const getFloatingActionsContainerSx = (
++const getFloatingActionsContainerSx = ( // Renamed from getFloatingActionsContainerSx
+   positioning: IconPositioning,
+ ): SxProps => ({
+   position: 'absolute',
+   zIndex: 1, // Ensure floating actions are above the textarea content
+   display: 'flex',
+   // Vertical positioning
+   ...(positioning.y === 'bottom' ? { bottom: ICON_OFFSET, top: 'auto' } : { top: ICON_OFFSET, bottom: 'auto' }),
+   // Horizontal positioning
+-  ...(positioning.x === 'right' ? 
++  ...(positioning.x === 'right' ?
+     { right: ICON_OFFSET, left: 'auto', flexDirection: 'row' } : 
+     { left: ICON_OFFSET, right: 'auto', flexDirection: 'row-reverse' }), // Reverse order if on left for alignment
+ });
+ 
++
++const getInputAreaPaddingSx = (
++  positioning: IconPositioning,
++  multiline: boolean,
++): SxProps => {
++    if (!multiline) return {};
++    
++    // Target the actual textarea/input field within the multiline InputBase structure
++    return {
++        '& .MuiInputBase-inputMultiline': { 
++            // We use !important because default MUI padding can be hard to override otherwise.
++            // Add padding based on icon location to prevent overlap
++            ...(positioning.y === 'bottom' && { paddingBottom: `${MIN_CONTENT_AREA_CLEARANCE}px !important` }),
++            ...(positioning.y === 'top' && { paddingTop: `${MIN_CONTENT_AREA_CLEARANCE}px !important` }),
++            
++            // Apply horizontal padding as well, though the icons themselves might not be wide enough to require it fully.
++            // Using horizontal padding ensures space for a row of buttons if needed.
++            ...(positioning.x === 'right' && { paddingRight: `${MIN_CONTENT_AREA_CLEARANCE}px !important` }),
++            ...(positioning.x === 'left' && { paddingLeft: `${MIN_CONTENT_AREA_CLEARANCE}px !important` }),
++        }
++    };

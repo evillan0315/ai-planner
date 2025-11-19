@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useCallback, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import * as path from 'path-browserify';
 import { useStore } from '@nanostores/react';
@@ -40,7 +40,8 @@ import {
 import { FileContentRenderer } from './views/FileContentRenderer';
 import { MultiTabHeader } from './views/MultiTabHeader';
 import { EditorStatusFooter } from './views/EditorStatusFooter';
-
+import AudioPlayer from '@/components/ui/player/AudioPlayer';
+import VideoPlayer from '@/components/ui/player/VideoPlayer';
 
 interface FileEditorViewerProps {
     onClose: () => void;
@@ -85,6 +86,15 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   const theme = useTheme();
   const [searchParams] = useSearchParams();
   
+  // NEW STATE: Cursor position and Placeholder for issues
+  const [cursorPosition, setCursorPosition] = useState<{ line: number; column: number }>({ line: 1, column: 1 });
+  const [eslintIssuesCount, setEslintIssuesCount] = useState<number>(0); // Placeholder for future integration
+
+  // Update handler for Monaco
+  const handleCursorChange = useCallback((line: number, column: number) => {
+    setCursorPosition({ line, column });
+  }, []);
+
   // Determine if we are running in Contextual (Floating Box) Mode
   const isContextualMode = !!contextEntry;
   
@@ -151,6 +161,16 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   const content = currentTabOrContent;
   const fileEntry = currentFileEntry;
 
+// --- New Handler for Fullscreen Registration ---
+// Handler definition for VideoPlayer to pass its action upward to FloatingResizableDraggableBox
+const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
+    if (onRegisterPlayerAction) {
+        // Register action map: { requestFullscreen: fn } or empty map if fn is null
+        onRegisterPlayerAction(fn ? { requestFullscreen: fn } : {});
+    }
+}, [onRegisterPlayerAction]);
+
+
   // Check if content implies media based on mimeType for container styling
   const mimeType = fileEntry?.mimeType || content?.mimeType || '';
   const isMedia = IMAGE_MIME_TYPES.has(mimeType) || 
@@ -189,10 +209,9 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   ] : [];
 
 
-  // --- Conditional Rendering by Mode ---
-
   // 1. Contextual Mode (Floating Box) - Read-only view, mainly for media
   if (isContextualMode) {
+    // Note: Loading/Error handling for media is centralized in FileContentRenderer
     return (
       <Box sx={getContainerSx(isMedia)} className="w-full h-full"> 
          {content && (
@@ -200,14 +219,14 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
                 <FileContentRenderer
                     content={content}
                     fileEntry={fileEntry}
-                    isLoading={isLoading || mediaUrlLoading}
-                    error={error || mediaUrlError}
+                    isLoading={isLoading}
+                    error={error}
                     draftContent={draftContent}
                     isContextualMode={true}
                     mediaStreamUrl={mediaStreamUrl}
                     mediaUrlLoading={mediaUrlLoading}
                     mediaUrlError={mediaUrlError}
-                    onRegisterPlayerAction={onRegisterPlayerAction}
+                    onRegisterPlayerAction={handleRegisterFullscreen} // Pass action registration
                 />
             </Box>
          )}
@@ -270,15 +289,19 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
                 isContextualMode={false}
                 onSaveShortcut={saveActiveTabContent}
                 onContentChange={updateActiveTabDraft}
+                onCursorChange={handleCursorChange} // PASS CURSOR HANDLER HERE
             />
         );
         
         // Define footer content 
-        if (!isMedia) { 
+        if (!isMedia) {
              footerContentNode = (
                 <EditorStatusFooter
                     filePath={activeTab.filePath} 
                     hasUnsavedChanges={activeTab.hasUnsavedChanges}
+                    line={cursorPosition.line} // PASS LINE/COL
+                    column={cursorPosition.column} // PASS LINE/COL
+                    eslintIssuesCount={eslintIssuesCount} // PASS ISSUES
                     // Custom style for ContentLayout footer area
                     sx={(theme) => ({
                         height: '30px', 
@@ -322,23 +345,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   // Normal drawer view
   return (
     <Box sx={getContainerSx(isMedia)}> 
-      {/* Status Bar Header (File path, only if not media) */}
-      {!isMedia && fileEntry && (
-        <EditorStatusFooter
-            filePath={fileEntry.path}
-            hasUnsavedChanges={hasUnsavedChanges}
-            sx={(theme) => ({
-                height: '40px',
-                px: 4,
-                borderBottom: `1px solid ${theme.palette.divider}`,
-                borderTop: 'none',
-                backgroundColor: theme.palette.background.paper,
-                '& .MuiTypography-caption': {
-                    color: theme.palette.text.secondary,
-                }
-            })}
-        />
-      )}
+      {/* Status Bar Header (Removed header status bar for simplicity/VSCode consistency) */}
       
       <Box sx={contentContainerSx}>
         <FileContentRenderer
@@ -350,6 +357,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
             isContextualMode={false}
             onSaveShortcut={saveSingletonFileContent}
             onContentChange={updateSingletonDraftContent}
+            onCursorChange={handleCursorChange} // PASS CURSOR HANDLER
         />
       </Box>
       
@@ -358,6 +366,9 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
         <EditorStatusFooter
             filePath={fileEntry.path}
             hasUnsavedChanges={hasUnsavedChanges}
+            line={cursorPosition.line} // PASS LINE/COL
+            column={cursorPosition.column} // PASS LINE/COL
+            eslintIssuesCount={eslintIssuesCount} // PASS ISSUES
              // Use default footer styling (border top)
             sx={(theme) => ({
                 height: '30px',

@@ -21,6 +21,8 @@ import type { IEditorContent } from '@/components/editor/stores/editorStore';
 import type { IEditorTab } from '@/components/editor/stores/multiTabEditorStore';
 import type { IWindowContent } from '@/components/editor/stores/floatingWindowsStore';
 import type { IFileSystemEntry } from '@/components/file-explorer/types';
+import AudioPlayer from '@/components/ui/player/AudioPlayer';
+import VideoPlayer from '@/components/ui/player/VideoPlayer';
 
 // --- Types ---
 
@@ -36,12 +38,13 @@ interface FileContentRendererProps {
     // Actions for editable modes (Monaco)
     onSaveShortcut?: () => Promise<void>;
     onContentChange?: (value: string) => void;
+    onCursorChange?: (line: number, column: number) => void; // NEW PROP
     // Media streaming specific props (only used in Contextual mode)
     mediaStreamUrl?: string | null;
     mediaUrlLoading?: boolean;
     mediaUrlError?: string | null;
-    // Prop for media players (if they become available)
-    onRegisterPlayerAction?: (actions: Record<string, () => void>) => void;
+    // Prop for media players (if they become available) - This is the handler passed from FloatingResizableDraggableBox -> FileEditorViewer
+    onRegisterPlayerAction?: (fn: (() => void) | null) => void;
 }
 
 type RendererType = 'code' | 'markdown' | 'image' | 'video' | 'audio' | 'iframe' | 'plaintext' | 'unsupported';
@@ -108,10 +111,11 @@ export const FileContentRenderer: React.FC<FileContentRendererProps> = ({
     isContextualMode,
     onSaveShortcut,
     onContentChange,
+    onCursorChange, // NEW PROP DESTRUCTURING
     mediaStreamUrl,
     mediaUrlLoading,
     mediaUrlError,
-    onRegisterPlayerAction,
+    onRegisterPlayerAction, // Note: This is actually the handleRegisterFullscreen from FileEditorViewer
 }) => {
     
     const rendererType: RendererType = useMemo(() => determineRendererType(content), [content]);
@@ -199,12 +203,30 @@ export const FileContentRenderer: React.FC<FileContentRendererProps> = ({
                 );
             }
             
-            // Fallback for video/audio (since players were commented out in original FileEditorViewer)
-             return (
-                 <Alert severity="warning" className="m-4">
-                     Media file ({rendererType}) found, but playback components (VideoPlayer/AudioPlayer) are currently unavailable or commented out.
-                 </Alert>
-             );
+            // FIX: Video rendering
+            if (rendererType === 'video') {
+                return (
+                    <Box sx={mediaContainerSx}> 
+                        <VideoPlayer 
+                            src={url} 
+                            fileName={fileEntry?.name} 
+                            onRequestFullscreenReady={onRegisterPlayerAction}
+                        />
+                    </Box>
+                );
+            }
+            
+            // FIX: Audio rendering
+            if (rendererType === 'audio') {
+                 return (
+                    <Box sx={mediaContainerSx} className="p-1"> 
+                        <AudioPlayer 
+                            src={url} 
+                            fileName={fileEntry?.name} 
+                        />
+                    </Box>
+                );
+            }
         }
         
         return <Alert severity="warning" className="m-4">Could not obtain media stream URL.</Alert>
@@ -248,6 +270,7 @@ export const FileContentRenderer: React.FC<FileContentRendererProps> = ({
                         wordWrap: 'on',
                     }}
                     onSaveShortcut={isCodeEditable ? onSaveShortcut : undefined}
+                    onCursorChange={isCodeEditable ? onCursorChange : undefined} // PASS CURSOR HANDLER HERE
                 />
             </Box>
         );
@@ -261,4 +284,3 @@ export const FileContentRenderer: React.FC<FileContentRendererProps> = ({
         </Alert>
     );
 };
-
