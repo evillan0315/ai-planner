@@ -40,7 +40,8 @@ import {
 import { FileContentRenderer } from './views/FileContentRenderer';
 import { MultiTabHeader } from './views/MultiTabHeader';
 import { EditorStatusFooter } from './views/EditorStatusFooter';
-
+import AudioPlayer from '@/components/ui/player/AudioPlayer';
+import VideoPlayer from '@/components/ui/player/VideoPlayer';
 
 interface FileEditorViewerProps {
     onClose: () => void;
@@ -189,7 +190,73 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   ] : [];
 
 
-  // --- Conditional Rendering by Mode ---
+   if (isMedia) {
+        // Media should only happen in Contextual mode, if it happens here, it's an error/warning
+        if (!isContextualMode) {
+            return (
+                <Alert severity="info">
+                    Media files are typically opened in floating windows. Path: {fileEntry?.path}
+                </Alert>
+            );
+        }
+        
+        if (isLoading || mediaUrlLoading) {
+            return (
+                <Box className="flex justify-center items-center h-full">
+                    <CircularProgress />
+                    <Typography sx={{ml: 2}} color="text.secondary">Generating secured media stream URL...</Typography>
+                </Box>
+            );
+        }
+        
+        if (error || mediaUrlError) {
+            return (
+                <Alert severity="error">
+                    Error loading media stream: {error || mediaUrlError}
+                </Alert>
+            );
+        }
+
+        const url = mediaStreamUrl || fileEntry?.path; 
+
+        if (url) {
+            if (rendererType === 'image') {
+                return (
+                    <Box className="flex justify-center items-center w-full h-full"> 
+                        <img 
+                            src={url} 
+                            alt={fileEntry?.name || 'File Preview'} 
+                            className="w-full object-contain" 
+                            style={{ maxHeight: '100%', maxWidth: '100%' }}
+                        />
+                    </Box>
+                );
+            }
+            
+            if (rendererType === 'video') {
+                return (
+                    <Box className="flex justify-center items-center h-full">
+                        <VideoPlayer 
+                            src={url} 
+                            fileName={fileEntry?.name} 
+                            onRequestFullscreenReady={handleRegisterFullscreen}
+                        />
+                    </Box>
+                );
+            }
+            
+            // Audio rendering
+            if (rendererType === 'audio') {
+                return (
+                    <Box className="flex justify-center items-center h-full p-1"> 
+                        <AudioPlayer src={url} fileName={fileEntry?.name} />
+                    </Box>
+                );
+            }
+        }
+        
+        return <Alert severity="warning">Could not display media content.</Alert>
+    }
 
   // 1. Contextual Mode (Floating Box) - Read-only view, mainly for media
   if (isContextualMode) {
