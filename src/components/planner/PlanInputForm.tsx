@@ -172,13 +172,14 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
             />
             {/* Display file status below the prompt field, if a file is attached */}
             {selectedFile && (
-                <Stack direction="row" spacing={1} alignItems="center" className="mt-2">
+                <Stack direction="row" spacing={1} alignItems="center" className="mt-2  max-w-sm">
                     <Chip
-                        label={`Context File: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(2)} KB)`}
+                        label={`${selectedFile.name} (${(selectedFile.size / 1024).toFixed(2)} KB)`}
                         onDelete={handleClearFile}
                         color="info"
                         size="small"
-                        sx={{ color: theme.palette.text.primary, borderColor: theme.palette.info.main }}
+                        sx={{ color: theme.palette.text.contrastText, borderColor: theme.palette.info.main }}
+                        className="truncate"
                     />
                 </Stack>
             )}

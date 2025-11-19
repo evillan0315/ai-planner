@@ -28,9 +28,9 @@ interface FloatingIconTextFieldProps extends TextFieldProps {
 // 2. SX Prop Definitions
 // ---------------------------
 
-const DEFAULT_POSITIONING: IconPositioning = { x: 'right', y: 'bottom' };
+const DEFAULT_POSITIONING: IconPositioning = { x: 'left', y: 'bottom' };
 const ICON_OFFSET = 6; // px offset from edge (to align with typical MUI padding)
-const MIN_CONTENT_AREA_CLEARANCE = 20; // Minimum vertical clearance needed for a row of icons (approx 24px button + padding)
+const MIN_CONTENT_AREA_CLEARANCE = 15; // Minimum vertical clearance needed for a row of icons (approx 24px button + padding)
 
 
 const getFloatingActionsContainerSx = (
@@ -44,7 +44,7 @@ const getFloatingActionsContainerSx = (
   // Horizontal positioning
   ...(positioning.x === 'right' ? 
     { right: ICON_OFFSET, left: 'auto', flexDirection: 'row' } : 
-    { left: ICON_OFFSET, right: 'auto', flexDirection: 'row-reverse' }),
+    { left: MIN_CONTENT_AREA_CLEARANCE, right: 'auto', flexDirection: 'row-reverse' }),
 });
 
 const getInputAreaPaddingSx = (
