@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useCallback } from 'react';
+import React, { useMemo, useEffect, useCallback, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import * as path from 'path-browserify';
 import { useStore } from '@nanostores/react';
@@ -86,6 +86,15 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   const theme = useTheme();
   const [searchParams] = useSearchParams();
   
+  // NEW STATE: Cursor position and Placeholder for issues
+  const [cursorPosition, setCursorPosition] = useState<{ line: number; column: number }>({ line: 1, column: 1 });
+  const [eslintIssuesCount, setEslintIssuesCount] = useState<number>(0); // Placeholder for future integration
+
+  // Update handler for Monaco
+  const handleCursorChange = useCallback((line: number, column: number) => {
+    setCursorPosition({ line, column });
+  }, []);
+
   // Determine if we are running in Contextual (Floating Box) Mode
   const isContextualMode = !!contextEntry;
   
@@ -280,15 +289,19 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
                 isContextualMode={false}
                 onSaveShortcut={saveActiveTabContent}
                 onContentChange={updateActiveTabDraft}
+                onCursorChange={handleCursorChange} // PASS CURSOR HANDLER HERE
             />
         );
         
         // Define footer content 
-        if (!isMedia) { 
+        if (!isMedia) {
              footerContentNode = (
                 <EditorStatusFooter
                     filePath={activeTab.filePath} 
                     hasUnsavedChanges={activeTab.hasUnsavedChanges}
+                    line={cursorPosition.line} // PASS LINE/COL
+                    column={cursorPosition.column} // PASS LINE/COL
+                    eslintIssuesCount={eslintIssuesCount} // PASS ISSUES
                     // Custom style for ContentLayout footer area
                     sx={(theme) => ({
                         height: '30px', 
@@ -332,23 +345,7 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
   // Normal drawer view
   return (
     <Box sx={getContainerSx(isMedia)}> 
-      {/* Status Bar Header (File path, only if not media) */}
-      {!isMedia && fileEntry && (
-        <EditorStatusFooter
-            filePath={fileEntry.path}
-            hasUnsavedChanges={hasUnsavedChanges}
-            sx={(theme) => ({
-                height: '40px',
-                px: 4,
-                borderBottom: `1px solid ${theme.palette.divider}`,
-                borderTop: 'none',
-                backgroundColor: theme.palette.background.paper,
-                '& .MuiTypography-caption': {
-                    color: theme.palette.text.secondary,
-                }
-            })}
-        />
-      )}
+      {/* Status Bar Header (Removed header status bar for simplicity/VSCode consistency) */}
       
       <Box sx={contentContainerSx}>
         <FileContentRenderer
@@ -360,6 +357,7 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
             isContextualMode={false}
             onSaveShortcut={saveSingletonFileContent}
             onContentChange={updateSingletonDraftContent}
+            onCursorChange={handleCursorChange} // PASS CURSOR HANDLER
         />
       </Box>
       
@@ -368,6 +366,9 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
         <EditorStatusFooter
             filePath={fileEntry.path}
             hasUnsavedChanges={hasUnsavedChanges}
+            line={cursorPosition.line} // PASS LINE/COL
+            column={cursorPosition.column} // PASS LINE/COL
+            eslintIssuesCount={eslintIssuesCount} // PASS ISSUES
              // Use default footer styling (border top)
             sx={(theme) => ({
                 height: '30px',

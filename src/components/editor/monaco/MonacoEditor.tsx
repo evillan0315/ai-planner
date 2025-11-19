@@ -17,6 +17,7 @@ interface MonacoEditorProps {
   className?: string;
   sx?: SxProps; // Material UI sx prop for advanced styling
   onSaveShortcut?: () => void; // NEW: Callback for Ctrl+S shortcut
+  onCursorChange?: (line: number, column: number) => void; // NEW: Callback for cursor position change
 }
 
 // Mapping application themes to Monaco Editor themes
@@ -40,7 +41,8 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
   width = '100%',
   className,
   sx,
-  onSaveShortcut, // Destructure new prop
+  onSaveShortcut, 
+  onCursorChange, // Destructure new prop
 }) => {
   // Get the current application theme from the nanostore
   const { theme: currentAppTheme } = useStore(themeAtom);
@@ -66,6 +68,21 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
             },
             // The 3rd argument (context key binding) is omitted, making it always active when editor is focused.
         );
+    }
+    
+    // 2. Register Cursor Position Change Listener
+    if (onCursorChange) {
+        // Trigger initial position update if needed, though subsequent changes will handle it.
+        // Or wait for the first change event. Monaco's onDid... fires when cursor changes.
+        editorInstance.onDidChangeCursorPosition((e) => {
+            onCursorChange(e.position.lineNumber, e.position.column);
+        });
+        
+        // Ensure initial position is reported immediately after mount
+        const position = editorInstance.getPosition();
+        if (position) {
+            onCursorChange(position.lineNumber, position.column);
+        }
     }
     
     // Can expose the editor instance externally if advanced imperative control is needed.

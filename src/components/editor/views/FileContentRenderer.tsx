@@ -38,6 +38,7 @@ interface FileContentRendererProps {
     // Actions for editable modes (Monaco)
     onSaveShortcut?: () => Promise<void>;
     onContentChange?: (value: string) => void;
+    onCursorChange?: (line: number, column: number) => void; // NEW PROP
     // Media streaming specific props (only used in Contextual mode)
     mediaStreamUrl?: string | null;
     mediaUrlLoading?: boolean;
@@ -110,6 +111,7 @@ export const FileContentRenderer: React.FC<FileContentRendererProps> = ({
     isContextualMode,
     onSaveShortcut,
     onContentChange,
+    onCursorChange, // NEW PROP DESTRUCTURING
     mediaStreamUrl,
     mediaUrlLoading,
     mediaUrlError,
@@ -268,6 +270,7 @@ export const FileContentRenderer: React.FC<FileContentRendererProps> = ({
                         wordWrap: 'on',
                     }}
                     onSaveShortcut={isCodeEditable ? onSaveShortcut : undefined}
+                    onCursorChange={isCodeEditable ? onCursorChange : undefined} // PASS CURSOR HANDLER HERE
                 />
             </Box>
         );
