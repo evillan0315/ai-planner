@@ -19,6 +19,8 @@ const PlannerDedicatedPage = lazy(() => import('./pages/PlannerDedicatedPage'));
 const PromptGeneratorPage = lazy(() => import('./components/generator/PromptGeneratorPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
+const StreamDemoPage = lazy(() => import('./pages/StreamDemoPage')); // Lazy load new Stream Demo Page
+const FileExplorerPage = lazy(() => import('./pages/FileExplorerPage')); // ADD File Explorer Page
 const CodejectorLandingPage = lazy(() => import('./pages/CodejectorLandingPage')); // ADDED
 const CodejectorPage = lazy(() => import('./pages/CodejectorPage')); // ADDED
 
@@ -34,8 +36,8 @@ function App() {
   return (
     <ThemeProvider theme={muiTheme}>
       <CssBaseline />
-      <ErrorBoundary> 
-        <AppLayout> 
+      <ErrorBoundary> {/* Wrap the entire layout with the ErrorBoundary */}
+        <AppLayout> {/* RENAMED Component */}
           <Routes>
             <Route path="/" element={
               <Suspense fallback={<Loading />}>
@@ -67,7 +69,11 @@ function App() {
                 <PromptGeneratorPage />
               </Suspense>
             } />
-
+            <Route path="/files" element={
+              <Suspense fallback={<Loading />}>
+                <FileExplorerPage />
+              </Suspense>
+            } />
             
             {/* CODEJECTOR ROUTES (NEW) */}
             <Route path="/codejector" element={
@@ -78,6 +84,12 @@ function App() {
             <Route path="/codejector/editor" element={
               <Suspense fallback={<Loading />}>
                 <CodejectorPage />
+              </Suspense>
+            } />
+            
+            <Route path="/stream-demo" element={
+              <Suspense fallback={<Loading />}>
+                <StreamDemoPage />
               </Suspense>
             } />
             <Route path="/login" element={

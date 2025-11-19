@@ -87,7 +87,7 @@ export const NavBar: React.FC = () => {
             >
               <Stack direction="row" alignItems="center" spacing={1}>
                 <CodeIcon fontSize="small" />
-                <Typography>Codejector</Typography>
+                <Typography>Codejector Workspace</Typography>
               </Stack>
             </MenuItem>
             {/* Existing Links */}
@@ -98,7 +98,7 @@ export const NavBar: React.FC = () => {
             >
               <Stack direction="row" alignItems="center" spacing={1}>
                 <AddRoadIcon fontSize="small" />
-                <Typography>Planner</Typography>
+                <Typography>AI Plan Generator</Typography>
               </Stack>
             </MenuItem>
             <MenuItem
@@ -111,8 +111,26 @@ export const NavBar: React.FC = () => {
                 <Typography>Prompt Generator</Typography>
               </Stack>
             </MenuItem>
-
-            
+            <MenuItem
+              component={RouterLink}
+              to="/files"
+              onClick={handleMenuClose}
+            >
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <FolderSharedIcon fontSize="small" />
+                <Typography>File Explorer</Typography>
+              </Stack>
+            </MenuItem>
+            <MenuItem
+              component={RouterLink}
+              to="/stream-demo"
+              onClick={handleMenuClose}
+            >
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <SendIcon fontSize="small" />
+                <Typography>Stream Demo</Typography>
+              </Stack>
+            </MenuItem>
           </Menu>
 
           {isLoggedIn ? (
