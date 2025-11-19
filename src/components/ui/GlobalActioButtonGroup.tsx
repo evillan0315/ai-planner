@@ -6,8 +6,12 @@ import GlobalActionButton, { GlobalAction } from './GlobalActionButton';
 // 1. Interfaces & Types
 // ---------------------------
 
+export interface GlobalActionGroup {
+  actionGroup: GlobalAction[];
+}
+
 export interface GlobalActioButtonGroupProps {
-  actionArray: GlobalAction[];
+  actionArray: GlobalActionGroup[];
   /** Determines horizontal position. Requires the component to be absolutely or fixed positioned. */
   positionX?: 'left' | 'right';
   /** Determines vertical position. Requires the component to be absolutely or fixed positioned. */
