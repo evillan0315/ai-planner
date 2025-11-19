@@ -13,6 +13,9 @@ import {
   toggleRightSidebar,
 } from '@/stores/uiStore';
 
+// NEW IMPORT
+import LiveClock from '@/components/clock/LiveClock';
+
 const Footer = () => {
   const theme = useTheme();
 
@@ -23,6 +26,8 @@ const Footer = () => {
   return (
     <>
       <Box className="flex justify-between items-center w-full h-full">
+        
+        {/* LEFT & CENTER Content (Sidebar Toggles, Status, Logger/Terminal Icons) */}
         <Box className="flex justify-start items-center flex-grow pl-2">
           
           {/* Toggle Left Sidebar (File Explorer) */}
@@ -48,17 +53,31 @@ const Footer = () => {
               {rightVisible ? <ChevronRightIcon /> : <ChevronLeftIcon />}
             </IconButton>
           </Tooltip>
+          
+          {/* Placeholder for center content (e.g., status messages, progress, logs/terminal buttons) */}
+          <Box className="ml-2 flex items-center gap-1">
+            {/* Placeholder Icons */}
+             <Tooltip title="Open Output Logger">
+                <IconButton
+                    color="inherit"
+                    aria-label="open output logger"
+                    size="small"
+                ></IconButton>
+             </Tooltip>
+             <Tooltip title="Open Terminal">
+                <IconButton 
+                    color="inherit" 
+                    aria-label="open terminal"
+                    size="small"
+                ></IconButton>
+             </Tooltip>
+          </Box>
 
         </Box>
         
-        {/* Existing right side content */}
-        <Box className="flex justify-end items-center w-1/2 max-w-[600px] pr-4">
-          <Box className="flex items-center flex-shrink"></Box>
-          <IconButton
-            color="inherit"
-            aria-label="open output logger"
-          ></IconButton>
-          <IconButton color="inherit" aria-label="open terminal"></IconButton>
+        {/* FAR RIGHT Content: Live Clock & Configuration */}
+        <Box className="flex justify-end items-center flex-shrink-0 pr-2 h-full">
+          <LiveClock />
         </Box>
       </Box>
     </>
