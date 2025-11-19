@@ -15,7 +15,7 @@ import GlobalDialogManager from '@/components/ui/dialogs/GlobalDialogManager'; /
 const HomePage = lazy(() => import('./pages/HomePage'));
 const PlannerLandingPage = lazy(() => import('./pages/PlannerLandingPage'));
 const PlannerList = lazy(() => import('./components/planner/PlannerList'));
-const PlannerPage = lazy(() => import('./pages/PlannerPage'));
+const PlannerDedicatedPage = lazy(() => import('./pages/PlannerDedicatedPage')); // ADDED
 const PromptGeneratorPage = lazy(() => import('./components/generator/PromptGeneratorPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
@@ -56,12 +56,12 @@ function App() {
             } /> 
             <Route path="/planner-generator" element={
               <Suspense fallback={<Loading />}>
-                <PlannerPage />
+                <PlannerDedicatedPage />
               </Suspense>
             }/>
             <Route path="/planner-generator/:planId" element={
                <Suspense fallback={<Loading />}>
-                <PlannerPage />
+                <PlannerDedicatedPage />
               </Suspense>
             } />
             <Route path="/prompt-generator" element={
