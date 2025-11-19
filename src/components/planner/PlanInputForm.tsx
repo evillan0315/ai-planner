@@ -276,13 +276,13 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
             <FloatingIconTextField
               label="Enter your prompt"
               multiline
-              rows={5} // Increased rows for better usability
+              rows={1} // Increased rows for better usability
               fullWidth
               value={userPrompt}
               onChange={(e) => setUserPrompt(e.target.value)}
               disabled={isLoading}
               floatingActionGroupsByCorner={floatingActionGroupsByCorner} 
-              sx={{backgroundColor:'background.paper'}}
+              sx={{backgroundColor:'background.paper', mt:5}}
             />
 
             {/* Status Display Area (Project Root + Attached File) - NEW REQUIREMENT */}
