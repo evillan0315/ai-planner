@@ -9,7 +9,7 @@ import { closeEditor } from './editorStore'; // Use closeEditor for consistency/
  * Represents the content and state of a single file tab.
  */
 export interface IEditorTab {
-  id: string; // File path
+  id: string; // File path (used as unique key)
   name: string; // File name
   filePath: string;
   content: string; // Original content
@@ -23,13 +23,13 @@ export interface IEditorTab {
 
 interface MultiTabEditorState {
   tabs: IEditorTab[];
-  activeTabId: string | null;
+  activeTabIndex: number | null; // Tracks the array index of the active tab
   isInitializing: boolean; // Tracks if the store is loading the first tab based on URL
 }
 
 const INITIAL_STATE: MultiTabEditorState = {
   tabs: [],
-  activeTabId: null,
+  activeTabIndex: null,
   isInitializing: false,
 };
 
@@ -37,8 +37,9 @@ export const multiTabEditorStore = atom<MultiTabEditorState>(INITIAL_STATE);
 
 /**
  * Helper to update a specific tab by ID immutably.
+ * Used primarily for asynchronous updates when only the file path (ID) is known.
  */
-const updateTabInStore = (tabId: string, update: Partial<IEditorTab>) => {
+const updateTabInStoreById = (tabId: string, update: Partial<IEditorTab>) => {
   const current = multiTabEditorStore.get();
   const index = current.tabs.findIndex(t => t.id === tabId);
 
@@ -49,6 +50,7 @@ const updateTabInStore = (tabId: string, update: Partial<IEditorTab>) => {
   }
 };
 
+
 /**
  * Opens a new tab or activates an existing one based on the file path.
  */
@@ -57,15 +59,15 @@ export const openTab = async (filePath: string) => {
   const normalizedPath = path.normalize(filePath.replace(/\\/g, '/'));
 
   // 1. If already open, just activate it
-  if (current.tabs.some(t => t.id === normalizedPath)) {
-    setActiveTab(normalizedPath);
+  const existingIndex = current.tabs.findIndex(t => t.id === normalizedPath);
+  if (existingIndex !== -1) {
+    setActiveTab(existingIndex);
     return;
   }
 
   // 2. Prevent opening media files in the multi-tab editor pane
   const extension = normalizedPath.split('.').pop()?.toLowerCase() || '';
   // Note: We don't have mimeType easily here, so we rely on extension/assume non-media unless known.
-  // The media files are handled by openFloatingWindow via openFileInEditor (which should be called if coming from FileExplorer).
 
   const newTab: IEditorTab = {
     id: normalizedPath,
@@ -78,10 +80,13 @@ export const openTab = async (filePath: string) => {
     error: null,
   };
 
+  const newTabs = [...current.tabs, newTab];
+  const newActiveIndex = newTabs.length - 1; // Index of the new tab
+
   multiTabEditorStore.set({ 
     ...current, 
-    tabs: [...current.tabs, newTab], 
-    activeTabId: normalizedPath, 
+    tabs: newTabs, 
+    activeTabIndex: newActiveIndex, // Set active index
     isInitializing: false 
   });
 
@@ -94,12 +99,10 @@ export const openTab = async (filePath: string) => {
 
     // Check if the file is media based on fetched MIME type, if so, close tab and inform user (or handle error)
     if (IMAGE_MIME_TYPES.has(finalMimeType) || VIDEO_MIME_TYPES.has(finalMimeType) || AUDIO_MIME_TYPES.has(finalMimeType)) {
-        // Media files should be handled by floating windows (via FileExplorer -> openFileInEditor)
-        // We allow the tab to open temporarily but might want to display an error or close it here.
-        // For now, we load it, but the viewer will display the media/warning.
+        // Viewer will handle displaying media files with a warning if needed.
     }
     
-    updateTabInStore(normalizedPath, {
+    updateTabInStoreById(normalizedPath, {
       isLoading: false,
       content: response.content,
       draftContent: response.content, 
@@ -109,7 +112,7 @@ export const openTab = async (filePath: string) => {
     });
   } catch (err: unknown) {
     const errorMessage = (err as Error).message || `Failed to load file content for ${normalizedPath}.`;
-    updateTabInStore(normalizedPath, {
+    updateTabInStoreById(normalizedPath, {
       isLoading: false,
       error: errorMessage,
     });
@@ -121,30 +124,37 @@ export const openTab = async (filePath: string) => {
  */
 export const closeTab = (tabId: string) => {
   const current = multiTabEditorStore.get();
-  const tabToClose = current.tabs.find(t => t.id === tabId);
+  const indexToClose = current.tabs.findIndex(t => t.id === tabId);
+
+  if (indexToClose === -1) return;
+  
+  const tabToClose = current.tabs[indexToClose];
 
   if (tabToClose?.hasUnsavedChanges && !window.confirm(`You have unsaved changes in ${tabToClose.name}. Are you sure you want to close?`)) {
       return; // Do not close
   }
 
-  const newTabs = current.tabs.filter(t => t.id !== tabId);
-  let newActiveTabId = current.activeTabId;
+  const newTabs = current.tabs.filter((t, index) => index !== indexToClose);
+  let newActiveTabIndex: number | null = current.activeTabIndex;
 
-  if (tabId === current.activeTabId) {
+  if (indexToClose === current.activeTabIndex) {
     // If the active tab is closed, activate the closest neighbor
     if (newTabs.length > 0) {
-      const currentIndex = current.tabs.findIndex(t => t.id === tabId);
-      const nextIndex = Math.min(currentIndex, newTabs.length - 1);
-      newActiveTabId = newTabs[nextIndex]?.id || newTabs[0]?.id || null;
+      // Calculate the index of the next active tab
+      const nextIndex = Math.min(indexToClose, newTabs.length - 1);
+      newActiveTabIndex = nextIndex;
     } else {
-      newActiveTabId = null;
+      newActiveTabIndex = null;
     }
+  } else if (current.activeTabIndex !== null && indexToClose < current.activeTabIndex) {
+      // If a tab before the active tab is closed, shift the active tab index left by 1
+      newActiveTabIndex = current.activeTabIndex - 1;
   }
 
   multiTabEditorStore.set({ 
       ...current, 
       tabs: newTabs, 
-      activeTabId: newActiveTabId 
+      activeTabIndex: newActiveTabIndex, 
   });
   
   // If no tabs remain, ensure the singleton drawer editor is also closed (for layout consistency)
@@ -154,12 +164,14 @@ export const closeTab = (tabId: string) => {
 };
 
 /**
- * Sets the active tab ID.
+ * Sets the active tab index.
  */
-export const setActiveTab = (tabId: string) => {
+export const setActiveTab = (index: number | null) => {
   const current = multiTabEditorStore.get();
-  if (current.activeTabId !== tabId) {
-    multiTabEditorStore.set({ ...current, activeTabId: tabId });
+  if (current.activeTabIndex !== index) {
+    // Ensure index is valid if not null
+    const finalIndex = (index !== null && index >= 0 && index < current.tabs.length) ? index : null;
+    multiTabEditorStore.set({ ...current, activeTabIndex: finalIndex });
   }
 };
 
@@ -168,19 +180,23 @@ export const setActiveTab = (tabId: string) => {
  */
 export const updateActiveTabDraft = (newContent: string) => {
   const current = multiTabEditorStore.get();
-  const activeTabId = current.activeTabId;
+  const activeTabIndex = current.activeTabIndex;
 
-  if (!activeTabId) return;
+  if (activeTabIndex === null || activeTabIndex < 0 || activeTabIndex >= current.tabs.length) return;
   
-  const activeTab = current.tabs.find(t => t.id === activeTabId);
+  const activeTab = current.tabs[activeTabIndex];
   if (!activeTab) return;
   
   const hasChanged = newContent !== activeTab.content;
 
-  updateTabInStore(activeTabId, {
+  const newTabs = [...current.tabs];
+  newTabs[activeTabIndex] = {
+    ...activeTab,
     draftContent: newContent,
     hasUnsavedChanges: hasChanged,
-  });
+  };
+  
+  multiTabEditorStore.set({ ...current, tabs: newTabs });
 };
 
 /**
@@ -188,28 +204,36 @@ export const updateActiveTabDraft = (newContent: string) => {
  */
 export const saveActiveTabContent = async () => {
     const current = multiTabEditorStore.get();
-    const activeTabId = current.activeTabId;
+    const activeTabIndex = current.activeTabIndex;
 
-    if (!activeTabId) return { success: false, message: 'No active tab.' };
+    if (activeTabIndex === null || activeTabIndex < 0 || activeTabIndex >= current.tabs.length) return { success: false, message: 'No active tab.' };
 
-    const tab = current.tabs.find(t => t.id === activeTabId);
+    const tab = current.tabs[activeTabIndex];
     if (!tab || !tab.hasUnsavedChanges) {
         return { success: false, message: 'No changes detected.' };
     }
 
-    updateTabInStore(activeTabId, { isLoading: true, error: null });
+    // Set loading state on the specific tab via temporary full state update
+    const tabsLoading = [...current.tabs];
+    tabsLoading[activeTabIndex] = { ...tab, isLoading: true, error: null };
+    multiTabEditorStore.set({ ...current, tabs: tabsLoading });
 
     try {
         const result = await fileExplorerService.writeFileContent(tab.filePath, tab.draftContent);
         
         if (result.success) {
-            // Update original content to match draft
-            updateTabInStore(activeTabId, {
+            // Update original content to match draft and clear unsaved flags
+            const newTabs = [...current.tabs];
+            newTabs[activeTabIndex] = {
+                ...tab,
                 isLoading: false,
                 content: tab.draftContent, // Original content is now the saved draft
+                draftContent: tab.draftContent, // Ensure draft is consistent with new content
                 hasUnsavedChanges: false,
                 error: null,
-            });
+            };
+            multiTabEditorStore.set({ ...current, tabs: newTabs });
+            
             return { success: true, message: result.message };
         } else {
             throw new Error(result.message || 'Save operation failed.');
@@ -217,10 +241,16 @@ export const saveActiveTabContent = async () => {
 
     } catch (err: unknown) {
         const errorMessage = (err as Error).message || 'Failed to save file.';
-        updateTabInStore(activeTabId, {
+        
+        // Revert loading state and set error on the tab
+        const newTabs = [...current.tabs];
+        newTabs[activeTabIndex] = {
+            ...tab,
             isLoading: false,
             error: errorMessage,
-        });
+        };
+        multiTabEditorStore.set({ ...current, tabs: newTabs });
+
         return { success: false, message: errorMessage };
     }
 };

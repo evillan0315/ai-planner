@@ -99,3 +99,4 @@ export const MultiTabHeader: React.FC<MultiTabHeaderProps> = ({ tabs, activeTabI
         </Tabs>
     );
 };
+

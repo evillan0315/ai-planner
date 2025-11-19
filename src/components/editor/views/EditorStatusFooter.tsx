@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import { Box, Typography, Chip, useTheme, SxProps } from '@mui/material';
 
 // --- Types ---
@@ -58,3 +58,4 @@ export const EditorStatusFooter: React.FC<EditorStatusFooterProps> = ({
         </Box>
     );
 };
+
