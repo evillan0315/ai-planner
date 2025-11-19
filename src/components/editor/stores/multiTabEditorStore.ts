@@ -56,7 +56,7 @@ const updateTabInStoreById = (tabId: string, update: Partial<IEditorTab>) => {
  */
 export const openTab = async (filePath: string) => {
   const current = multiTabEditorStore.get();
-  const normalizedPath = path.normalize(filePath.replace(/\/g, '/'));
+  const normalizedPath = path.normalize(filePath.replace(/\\/g, '/'));
 
   // 1. If already open, just activate it
   const existingIndex = current.tabs.findIndex(t => t.id === normalizedPath);
