@@ -1,51 +1,33 @@
 import type { ReactNode } from 'react';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
-  AppBar,
-  Toolbar,
-  Typography,
   Box,
-  Button,
-  Stack,
-  Menu,
-  MenuItem,
-  IconButton,
   Paper,
   useTheme
 } from '@mui/material';
-import { ThemeToggle } from './ThemeToggle';
-import { Link as RouterLink, useLocation } from 'react-router-dom'; // ADD useLocation
-import { useAuth } from '../hooks/useAuth';
+import { useLocation } from 'react-router-dom';
 import { useStore } from '@nanostores/react';
 
-// UI Icons
-import LoginIcon from '@mui/icons-material/Login';
-import LogoutIcon from '@mui/icons-material/Logout';
-import AddRoadIcon from '@mui/icons-material/AddRoad';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import MenuIcon from '@mui/icons-material/Menu';
-import SendIcon from '@mui/icons-material/Send';
-import FolderSharedIcon from '@mui/icons-material/FolderShared';
+// UI Icons (Only keeping necessary ones for media/editor controls)
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile'; 
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
-import CodeIcon from '@mui/icons-material/Code'; // ADDED CodeIcon
-
-// Media Icons
 import VideocamIcon from '@mui/icons-material/Videocam';
 import AudiotrackIcon from '@mui/icons-material/Audiotrack';
 import ImageIcon from '@mui/icons-material/Image';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile'; // Generic file icon
 
-import CustomDrawer from './Drawer/CustomDrawer';
-import FloatingResizableDraggableBox from './ui/FloatingResizableDraggableBox';
-import { editorStore, closeEditor, saveFileContent } from '@/components/editor/stores/editorStore';
-import FileEditorViewer from './editor/FileEditorViewer';
+import CustomDrawer from '@/components/Drawer/CustomDrawer';
+import FloatingResizableDraggableBox from '@/components/ui/FloatingResizableDraggableBox'; 
+import { editorStore, closeEditor, saveFileContent } from '@/components/editor/stores/editorStore'; 
+import FileEditorViewer from '@/components/editor/FileEditorViewer'; 
 import { GlobalAction } from '@/types/action';
-import GlobalActionButton from './ui/GlobalActionButton';
+import GlobalActionButton from '@/components/ui/GlobalActionButton'; 
 import FileExplorer from '@/components/file-explorer/FileExplorer'; 
 import PlanGenerator from '@/components/planner/PlanGenerator'; 
 
-import Footer from './Footer';
+import Footer from '@/components/Footer'; 
+import { NavBar } from './NavBar'; // NEW IMPORT
+
 // NEW IMPORTS FOR MULTI-WINDOW SUPPORT
 import {
   floatingWindowsStore,
@@ -53,7 +35,7 @@ import {
   updateWindowPosition,
   updateWindowSize,
   bringWindowToFront,
-} from '@/components/editor/stores/floatingWindowsStore';
+} from '@/components/editor/stores/floatingWindowsStore'; 
 
 // Media Constants and Types
 import type { IFileSystemEntry } from '@/components/file-explorer/types'; 
@@ -62,8 +44,9 @@ import {
   VIDEO_MIME_TYPES,
   AUDIO_MIME_TYPES,
 } from '@/constants';
+import { useAuth } from '@/hooks/useAuth'; // Re-adding useAuth because we need isLoggedIn check
 
-// --- NEW IMPORTS FOR RESIZABLE LAYOUT ---
+// --- IMPORTS FOR RESIZABLE LAYOUT ---
 import {
   isRightSidebarVisible,
   isLeftSidebarVisible,
@@ -77,7 +60,7 @@ interface LayoutProps {
 
 
 const NAVBAR_HEIGHT = 64;
-const FOOTER_HEIGHT = 50; // Adjusted to accommodate both original footer controls (40px) and MediaPlayerContainer (80px)
+const FOOTER_HEIGHT = 50; 
 
 const MIN_SIDEBAR_WIDTH = 300;
 const MAX_SIDEBAR_WIDTH = 1000;
@@ -91,11 +74,9 @@ const getMediaIcon = (mimeType?: string | null): React.ReactNode => {
     return <ImageIcon fontSize="small" color="primary" />;
   }
   if (VIDEO_MIME_TYPES.has(mimeType)) {
-    // Assuming video is typically large/important
     return <VideocamIcon fontSize="small" color="error" />;
   }
   if (AUDIO_MIME_TYPES.has(mimeType)) {
-    // Assuming audio needs secondary color
     return <AudiotrackIcon fontSize="small" color="secondary" />;
   }
   // Default for non-media files opened contextually (e.g., large logs, plaintext in floating viewer)
@@ -103,9 +84,9 @@ const getMediaIcon = (mimeType?: string | null): React.ReactNode => {
 };
 
 
-export const Layout: React.FC<LayoutProps> = ({ children }) => {
+export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
   const theme = useTheme();
-  const { isLoggedIn, logout, user } = useAuth();
+  const { isLoggedIn } = useAuth(); // Need isLoggedIn to conditionally render sidebars
   const location = useLocation(); // Use location hook
   
   // 1. Code Editor Drawer State (Singleton)
@@ -113,7 +94,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     isOpen: isEditorOpen, 
     fileEntry, 
     hasUnsavedChanges, 
-    isLoading, 
+    isLoading: isEditorLoading, 
   } = useStore(editorStore); // Listen to editor store
   
   // 2. Floating Window State (Collection)
@@ -129,17 +110,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const initialMouseX = useRef(0);
   const initialSidebarWidth = useRef(0);
   // --- End Resizable Layout State ---
-
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-
-  const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
 
   // --- Resizing Logic (copied and adapted from Codejector Layout) ---
 
@@ -230,149 +200,22 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       icon: <SaveIcon />,
       color: 'primary',
       variant: 'contained',
-      disabled: !hasUnsavedChanges || isLoading,
+      disabled: !hasUnsavedChanges || isEditorLoading,
     },
   ];
-
-  // Determine which wrapper to use based on content type
-  const isCodeOrText = isEditorOpen; // editorStore now only handles code/text
   
   // NEW: Check if the user is on the Codejector page, where the editor is persistent.
-  const isCodejectorPage = location.pathname === '/codejector/editor';
+  const isCodejectorPage = location.pathname.startsWith('/codejector/editor'); 
 
   // If we are on the Codejector page, suppress the drawer even if the store says a file is open.
-  const shouldOpenDrawer = isCodeOrText && !isCodejectorPage;
+  const shouldOpenDrawer = isEditorOpen && !isCodejectorPage;
 
   return (
     <Box
       sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
       className="transition-colors duration-200"
     >
-      <AppBar position="sticky" className="shadow-md">
-        <Toolbar elevation={2} sx={{ justifyContent: 'space-between', backgroundColor: 'background.paper', color: 'text.primary' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <RouterLink
-              to="/"
-              style={{ textDecoration: 'none', color: 'inherit' }}
-            >
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <AddRoadIcon sx={{ fontSize: 30 }} />
-                <Typography
-                  variant="h6"
-                  component="div"
-                  sx={{ color: 'inherit' }}
-                >
-                  AI Planner
-                </Typography>
-              </Stack>
-            </RouterLink>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton
-              size="large"
-              edge="end"
-              color="inherit"
-              aria-label="menu"
-              onClick={handleMenuClick}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleMenuClose}
-              MenuListProps={{
-                'aria-labelledby': 'basic-button',
-              }}
-            >
-              {/* Added Codejector Link */}
-              <MenuItem
-                component={RouterLink}
-                to="/codejector"
-                onClick={handleMenuClose}
-              >
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <CodeIcon fontSize="small" />
-                  <Typography>Codejector Workspace</Typography>
-                </Stack>
-              </MenuItem>
-              {/* Existing Links */}
-              <MenuItem
-                component={RouterLink}
-                to="/planner"
-                onClick={handleMenuClose}
-              >
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <AddRoadIcon fontSize="small" />
-                  <Typography>AI Plan Generator</Typography>
-                </Stack>
-              </MenuItem>
-              <MenuItem
-                component={RouterLink}
-                to="/prompt-generator"
-                onClick={handleMenuClose}
-              >
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <AutoAwesomeIcon fontSize="small" />
-                  <Typography>Prompt Generator</Typography>
-                </Stack>
-              </MenuItem>
-              <MenuItem
-                component={RouterLink}
-                to="/files"
-                onClick={handleMenuClose}
-              >
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <FolderSharedIcon fontSize="small" />
-                  <Typography>File Explorer</Typography>
-                </Stack>
-              </MenuItem>
-              <MenuItem
-                component={RouterLink}
-                to="/stream-demo"
-                onClick={handleMenuClose}
-              >
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <SendIcon fontSize="small" />
-                  <Typography>Stream Demo</Typography>
-                </Stack>
-              </MenuItem>
-            </Menu>
-
-            {isLoggedIn ? (
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography variant="body1" sx={{ mr: 2, color: 'inherit' }}>
-                  Welcome, {user?.firstName || user?.email || 'User'}
-                </Typography>
-                <Button
-                  onClick={logout}
-                  color="inherit"
-                  variant="text"
-                  size="small"
-                  startIcon={<LogoutIcon fontSize="small" />}
-                  sx={{ mr: 1 }}
-                >
-                  Logout
-                </Button>
-              </Box>
-            ) : (
-              <RouterLink to="/login" style={{ textDecoration: 'none' }}>
-                <Button
-                  color="inherit"
-                  variant="text"
-                  size="small"
-                  startIcon={<LoginIcon fontSize="small" />}
-                  sx={{ mr: 1 }}
-                >
-                  Login
-                </Button>
-              </RouterLink>
-            )}
-            <ThemeToggle />
-          </Box>
-        </Toolbar>
-      </AppBar>
+      <NavBar />
       
       {/* Main content + optional sidebars (NEW STRUCTURE) */}
       <Box 

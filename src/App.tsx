@@ -2,7 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { getMuiTheme } from './theme';
-import { Layout } from './components/Layout';
+import { AppLayout } from './components/ui/layouts/AppLayout'; // UPDATED IMPORT PATH AND NAME
 import { themeAtom } from './stores/themeStore';
 import { useStore } from '@nanostores/react';
 import { useMemo, Suspense, lazy } from 'react';
@@ -37,7 +37,7 @@ function App() {
     <ThemeProvider theme={muiTheme}>
       <CssBaseline />
       <ErrorBoundary> {/* Wrap the entire layout with the ErrorBoundary */}
-        <Layout>
+        <AppLayout> {/* RENAMED Component */}
           <Routes>
             <Route path="/" element={
               <Suspense fallback={<Loading />}>
@@ -106,7 +106,7 @@ function App() {
               }
             />
           </Routes>
-        </Layout>
+        </AppLayout>
       </ErrorBoundary>
       {/* Global Dialog Manager for Alert/Confirm/Prompt functionality */}
       <GlobalDialogManager /> 
