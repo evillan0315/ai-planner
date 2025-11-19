@@ -299,7 +299,7 @@ const PlanGenerator: React.FC = () => {
       action: () => setIsProjectRootPickerDialogOpen(false),
       icon: <CloseIcon />,
     },
-    {s
+    {
       label: 'Select Root',
       color: 'primary',
       variant: 'contained',
@@ -320,7 +320,7 @@ const PlanGenerator: React.FC = () => {
       color: 'inherit',
       variant: 'outlined',
     },
-    {s
+    {
       label: 'Save Scan Paths',
       action: () => {
         // Commit the locally managed scan paths to the global store's scanPathsInput
