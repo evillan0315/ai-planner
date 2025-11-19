@@ -196,7 +196,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     } else {
       window.removeEventListener('mousemove', resize);
       window.removeEventListener('mouseup', stopResizing);
-    }
+    };
     return () => {
       window.removeEventListener('mousemove', resize);
       window.removeEventListener('mouseup', stopResizing);
@@ -450,13 +450,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 borderColor: theme.palette.divider,
               }}
             >
-              {/* Placeholder for Right Sidebar Content (e.g., LLM Output/Controls) */}
-               <Box className="p-4">
-                  <Typography variant="h6">LLM Content</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    (Output/Controls go here)
-                  </Typography>
-              </Box>
+              {/* Right Sidebar Content: Plan Generator */}
+              <PlanGenerator />
             </Box>
           </>
         )}
