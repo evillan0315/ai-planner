@@ -155,9 +155,202 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   const urlPath = searchParams.get('path');
   const decodedUrlPath = urlPath ? decodeURIComponent(urlPath) : null;
 
-// ... (lots of logic omitted) ...
+  // --- 1. State Extraction & Mode Determination ---
 
-  // --- 2. Multi-Tab Renderer Function (Used by Dedicated Route Mode) ---
+  // Singleton Mode State (Used for Drawer Mode and Fallbacks)
+  const { 
+    content: singletonContent, 
+    isLoading: singletonIsLoading, 
+    error: singletonError, 
+    draftContent: singletonDraft, 
+    hasUnsavedChanges: singletonHasUnsavedChanges, 
+    fileEntry: singletonFileEntry,
+  } = useStore(editorStore);
+
+  // Multi-Tab Mode State (Used for Dedicated Route Mode)
+  const multiTabState = useStore(multiTabEditorStore);
+  const { tabs, activeTabId, isInitializing } = multiTabState;
+
+  // Determine if we are running in Dedicated Route Mode (URL path specified, not contextual, not using singleton)
+  const isDedicatedRouteMode = useMemo(() => 
+      !!decodedUrlPath && !isContextualMode, 
+      [decodedUrlPath, isContextualMode]
+  );
+  
+  // Find active tab for Dedicated Mode
+  const activeTab = useMemo(() => tabs.find(t => t.id === activeTabId), [tabs, activeTabId]);
+
+  // Active state derived from mode
+  let activeEntry: IFileSystemEntry | null;
+  let activeContent: IEditorContent | null;
+  let activeDraftContent: string;
+  let isLoading: boolean;
+  let error: string | null;
+  let hasUnsavedChanges: boolean;
+
+  // Resolve current active state based on mode priority: Contextual > Dedicated Route > Singleton Drawer
+  if (isContextualMode) {
+      activeEntry = contextEntry ?? null;
+      activeContent = contextContent ? { 
+          filePath: contextContent.filePath, 
+          content: contextContent.content,
+          mimeType: contextContent.mimeType,
+          language: contextContent.language,
+          // Note: Contextual mode usually has mediaStreamUrl which is only used by the wrapper
+      } : null;
+      activeDraftContent = contextContent?.content ?? '';
+      isLoading = contextIsLoading ?? false;
+      error = contextError ?? null;
+      hasUnsavedChanges = false;
+  } else if (isDedicatedRouteMode) {
+      activeEntry = activeTab ? { 
+          name: activeTab.name, 
+          path: activeTab.filePath, 
+          isDirectory: false, 
+          type: 'file', 
+          mimeType: activeTab.mimeType, 
+          size: activeTab.content.length 
+      } as IFileSystemEntry : null;
+      activeContent = activeTab ? { 
+          filePath: activeTab.filePath, 
+          content: activeTab.content, 
+          mimeType: activeTab.mimeType, 
+          language: activeTab.language 
+      } : null;
+      activeDraftContent = activeTab?.draftContent ?? '';
+      isLoading = activeTab?.isLoading ?? isInitializing;
+      error = activeTab?.error ?? null;
+      hasUnsavedChanges = activeTab?.hasUnsavedChanges ?? false;
+  } else {
+      // Singleton Drawer Mode (Fallback)
+      activeEntry = singletonFileEntry;
+      activeContent = singletonContent;
+      activeDraftContent = singletonDraft ?? '';
+      isLoading = singletonIsLoading;
+      error = singletonError;
+      hasUnsavedChanges = singletonHasUnsavedChanges;
+  }
+
+  const activePath = activeEntry?.path || decodedUrlPath;
+
+  // Helper to determine if content is media
+  const checkIsMedia = useCallback((p: string | null | undefined, mime: string | null | undefined): boolean => {
+    if (!p) return false;
+    const effectiveMime = mime || getMonacoLanguage(p);
+    return IMAGE_MIME_TYPES.has(effectiveMime) || VIDEO_MIME_TYPES.has(effectiveMime) || AUDIO_MIME_TYPES.has(effectiveMime);
+  }, []);
+  
+  const isMedia = checkIsMedia(activePath, activeContent?.mimeType);
+  
+  const getFileExtension = (p: string) => path.extname(p).toLowerCase();
+
+  // Determine if it's code/text editable
+  const isCodeEditable = useMemo(() => {
+      if (isContextualMode) return false; 
+      if (isMedia) return false;
+      if (!activePath) return false;
+      
+      const ext = getFileExtension(activePath);
+      // Check if it's a known code/text type (or markdown, which is rendered but often edited as code)
+      if (CODE_MIME_TYPES.has(activeContent?.mimeType ?? '') || CODE_MIME_TYPES.has(ext) || MARKDOWN_EXTENSIONS.some(e => ext.endsWith(e))) {
+          return true;
+      }
+      return false; // Safest default
+  }, [isContextualMode, isMedia, activePath, activeContent?.mimeType]);
+
+  // Check if active file is Markdown
+  const isMarkdown = useMemo(() => {
+    return MARKDOWN_EXTENSIONS.some(ext => activePath?.toLowerCase().endsWith(ext));
+  }, [activePath]);
+
+  // --- 2. Content Renderer Function ---
+  const renderContent = useCallback(() => {
+      
+      if (isLoading && activePath) {
+          return (
+             <Box className="flex flex-col items-center justify-center h-full">
+                <CircularProgress />
+                <Typography variant="h6" sx={{ mt: 2 }}>Loading {path.basename(activePath || 'File')}...</Typography>
+             </Box>
+          );
+      }
+      
+      if (error) {
+          return (
+             <Box sx={{ p: 4, height: '100%' }}>
+                <Alert severity="error">
+                    Failed to load file: {error}
+                </Alert>
+             </Box>
+          );
+      }
+      
+      if (!activePath || !activeContent) {
+           return (
+               <Box sx={{ p: 4, height: '100%' }}>
+                  <Alert severity="info">
+                      No file selected or content is empty.
+                  </Alert>
+               </Box>
+           );
+      }
+
+      // Media files (Handled by floating window / Contextual parent component)
+      if (isMedia) {
+          if (!isContextualMode) {
+               return (
+                  <Box className="flex items-center justify-center h-full flex-col">
+                      <Typography variant="h6" color="warning.main">
+                          Media Viewer: {path.basename(activePath)}
+                      </Typography>
+                      <Typography variant="body2" sx={{ mt: 1 }}>
+                          This file type is best viewed in a floating window.
+                      </Typography>
+                  </Box>
+               );
+          }
+          // In Contextual mode, the content area might be expected to be filled by the parent component (Floating Box)
+          // We return null here if we assume the parent renders the player based on contextContent.
+          return null; 
+      }
+
+      // Markdown files
+      if (isMarkdown) {
+          return (
+              <Box sx={contentContainerSx}>
+                  <MarkdownRenderer markdown={activeDraftContent} />
+              </Box>
+          );
+      }
+      
+      // Code/Text Editor
+      const language = getMonacoLanguage(activeContent.language || path.extname(activePath));
+      
+      const monacoOnChange = isDedicatedRouteMode ? updateActiveTabDraft : updateSingletonDraftContent;
+      const onSave = isCodeEditable 
+          ? (isDedicatedRouteMode ? saveActiveTabContent : saveSingletonFileContent) 
+          : undefined;
+      
+      return (
+          <Box sx={monacoContainerSx}>
+            <MonacoEditor
+                value={activeDraftContent}
+                onChange={monacoOnChange}
+                language={language}
+                height="100%"
+                options={{ readOnly: !isCodeEditable }}
+                onSaveShortcut={onSave}
+            />
+          </Box>
+      );
+
+  }, [
+      isLoading, error, activePath, isMedia, isMarkdown, activeDraftContent, activeContent, 
+      isCodeEditable, isDedicatedRouteMode, contextContent, 
+      updateActiveTabDraft, updateSingletonDraftContent
+  ]);
+
+  // --- 4. Multi-Tab Renderer Function (Used by Dedicated Route Mode) ---
 
   const renderMultiFileTabs = (tabs: IEditorTab[], activeTabId: string | null) => {
     
@@ -234,7 +427,24 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   // --- Conditional Rendering by Mode ---
 
   // 1. Contextual Mode (Floating Box)
-// ... (logic omitted) ...
+  if (isContextualMode) {
+      // Content layout is managed by the FloatingResizableDraggableBox (FRDB)
+      // If FRDB is rendering media players, renderContent returns null/placeholder.
+      
+      // If we are showing media, we assume the parent handles it.
+      if (isMedia) {
+          return null; 
+      }
+
+      // If we are showing code/markdown:
+      return (
+          <Box sx={getContainerSx(false)}>
+              <Box sx={contentContainerSx}>
+                  {renderContent()}
+              </Box>
+          </Box>
+      );
+  }
 
   // 2. Dedicated Route Mode (Uses ContentLayout)
   if (isDedicatedRouteMode) {
@@ -242,8 +452,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
     let headerContentNode: React.ReactNode | null = null;
     let footerContentNode: React.ReactNode | null = null;
     
-    // Determine content based on the currently selected tab
-    const activeTab = tabs.find(t => t.id === activeTabId);
+    // activeTab is derived globally now.
 
     if (isLoading && activePath && !activeTab) {
         contentNode = (
@@ -312,4 +521,77 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   }
 
   // 3. Default: Singleton Drawer Mode (Keep existing structure for internal header/footer)
-// ... (rest omitted) ...
+  // This mode is used when openFileInEditor sets editorStore.isOpen=true, but we are not on the dedicated route.
+
+  const drawerHeader = (
+    <Box className="flex justify-between items-center p-2 border-b border-divider">
+      <Typography variant="h6" component="div" sx={{ flexGrow: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {activeEntry?.name || 'File Viewer'}
+      </Typography>
+      {hasUnsavedChanges && (
+        <Chip 
+          label="Unsaved" 
+          color="warning" 
+          size="small" 
+          className="mr-2"
+        />
+      )}
+      <Tooltip title="Save (Ctrl+S)">
+          <IconButton 
+              onClick={saveSingletonFileContent} 
+              disabled={!hasUnsavedChanges || isLoading || !isCodeEditable}
+              color="primary"
+          >
+              <SaveIcon />
+          </IconButton>
+      </Tooltip>
+      <Tooltip title="Close">
+        <IconButton onClick={onClose} color="secondary">
+          <CloseIcon />
+        </IconButton>
+      </Tooltip>
+    </Box>
+  );
+
+  const drawerFooter = (
+    <Box className="flex justify-between items-center px-4 py-1 h-[30px] border-t border-divider">
+        <Typography variant="caption" color="text.secondary">
+            Path: <span className="font-mono">{activePath}</span>
+        </Typography>
+        {isCodeEditable && activeContent?.language && (
+            <Typography variant="caption" color="text.secondary">
+                Language: {activeContent.language}
+            </Typography>
+        )}
+    </Box>
+  );
+
+  // Note: The Singleton Drawer mode usually lives inside a CustomDrawer component which provides its own framing.
+  // We return a fragment that includes the content and its internal header/footer structure needed within the drawer.
+  return (
+    <Box sx={getContainerSx(isMedia)}>
+      {/* If file is media, openFileInEditor should have delegated to Floating Windows. 
+          If we somehow reach here with media, show error/placeholder. */}
+      {isMedia ? (
+          <Box className="flex flex-col items-center justify-center h-full p-4">
+              <Alert severity="warning">
+                  Media files are not supported in the primary editor view. They are opened in floating windows.
+              </Alert>
+              <Typography variant="caption" sx={{ mt: 1 }}>
+                  Path: {activePath}
+              </Typography>
+          </Box>
+      ) : (
+          <>
+            {drawerHeader}
+            <Box sx={contentContainerSx}>
+                {renderContent()}
+            </Box>
+            {drawerFooter}
+          </>
+      )}
+    </Box>
+  );
+};
+
+export default FileEditorViewer;
