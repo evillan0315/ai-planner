@@ -48,18 +48,19 @@ const dialogTitleSx = (theme: Theme) => ({
   alignItems: 'center',
   // Standard DialogTitle padding
   pr: 2, 
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: theme.palette.background.default,
 });
 
 const dialogActionsSx = (theme: Theme) => ({
   pt: 1,
   justifyContent: 'flex-end',
   borderTop: `1px solid ${theme.palette.divider}`,
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: theme.palette.background.default,
 });
 
 const dialogContentSx = (theme: Theme) => ({
-  p: 0, // Default padding for content container, children components should manage internal padding
+  p: 0, 
+  backgroundColor: theme.palette.background.paper,
 });
 
 /**
@@ -142,6 +143,7 @@ const CustomDialog: React.FC<CustomDialogProps> = ({
 
   return (
     <Dialog
+   
       open={open}
       onClose={handleNativeClose as any} // Cast to any because we handle extra reason 'closeButtonClick' outside native MUI
       maxWidth={maxWidth || 'xl'}
