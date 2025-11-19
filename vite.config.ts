@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => {
         origin: ['*'],
         methods: ['GET', 'POST', 'OPTIONS', 'DELETE', 'PATCH', 'PUT'],
         allowedHeaders: ['Content-Type', 'Authorization'],
-        credentials: true,
+        //credentials: true,
       },
       allowedHosts: ['app.local', 'localhost', 'generativelanguage.googleapis.com'],
     },
