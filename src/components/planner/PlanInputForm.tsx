@@ -17,22 +17,61 @@ import {
   AccordionDetails,
 } from '@mui/material';
 import AddRoadIcon from '@mui/icons-material/AddRoad';
-import DescriptionIcon from '@mui/icons-material/Description';
+import DescriptionIcon from '@mui/icons-material/Description'; // Icon for documentation/help
 import SchemaIcon from '@mui/icons-material/Schema';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
-import CloseIcon from '@mui/icons-material/Close';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // Import ExpandMoreIcon
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; 
 import SettingsIcon from '@mui/icons-material/Settings'; 
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch'; 
 import NoteAddIcon from '@mui/icons-material/NoteAdd'; 
 
-import type { IPlan } from './types'; // Import necessary types
+import type { IPlan } from './types'; 
 import FloatingIconTextField from '@/components/ui/FloatingIconTextField'; 
-import { GlobalAction } from '@/components/ui/GlobalActionButton'; // Import GlobalAction type
-import { GlobalActionGroup } from '@/components/ui/GlobalActioButtonGroup'; // NEW: Import GlobalActionGroup
+import type { GlobalAction } from '@/components/ui/GlobalActionButton'; 
+import type { GlobalActionGroup } from '@/components/ui/GlobalActioButtonGroup'; 
+
+// --- New content constants and helpers ---
+
+/** Documentation content for the Project Root tooltip. */
+const PROJECT_ROOT_TOOLTIP_DOCS = `
+The Project Root is the absolute path to the base directory of the code you want the AI Planner to interact with.
+
+1.  **Scanning:** All \`Scan Paths\` are resolved relative to this root.
+2.  **Application:** All file changes (ADD/MODIFY/DELETE) are applied relative to this root.
+
+Click the folder icon (bottom left) in the prompt field to change this path.
+`;
+
+/**
+ * Truncates a file path to show start/end segments for display.
+ * @param filePath The full file path.
+ * @param maxLength Maximum allowed length before truncation.
+ */
+const truncatePathDisplay = (filePath: string, maxLength = 60): string => {
+    if (!filePath || filePath.length <= maxLength) return filePath;
+
+    const parts = filePath.split(/[\/\\]/);
+    const fileName = parts[parts.length - 1];
+    
+    // Reserve space for filename and ellipsis/separator
+    const remainingSpace = maxLength - fileName.length - 3; // -3 for '.../'
+
+    if (remainingSpace <= 0) {
+        return `...${fileName.slice(-maxLength + 3)}`;
+    }
+    
+    const start = filePath.slice(0, remainingSpace);
+    const lastSeparatorIndex = Math.max(start.lastIndexOf('/'), start.lastIndexOf('\\'));
+    const finalStart = lastSeparatorIndex > 0 ? start.slice(0, lastSeparatorIndex) : start;
+    
+    return `${finalStart}/.../${fileName}`;
+};
+
+// --- End new content constants and helpers ---
+
 
 interface PlanInputFormProps {
   userPrompt: string;
@@ -126,14 +165,14 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
     // 2. Model Settings Actions (Top Right)
     const modelSettingsActions: GlobalAction[] = [
         {
-          label: "AI Instructions (System Prompt)",
+          label: "Edit AI Instructions / System Prompt",
           action: openAiInstructionDrawer,
           icon: <SettingsIcon fontSize="small" />,
           color: additionalInstructions.length > 50 ? 'primary' : 'secondary', // Highlight if custom instructions exist
           disabled: isLoading,
         },
         {
-          label: `Expected Output Format (Schema)`,
+          label: `Edit Expected Output Format / JSON Schema`,
           action: openExpectedOutputDrawer,
           icon: <SchemaIcon fontSize="small" />,
           color: expectedOutputFormat.length > 50 ? 'primary' : 'secondary', // Highlight if custom schema exists
@@ -144,14 +183,14 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
     // 3. Context Actions (Bottom Left)
     const contextActions: GlobalAction[] = [
         {
-          label: `Select Project Root Directory: ${projectRoot}`,
+          label: `Set Project Root Directory (${truncatePathDisplay(projectRoot)})`,
           action: openProjectRootPicker,
           icon: <FolderOpenIcon fontSize="small" />,
           color: 'secondary',
           disabled: isLoading,
         },
         {
-          label: `Manage AI Scan Paths: ${scanPathsInput}`,
+          label: `Manage AI Scan Paths (${scanPathsInput.split(',').filter(Boolean).length} included)`,
           action: openScanPathsDrawer,
           icon: <AddRoadIcon fontSize="small" />,
           color: 'secondary',
@@ -178,7 +217,6 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
     }
     
     if (contextActions.length > 0) {
-        // Grouping Context Actions together
         cornerGroups['bottom-left'] = [{ actionGroup: contextActions, key: 'context' }]; 
     }
     
@@ -199,8 +237,8 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
     openExpectedOutputDrawer,
     userPrompt,
     plan,
-    additionalInstructions, // Added dependency
-    expectedOutputFormat, // Added dependency
+    additionalInstructions, 
+    expectedOutputFormat, 
   ]);
 
   return (
@@ -238,75 +276,83 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
             <FloatingIconTextField
               label="Enter your prompt"
               multiline
-              rows={1} // Increased rows for better usability with floating icons
+              rows={5} // Increased rows for better usability
               fullWidth
               value={userPrompt}
               onChange={(e) => setUserPrompt(e.target.value)}
-              //variant="contained"
               disabled={isLoading}
               floatingActionGroupsByCorner={floatingActionGroupsByCorner} 
               sx={{backgroundColor:'background.paper'}}
             />
-            {/* Display file status below the prompt field, if a file is attached */}
-            {selectedFile && (
-                <Stack direction="row" spacing={1} alignItems="center" className="mt-2  max-w-sm">
-                    <Chip
-                        label={`${selectedFile.name} (${(selectedFile.size / 1024).toFixed(2)} KB)`}
-                        onDelete={handleClearFile}
-                        color="info"
-                        size="small"
-                        sx={{ color: theme.palette.text.contrastText, borderColor: theme.palette.info.main }}
-                        className="truncate"
-                    />
-                </Stack>
-            )}
-          </AccordionDetails>
-        </Accordion>
 
-        {/* Project Context Section */}
-        <Accordion className="rounded-lg shadow-sm border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md mb-4">
-          <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="project-context-content" id="project-context-header">
-            <Typography variant="subtitle1" className="font-semibold">Project Context</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            {/* Context fields are now displayed here without redundant buttons */}
-            <Stack direction="column" spacing={1} className="mb-2">
-              <TextField label="Project Root" value={projectRoot} disabled fullWidth size="small" helperText="Set project root via the folder icon in the prompt actions (bottom left)." />
-              <TextField
-                label="Scan Paths (comma-separated)"
-                value={scanPathsInput}
-                disabled
-                fullWidth
-                size="small"
-                placeholder="e.g., src, public, package.json"
-                helperText="Manage scan paths via the road icon in the prompt actions (bottom left)."
-              />
+            {/* Status Display Area (Project Root + Attached File) - NEW REQUIREMENT */}
+            <Stack 
+                direction="row" 
+                spacing={2} 
+                alignItems="center" 
+                className="mt-3 text-sm text-text-secondary" 
+                flexWrap="wrap"
+            >
+                {/* 1. Project Root Display with Help Icon */}
+                <Box className="flex items-center gap-1 flex-shrink-0 min-w-0">
+                    <Typography variant="caption" color="text.secondary" fontWeight="bold">
+                        Project Root:
+                    </Typography>
+                    <Tooltip title={projectRoot} arrow placement="top">
+                        <Typography variant="caption" className="font-mono font-semibold text-text-primary truncate max-w-[180px] sm:max-w-sm">
+                            {truncatePathDisplay(projectRoot)}
+                        </Typography>
+                    </Tooltip>
+                    <Tooltip 
+                        title={
+                            <Box sx={{ whiteSpace: 'pre-wrap', p: 1, maxWidth: 350 }}>
+                                <Typography variant="caption" fontWeight="bold">Project Root Documentation</Typography>
+                                <Typography variant="body2" sx={{ mt: 1, fontSize: '0.75rem' }}>
+                                    {PROJECT_ROOT_TOOLTIP_DOCS}
+                                </Typography>
+                            </Box>
+                        }
+                        arrow
+                        placement="right"
+                    >
+                        <IconButton size="small" color="info" aria-label="project root documentation">
+                            <DescriptionIcon sx={{ fontSize: 16 }} />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+                
+                {/* 2. Attached File Status */}
+                {selectedFile && (
+                    <Stack direction="row" spacing={1} alignItems="center" className="max-w-sm">
+                        <Chip
+                            label={`${selectedFile.name} (${(selectedFile.size / 1024).toFixed(2)} KB)`}
+                            onDelete={handleClearFile}
+                            color="info"
+                            size="small"
+                            sx={{ color: theme.palette.text.contrastText, borderColor: theme.palette.info.main }}
+                            className="truncate"
+                        />
+                    </Stack>
+                )}
+
+                {/* 3. Hidden AI Config status feedback for UX consistency */}
+                <Box className="mt-0 text-xs text-text-secondary flex gap-4 ml-auto">
+                    <Typography variant="caption">
+                        AI Instructions: <span className={`font-mono font-bold ${additionalInstructions.length > 50 ? 'text-primary-main' : 'text-text-secondary'}`}>{additionalInstructions.length > 50 ? 'Custom' : 'Default'}</span>
+                    </Typography>
+                    <Typography variant="caption">
+                        Output Format: <span className={`font-mono font-bold ${expectedOutputFormat.length > 50 ? 'text-primary-main' : 'text-text-secondary'}`}>{expectedOutputFormat.length > 50 ? 'Schema' : 'Default'}</span>
+                    </Typography>
+                </Box>
             </Stack>
           </AccordionDetails>
         </Accordion>
 
-        {/* AI Configuration Section */}
-        <Accordion className="rounded-lg shadow-sm border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md mb-4">
-          <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="ai-config-content" id="ai-config-header">
-            <Typography variant="subtitle1" className="font-semibold">AI Configuration</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Stack direction="column" spacing={1} className="mb-2">
-                <Typography variant="body2" color="text.secondary">
-                    AI Instructions Status: <span className={`font-mono font-bold ${additionalInstructions.length > 50 ? 'text-primary-main' : 'text-text-secondary'}`}>{additionalInstructions.length > 50 ? 'Custom/Detailed' : 'Default'}</span>
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                    Output Format Status: <span className={`font-mono font-bold ${expectedOutputFormat.length > 50 ? 'text-primary-main' : 'text-text-secondary'}`}>{expectedOutputFormat.length > 50 ? 'Schema Defined' : 'Default'}</span>
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                    Use the Settings (<SettingsIcon fontSize="inherit" />) icon in the prompt input field (top right corner) to edit configuration.
-                </Typography>
-            </Stack>
-          </AccordionDetails>
-        </Accordion>
+        {/* Removed Project Context Section Accordion */}
+        {/* Removed AI Configuration Section Accordion */}
 
-        {/* Actions Section */}
-        <Box className="flex justify-between gap-2 mt-4">
+        {/* Actions Section (Only retaining Planner List button) */}
+        <Box className="flex justify-start gap-2 mt-2">
           <Tooltip title="View All Saved Plans">
             <IconButton
               color="primary"
@@ -317,7 +363,6 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
               <ListAltIcon />
             </IconButton>
           </Tooltip>
-          {/* Removed dedicated Clear Plan and Generate Plan buttons, now handled by floating icons */}
         </Box>
       </CardContent>
     </Card>
