@@ -392,7 +392,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
 
     return (
         <Tabs 
-            value={activeTabId || false} 
+            value={activeTabId ?? null} 
             onChange={handleTabChange} 
             variant="scrollable"
             scrollButtons="auto"
