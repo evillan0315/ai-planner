@@ -39,54 +39,42 @@ const getButtonGroupSx = (
   const isVertical = orientation === 'vertical';
 
   const positionStyles: SxProps = {};
-  let requiresCentering = false;
-
-  if (positionX || positionY) {
-    positionStyles.position = 'fixed'; // Assume fixed positioning if absolute coordinates are provided
+  
+  // Only apply fixed positioning if at least one coordinate is explicitly provided.
+  if (positionX !== undefined || positionY !== undefined) {
+    positionStyles.position = 'fixed';
     positionStyles.zIndex = 1000; // Ensure it floats above content
-
+    
+    // Apply specific positional offsets
     if (positionY === 'top') {
       positionStyles.top = PADDING_OFFSET;
+      positionStyles.bottom = 'auto';
     } else if (positionY === 'bottom') {
       positionStyles.bottom = PADDING_OFFSET;
-    } else {
-        requiresCentering = true;
+      positionStyles.top = 'auto';
     }
 
     if (positionX === 'left') {
       positionStyles.left = PADDING_OFFSET;
+      positionStyles.right = 'auto';
     } else if (positionX === 'right') {
       positionStyles.right = PADDING_OFFSET;
-    } else {
-        requiresCentering = true;
+      positionStyles.left = 'auto';
     }
-  }
 
-  // Handle centering logic for missing axes
-  if (requiresCentering) {
-      if (!positionX) {
-          positionStyles.left = '50%';
-          // Only set X transform
-          positionStyles.transform = 'translateX(-50%)';
-      }
-      if (!positionY) {
-          positionStyles.top = '50%';
-          // Only set Y transform
-          positionStyles.transform = positionStyles.transform 
-              ? `${positionStyles.transform} translateY(-50%)`
-              : 'translateY(-50%)';
-      }
-  }
-  
-  // If both X and Y are missing (full center)
-  if (!positionX && !positionY) {
-      positionStyles.position = 'fixed';
-      positionStyles.zIndex = 1000;
-      positionStyles.top = '50%';
-      positionStyles.left = '50%';
-      positionStyles.transform = 'translate(-50%, -50%)';
-  } else if (positionX && positionY) {
-      // If both axes are explicitly defined, ensure transform is cleared.
+    // Centering logic for the missing axis
+    if (positionX === undefined && positionY !== undefined) {
+        positionStyles.left = '50%';
+        positionStyles.transform = 'translateX(-50%)';
+    } else if (positionY === undefined && positionX !== undefined) {
+        positionStyles.top = '50%';
+        positionStyles.transform = 'translateY(-50%)';
+    } else if (positionX !== undefined && positionY !== undefined) {
+        // Both defined (no transform needed)
+        positionStyles.transform = 'none';
+    }
+  } else {
+      // If neither is defined, do nothing, allowing the component to behave as a normal flex Box
       positionStyles.transform = 'none';
   }
 
