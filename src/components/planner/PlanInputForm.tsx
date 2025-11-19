@@ -106,19 +106,20 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
       
     // 1. Primary Actions (Bottom Right)
     const primaryActions: GlobalAction[] = [
-        {
-          label: "Generate Plan",
-          action: handleGeneratePlan,
-          icon: isLoading ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon fontSize="small" />,
-          color: 'primary',
-          disabled: isLoading || !userPrompt.trim() || !projectRoot.trim(),
-        },
+        
         {
           label: "New Plan (Clear existing content)",
           action: handleClearPlan,
-          icon: <NoteAddIcon fontSize="small" />,
+          icon: <NoteAddIcon fontSize="small" color="inherit" />,
           color: 'secondary',
           disabled: isLoading && !plan,
+        },
+        {
+          label: "Generate Plan",
+          action: handleGeneratePlan,
+          icon: isLoading ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon fontSize="large" />,
+          color: 'success',
+          disabled: isLoading || !userPrompt.trim() || !projectRoot.trim(),
         },
     ];
     
