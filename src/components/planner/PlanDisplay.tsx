@@ -9,13 +9,13 @@ import {
   CircularProgress,
   Tooltip,
   IconButton,
-  Snackbar,
+  // REMOVED Snackbar,
 } from '@mui/material';
 import { useStore } from '@nanostores/react';
 import { plannerStore, setApplyStatus } from './stores/plannerStore';
 import { plannerService } from './api/plannerService';
 import type { IPlan, IFileChange } from './types';
-import CloseIcon from '@mui/icons-material/Close';
+// REMOVED CloseIcon import
 import EditIcon from '@mui/icons-material/Edit';
 import MarkdownRenderer from '@/components/markdown/MarkdownRenderer'; // Import MarkdownRenderer
 
@@ -23,6 +23,7 @@ import MarkdownRenderer from '@/components/markdown/MarkdownRenderer'; // Import
 import PlanSectionAccordion from './PlanSectionAccordion';
 import PlanMetricsDisplay from './PlanMetricsDisplay';
 import PlanFileChangesTable from './PlanFileChangesTable';
+import { CustomSnackbar } from '@/components/ui/CustomSnackbar'; // <-- ADDED
 
 interface PlanDisplayProps {
   plan: IPlan;
@@ -350,30 +351,16 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
         </Button>
       </Box>
 
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
+      {/* REPLACED SNACKBAR */}
+      {snackbarOpen && (
+        <CustomSnackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
           onClose={handleSnackbarClose}
           severity={snackbarSeverity}
-          sx={{ width: '100%' }}
-          action={
-            <IconButton
-              aria-label="close"
-              color="inherit"
-              size="small"
-              onClick={handleSnackbarClose}
-            >
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          }
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+          message={snackbarMessage}
+        />
+      )}
     </Box>
   );
 };

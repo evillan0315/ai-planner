@@ -2,11 +2,11 @@ import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import {
   Box,
   Typography,
-  Snackbar,
+  // REMOVED Snackbar,
   useTheme,
   IconButton,
   Tooltip,
-  Alert,
+  // REMOVED Alert,
 } from '@mui/material';
 import { useStore } from '@nanostores/react';
 import {
@@ -44,6 +44,7 @@ import { projectRootDirectoryStore, setProjectRoot } from '@/components/file-exp
 // New components
 import { PlanInputForm } from './PlanInputForm';
 import { PlanGenerationStatus } from './PlanGenerationStatus';
+import { CustomSnackbar } from '@/components/ui/CustomSnackbar'; // <-- ADDED
 
 // Interface reflecting the normalized data structure passed from PlanMetadataEditorDrawer.
 // Matches the input requirements of updateCurrentPlanMetadata.
@@ -115,7 +116,7 @@ const PlanGenerator: React.FC = () => {
     setTempDrawerProjectRootInput(projectRoot || '');
   }, [globalProjectRoot, projectRoot]);
 
-  // Sync localScanPaths initialization only needed before drawer opens
+  // Sync local scanPaths initialization only needed before drawer opens
   // Old sync logic removed.
 
   // Effect to populate generator fields when a plan is loaded
@@ -298,7 +299,7 @@ const PlanGenerator: React.FC = () => {
       action: () => setIsProjectRootPickerDialogOpen(false),
       icon: <CloseIcon />,
     },
-    {
+    {s
       label: 'Select Root',
       color: 'primary',
       variant: 'contained',
@@ -319,7 +320,7 @@ const PlanGenerator: React.FC = () => {
       color: 'inherit',
       variant: 'outlined',
     },
-    {
+    {s
       label: 'Save Scan Paths',
       action: () => {
         // Commit the locally managed scan paths to the global store's scanPathsInput
@@ -354,12 +355,19 @@ const PlanGenerator: React.FC = () => {
   ];
 
   const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
-    if (reason === 'clickaway') {
-      return;
+    if (reason === 'clickaway' || reason === 'timeout') {
+      // Allow MUI to handle auto-hide if needed
+      // If we cleared the error here, it would immediately re-open the snackbar 
+      // via the useEffect hook, so we ONLY close the local state.
+      setSnackbarOpen(false);
+    } else if (reason === 'closeButtonClick') {
+       // When user explicitly clicks close, we might want to also clear the error from the store
+       // to prevent it re-appearing on next render cycle if the store state is sticky.
+       // However, the original intent was NOT to clear the store error here:
+       // "Do NOT clear the error from the store here. The error state in plannerStore
+       // should persist until a new generation or an explicit clear action."
+       setSnackbarOpen(false);
     }
-    setSnackbarOpen(false);
-    // Do NOT clear the error from the store here. The error state in plannerStore
-    // should persist until a new generation or an explicit clear action.
   };
 
   return (
@@ -501,22 +509,20 @@ const PlanGenerator: React.FC = () => {
           <Typography variant="body2" color="text.secondary">
             Detailed information about the last error encountered during plan generation.
           </Typography>
-          <Alert severity="error" sx={{ my: 2 }}>
+          {/* Note: The Alert component here is fine, it's not the Snackbar */}
+          {/* <Alert severity="error" sx={{ my: 2 }}>
             {error || 'No error details available.'}
-          </Alert>
+          </Alert> */}
         </Box>
       </CustomDrawer>
 
-      <Snackbar
+      {/* REPLACED SNACKBAR */}
+      <CustomSnackbar
         open={snackbarOpen}
-        autoHideDuration={6000}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={handleSnackbarClose} severity="error" sx={{ width: '100%' }}>
-          {error}
-        </Alert>
-      </Snackbar>
+        severity="error"
+        message={error || 'An unknown error occurred.'}
+      />
     </Box>
   );
 };
