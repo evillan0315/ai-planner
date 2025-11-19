@@ -12,9 +12,6 @@ import {
   Chip,
   useTheme,
   Stack,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
 } from '@mui/material';
 import AddRoadIcon from '@mui/icons-material/AddRoad';
 import DescriptionIcon from '@mui/icons-material/Description'; // Icon for documentation/help
@@ -23,7 +20,6 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; 
 import SettingsIcon from '@mui/icons-material/Settings'; 
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch'; 
 import NoteAddIcon from '@mui/icons-material/NoteAdd'; 
@@ -53,7 +49,7 @@ Click the folder icon (bottom left) in the prompt field to change this path.
 const truncatePathDisplay = (filePath: string, maxLength = 60): string => {
     if (!filePath || filePath.length <= maxLength) return filePath;
 
-    const parts = filePath.split(/[\/\\]/);
+    const parts = filePath.split(/[/\\]/);
     const fileName = parts[parts.length - 1];
     
     // Reserve space for filename and ellipsis/separator
@@ -143,18 +139,28 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
   // Split actions into logical groups and map them to corners
   const floatingActionGroupsByCorner: Partial<Record<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right', GlobalActionGroup[]>> = useMemo(() => {
       
+    // Action 0: Error Details (BugReportIcon) - conditionally added to Primary Actions
+    const errorDetailsAction: GlobalAction[] = error ? [{
+        label: "View Error Details",
+        action: openErrorDetailsDrawer,
+        icon: <BugReportIcon fontSize="small" />,
+        color: 'error',
+        disabled: isLoading,
+    }] : [];
+      
     // 1. Primary Actions (Bottom Right)
     const primaryActions: GlobalAction[] = [
         
-        {
-          label: "New Plan (Clear existing content)",
+        // ADDED: Error details icon moved here
+        ...errorDetailsAction,
+        
+        {n          label: "New Plan (Clear existing content)",
           action: handleClearPlan,
           icon: <NoteAddIcon fontSize="small" color="inherit" />,
           color: 'secondary',
           disabled: isLoading && !plan,
         },
-        {
-          label: "Generate Plan",
+        {n          label: "Generate Plan",
           action: handleGeneratePlan,
           icon: isLoading ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon fontSize="small" />,
           color: 'success',
@@ -164,15 +170,13 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
     
     // 2. Model Settings Actions (Top Right)
     const modelSettingsActions: GlobalAction[] = [
-        {
-          label: "Edit AI Instructions / System Prompt",
+        {n          label: "Edit AI Instructions / System Prompt",
           action: openAiInstructionDrawer,
           icon: <SettingsIcon fontSize="small" />,
           color: additionalInstructions.length > 50 ? 'primary' : 'secondary', // Highlight if custom instructions exist
           disabled: isLoading,
         },
-        {
-          label: `Edit Expected Output Format / JSON Schema`,
+        {n          label: `Edit Expected Output Format / JSON Schema`,
           action: openExpectedOutputDrawer,
           icon: <SchemaIcon fontSize="small" />,
           color: expectedOutputFormat.length > 50 ? 'primary' : 'secondary', // Highlight if custom schema exists
@@ -182,22 +186,26 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
 
     // 3. Context Actions (Bottom Left)
     const contextActions: GlobalAction[] = [
-        {
-          label: `Set Project Root Directory (${truncatePathDisplay(projectRoot)})`,
+        // ADDED: View All Saved Plans (ListAltIcon) moved here
+        {n          label: "View All Saved Plans",
+          action: openPlannerListDrawer,
+          icon: <ListAltIcon fontSize="small" />,
+          color: 'primary',
+          disabled: isLoading,
+        },
+        {n          label: `Set Project Root Directory (${truncatePathDisplay(projectRoot)})`,
           action: openProjectRootPicker,
           icon: <FolderOpenIcon fontSize="small" />,
           color: 'secondary',
           disabled: isLoading,
         },
-        {
-          label: `Manage AI Scan Paths (${scanPathsInput.split(',').filter(Boolean).length} included)`,
+        {n          label: `Manage AI Scan Paths (${scanPathsInput.split(',').filter(Boolean).length} included)`,
           action: openScanPathsDrawer,
           icon: <AddRoadIcon fontSize="small" />,
           color: 'secondary',
           disabled: isLoading,
         },
-        {
-          label: "Upload Context File (Image/Text)",
+        {n          label: "Upload Context File (Image/Text)",
           action: () => fileInputRef.current?.click(),
           icon: <UploadFileIcon fontSize="small" />,
           color: 'secondary',
@@ -235,37 +243,28 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
     handleGeneratePlan,
     openAiInstructionDrawer,
     openExpectedOutputDrawer,
+    openPlannerListDrawer, // New dependency
+    openErrorDetailsDrawer, // New dependency
     userPrompt,
     plan,
     additionalInstructions, 
     expectedOutputFormat, 
+    error, // New dependency
   ]);
 
   return (
     <Card sx={cardSx} className="mb-6 flex-shrink-0">
       <CardContent sx={formSectionSx} className="flex flex-col">
+        {/* Header Area: Removed BugReportIcon, now managed as a floating action */}
         <Box className="flex items-center justify-between mb-4">
           <Typography variant="h6" gutterBottom className="text-text-primary mb-0">
             Generate a New Plan
           </Typography>
-          {error && (
-            <Tooltip title="View Error Details">
-              <IconButton
-                color="error"
-                onClick={openErrorDetailsDrawer}
-                aria-label="view error details"
-              >
-                <BugReportIcon />
-              </IconButton>
-            </Tooltip>
-          )}
         </Box>
-        <Accordion defaultExpanded className="rounded-lg shadow-sm border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md mb-4">
-          <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="user-prompt-content" id="user-prompt-header">
-            <Typography variant="subtitle1" className="font-semibold">User Prompt</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            {/* Hidden input for file upload, controls are floating in the text field */}
+
+        {/* User Prompt Area (NO ACCORDION) */}
+        <Box className="mb-4">
+            {/* Hidden input for file upload */}
             <input
                 type="file"
                 ref={fileInputRef}
@@ -276,16 +275,16 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
             <FloatingIconTextField
               label="Enter your prompt"
               multiline
-              rows={1} // Increased rows for better usability
+              rows={6} // Default visible rows
               fullWidth
               value={userPrompt}
               onChange={(e) => setUserPrompt(e.target.value)}
               disabled={isLoading}
               floatingActionGroupsByCorner={floatingActionGroupsByCorner} 
-              sx={{backgroundColor:'background.paper', mt:5, mb:6}}
+              sx={{backgroundColor:'background.paper'}}
             />
 
-            {/* Status Display Area (Project Root + Attached File) - NEW REQUIREMENT */}
+            {/* Status Display Area (Project Root + Attached File) */}
             <Stack 
                 direction="row" 
                 spacing={2} 
@@ -345,25 +344,8 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
                     </Typography>
                 </Box>
             </Stack>
-          </AccordionDetails>
-        </Accordion>
-
-        {/* Removed Project Context Section Accordion */}
-        {/* Removed AI Configuration Section Accordion */}
-
-        {/* Actions Section (Only retaining Planner List button) */}
-        <Box className="flex justify-start gap-2 mt-2">
-          <Tooltip title="View All Saved Plans">
-            <IconButton
-              color="primary"
-              onClick={openPlannerListDrawer}
-              aria-label="view all saved plans"
-              disabled={isLoading}
-            >
-              <ListAltIcon />
-            </IconButton>
-          </Tooltip>
         </Box>
+
       </CardContent>
     </Card>
   );
