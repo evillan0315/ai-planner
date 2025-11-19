@@ -85,12 +85,13 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
 }) => {
   const theme = useTheme();
   const [searchParams] = useSearchParams(); 
+  
   // Determine if we are running in Contextual (Floating Box) Mode
   const isContextualMode = !!contextEntry;
   
   const urlPath = searchParams.get('path');
   const decodedUrlPath = urlPath ? decodeURIComponent(urlPath) : null;
-  console.log(decodedUrlPath, 'decodedUrlPath');
+
   // Dedicated route mode: Not contextual and has a path parameter
   const isDedicatedRouteMode = !isContextualMode && !!decodedUrlPath;
   
@@ -104,7 +105,9 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
     // --- Route Initialization Effect ---
   // If we are in dedicated route mode, load the file content based on the URL path.
  useEffect(() => {
-     
+     const urlPath = searchParams.get('path');
+
+  console.log(urlPath, 'urlPath');
     if (isDedicatedRouteMode && !isRouteInitialized) {
         const currentStorePath = globalState.fileEntry?.path;
        
@@ -121,7 +124,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
         }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, [searchParams]); 
 
   
   const fileEntry = isContextualMode ? contextEntry : globalState.fileEntry;

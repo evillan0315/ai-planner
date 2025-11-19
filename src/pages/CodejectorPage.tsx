@@ -2,9 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import { Box, Paper, SxProps, useTheme, Typography } from '@mui/material';
 import FileEditorViewer from '@/components/editor/FileEditorViewer';
 import { useStore } from '@nanostores/react';
-import { editorStore } from '@/components/editor/stores/editorStore';
+import { editorStore, loadFileContentFromPath } from '@/components/editor/stores/editorStore';
 import CodeIcon from '@mui/icons-material/Code';
-
+import { useSearchParams } from 'react-router-dom'; // ADDED
 // Import UI Store for Layout Control
 import { isLeftSidebarVisible } from '@/stores/uiStore'; 
 
@@ -27,6 +27,7 @@ const editorViewerSx: SxProps = {
  */
 const CodejectorPage: React.FC = () => {
   const theme = useTheme(); 
+   const [searchParams] = useSearchParams(); 
   // Get state from the global editor store
   const { fileEntry } = useStore(editorStore);
 
@@ -35,6 +36,12 @@ const CodejectorPage: React.FC = () => {
 
   // --- Layout Control Effect ---
   useEffect(() => {
+    const urlPath = searchParams.get('path');
+    
+    if(urlPath){
+      const n = loadFileContentFromPath(urlPath);
+      console.log(n, 'n');
+    }
     // 1. Force Left Sidebar (File Explorer) ON when entering Codejector workspace
     // We only force it on if it's currently off.
     if (!previousSidebarState.current) {
@@ -48,7 +55,7 @@ const CodejectorPage: React.FC = () => {
         isLeftSidebarVisible.set(false);
       }
     };
-  }, []); // Empty dependency array means this runs only on mount/unmount
+  }, [searchParams]); // Empty dependency array means this runs only on mount/unmount
 
 
   // When used here, FileEditorViewer reads its context from the global editorStore.
@@ -72,8 +79,9 @@ const CodejectorPage: React.FC = () => {
         sx={editorViewerSx}
         className="bg-background-paper"
       >
+
         {fileEntry ? (
-          <FileEditorViewer onClose={handleEditorClose} />
+          <FileEditorViewer onClose={handleEditorClose} contextEntru={fileEntry}/>
         ) : (
           <Box className="flex flex-col justify-center items-center h-full">
             <CodeIcon sx={{ fontSize: 100, color: 'text.disabled', mb: 3 }} />
