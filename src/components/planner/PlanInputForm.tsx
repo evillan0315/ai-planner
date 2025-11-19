@@ -25,6 +25,9 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // Import ExpandMoreIcon
+import SettingsIcon from '@mui/icons-material/Settings'; 
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch'; 
+import NoteAddIcon from '@mui/icons-material/NoteAdd'; 
 
 import type { IPlan } from './types'; // Import necessary types
 import FloatingIconTextField from '@/components/ui/FloatingIconTextField'; 
@@ -69,10 +72,6 @@ const formSectionSx = {
   padding: 3,
 };
 
-const generateButtonSx = {
-  marginTop: 2,
-  marginBottom: 2,
-};
 
 export const PlanInputForm: React.FC<PlanInputFormProps> = ({
   userPrompt,
@@ -103,6 +102,34 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
 
   const floatingActionsArray: GlobalAction[] = useMemo(() => [
     {
+      label: "New Plan (Clear existing content)",
+      action: handleClearPlan,
+      icon: <NoteAddIcon fontSize="small" />,
+      color: 'secondary',
+      disabled: isLoading && !plan,
+    },
+    {
+      label: "Generate Plan",
+      action: handleGeneratePlan,
+      icon: isLoading ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon fontSize="small" />,
+      color: 'primary',
+      disabled: isLoading || !userPrompt.trim() || !projectRoot.trim(),
+    },
+    {
+      label: "AI Instructions (System Prompt)",
+      action: openAiInstructionDrawer,
+      icon: <SettingsIcon fontSize="small" />,
+      color: 'secondary',
+      disabled: isLoading,
+    },
+    {
+      label: `Expected Output Format (Schema)`,
+      action: openExpectedOutputDrawer,
+      icon: <SchemaIcon fontSize="small" />,
+      color: 'secondary',
+      disabled: isLoading,
+    },
+    {
       label: `Select Project Root Directory: ${projectRoot}`,
       action: openProjectRootPicker,
       icon: <FolderOpenIcon fontSize="small" />,
@@ -121,9 +148,23 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
       action: () => fileInputRef.current?.click(),
       icon: <UploadFileIcon fontSize="small" />,
       color: 'secondary',
-      disabled: isLoading || !!selectedFile, // Disable if file already selected
+      disabled: isLoading || !!selectedFile,
     },
-  ], [projectRoot, scanPathsInput, isLoading, selectedFile, openProjectRootPicker, openScanPathsDrawer, fileInputRef]);
+  ], [
+    projectRoot, 
+    scanPathsInput, 
+    isLoading, 
+    selectedFile, 
+    openProjectRootPicker, 
+    openScanPathsDrawer, 
+    fileInputRef,
+    handleClearPlan,
+    handleGeneratePlan,
+    openAiInstructionDrawer,
+    openExpectedOutputDrawer,
+    userPrompt,
+    plan
+  ]);
 
   return (
     <Card sx={cardSx} className="mb-6 flex-shrink-0">
@@ -214,27 +255,16 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
             <Typography variant="subtitle1" className="font-semibold">AI Configuration</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} className="mb-2">
-              <Button
-                variant="outlined"
-                startIcon={<DescriptionIcon />}
-                onClick={openAiInstructionDrawer}
-                disabled={isLoading}
-                fullWidth
-                size="small"
-              >
-                Edit AI Instructions
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<SchemaIcon />}
-                onClick={openExpectedOutputDrawer}
-                disabled={isLoading}
-                fullWidth
-                size="small"
-              >
-                Edit Expected Output Format
-              </Button>
+            <Stack direction="column" spacing={1} className="mb-2">
+                <Typography variant="body2" color="text.secondary">
+                    AI Instructions Status: <span className="font-mono font-bold text-text-primary">{additionalInstructions.length > 50 ? 'Custom/Detailed' : 'Default'}</span>
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    Output Format Status: <span className="font-mono font-bold text-text-primary">{expectedOutputFormat.length > 50 ? 'Schema Defined' : 'Default'}</span>
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                    Use the Settings (<SettingsIcon fontSize="inherit" />) icon in the prompt input field to edit configuration.
+                </Typography>
             </Stack>
           </AccordionDetails>
         </Accordion>
@@ -251,26 +281,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
               <ListAltIcon />
             </IconButton>
           </Tooltip>
-          <Box className="flex gap-2">
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={handleClearPlan}
-              disabled={isLoading && !plan} 
-            >
-              Clear Plan
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleGeneratePlan}
-              disabled={isLoading || !userPrompt.trim() || !projectRoot.trim()}
-              startIcon={isLoading && <CircularProgress size={20} color="inherit" />}
-              sx={generateButtonSx}
-            >
-              {isLoading ? 'Generating Plan...' : 'Generate Plan'}
-            </Button>
-          </Box>
+          {/* Removed dedicated Clear Plan and Generate Plan buttons, now handled by floating icons */}
         </Box>
       </CardContent>
     </Card>
