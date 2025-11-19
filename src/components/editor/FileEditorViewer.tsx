@@ -453,6 +453,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   if (isDedicatedRouteMode) {
     let contentNode: React.ReactNode;
     let headerContentNode: React.ReactNode | null = null;
+    let footerContentNode: React.ReactNode | null = null; // ADDED
 
     if (isLoading) {
         contentNode = (
@@ -482,6 +483,17 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
     } else {
         headerContentNode = renderFileTabs(fileId, fileName, hasUnsavedChanges);
         contentNode = renderContent();
+        
+        // Define footer content based on user request / consistency with drawer mode
+        if (!isMedia) { 
+             footerContentNode = (
+                <Box className="footer flex justify-between items-center px-4 py-1" sx={{backgroundColor: theme.palette.background.default, borderTop: `1px solid ${theme.palette.divider}` }}>
+                    <Typography variant="caption" color="text.secondary">
+                        Path: <span className="font-mono">{fileEntry?.path}</span>
+                    </Typography>
+                </Box>
+             );
+        }
     }
 
     return (
