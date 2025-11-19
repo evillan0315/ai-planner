@@ -1,0 +1,101 @@
+import React, { SyntheticEvent } from 'react';
+import {
+  Box,
+  Typography,
+  Tabs,
+  Tab,
+  IconButton,
+  Tooltip,
+  useTheme,
+  SxProps,
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import type { IEditorTab } from '@/components/editor/stores/multiTabEditorStore';
+import { setActiveTab, closeTab } from '@/components/editor/stores/multiTabEditorStore';
+
+// --- Types ---
+
+interface MultiTabHeaderProps {
+    tabs: IEditorTab[];
+    activeTabId: string | null;
+}
+
+// --- Styles ---
+
+const tabStyles = (theme: ReturnType<typeof useTheme>): SxProps => ({
+    minHeight: '38px',
+    height: '38px', // Ensure tabs are explicitly 38px high to match header
+    py: 0,
+    px: 2,
+    textTransform: 'none',
+    '&.Mui-selected': {
+        backgroundColor: theme.palette.background.default, 
+        borderLeft: `1px solid ${theme.palette.divider}`,
+        borderRight: `1px solid ${theme.palette.divider}`,
+        borderBottom: 'none',
+        marginBottom: '-1px', // Overlay the toolbar bottom border
+    },
+    borderTopLeftRadius: theme.shape.borderRadius,
+    borderTopRightRadius: theme.shape.borderRadius,
+});
+
+const tabsContainerSx: SxProps = {
+    height: '100%', 
+    minHeight: '38px', 
+    alignItems: 'flex-end', 
+    borderBottom: 'none', 
+    flexGrow: 1,
+    justifyContent: 'flex-start',
+};
+
+
+/**
+ * Renders the tab bar for the Multi-Tab Editor Mode.
+ */
+export const MultiTabHeader: React.FC<MultiTabHeaderProps> = ({ tabs, activeTabId }) => {
+    const theme = useTheme();
+
+    const handleTabChange = (_: SyntheticEvent, newTabId: string) => {
+        if (newTabId !== activeTabId) {
+             setActiveTab(newTabId);
+        }
+    };
+
+    return (
+        <Tabs 
+            value={activeTabId ?? null} 
+            onChange={handleTabChange} 
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={tabsContainerSx}
+        >
+            {tabs.map((tab) => (
+                <Tooltip title={tab.filePath} key={tab.id}>
+                    <Tab 
+                        component="div"
+                        value={tab.id}
+                        label={
+                            <Box className="flex items-center">
+                                <Typography variant="body2" component="span" sx={{ mr: 1, fontStyle: tab.hasUnsavedChanges ? 'italic' : 'normal' }}>
+                                    {tab.name}
+                                    {tab.hasUnsavedChanges && ' *'}
+                                </Typography>
+                                <IconButton 
+                                    size="small" 
+                                    sx={{ p: 0, ml: 1, color: 'text.secondary' }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        closeTab(tab.id);
+                                    }}
+                                >
+                                    <CloseIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                            </Box>
+                        }
+                        sx={tabStyles(theme)}
+                    />
+                </Tooltip>
+            ))}
+        </Tabs>
+    );
+};
