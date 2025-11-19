@@ -156,7 +156,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
         {
           label: "Generate Plan",
           action: handleGeneratePlan,
-          icon: isLoading ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon fontSize="large" />,
+          icon: isLoading ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon fontSize="small" />,
           color: 'success',
           disabled: isLoading || !userPrompt.trim() || !projectRoot.trim(),
         },
@@ -282,7 +282,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
               onChange={(e) => setUserPrompt(e.target.value)}
               disabled={isLoading}
               floatingActionGroupsByCorner={floatingActionGroupsByCorner} 
-              sx={{backgroundColor:'background.paper', mt:5}}
+              sx={{backgroundColor:'background.paper', mt:5, mb:6}}
             />
 
             {/* Status Display Area (Project Root + Attached File) - NEW REQUIREMENT */}
