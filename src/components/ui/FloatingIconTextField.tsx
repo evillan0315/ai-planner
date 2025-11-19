@@ -30,7 +30,7 @@ interface FloatingIconTextFieldProps extends TextFieldProps {
 
 const DEFAULT_POSITIONING: IconPositioning = { x: 'right', y: 'bottom' };
 const ICON_OFFSET = 6; // px offset from edge (to align with typical MUI padding)
-const MIN_CONTENT_AREA_CLEARANCE = 40; // Minimum vertical clearance needed for a row of icons (approx 24px button + padding)
+const MIN_CONTENT_AREA_CLEARANCE = 20; // Minimum vertical clearance needed for a row of icons (approx 24px button + padding)
 
 
 const getFloatingActionsContainerSx = (
@@ -44,7 +44,7 @@ const getFloatingActionsContainerSx = (
   // Horizontal positioning
   ...(positioning.x === 'right' ? 
     { right: ICON_OFFSET, left: 'auto', flexDirection: 'row' } : 
-    { left: ICON_OFFSET, right: 'auto', flexDirection: 'row-reverse' }), // Reverse order if on left for alignment
+    { left: ICON_OFFSET, right: 'auto', flexDirection: 'row-reverse' }),
 });
 
 const getInputAreaPaddingSx = (
@@ -64,7 +64,7 @@ const getInputAreaPaddingSx = (
             // Apply horizontal padding as well, though the icons themselves might not be wide enough to require it fully.
             // Using horizontal padding ensures space for a row of buttons if needed.
             ...(positioning.x === 'right' && { paddingRight: `${MIN_CONTENT_AREA_CLEARANCE}px !important` }),
-            ...(positioning.x === 'left' && { paddingLeft: `${MIN_CONTENT_AREA_CLEARANCE}px !important` }),
+            ...(positioning.x === 'left' && { paddingLeft: `${ICON_OFFSET}px !important` }),
         }
     };
 };
