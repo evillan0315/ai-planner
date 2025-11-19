@@ -4,6 +4,7 @@ import type { IFileSystemEntry } from '@/components/file-explorer/types';
 import { IMAGE_MIME_TYPES, VIDEO_MIME_TYPES, AUDIO_MIME_TYPES } from '@/constants'; // Import constants
 import { openFloatingWindow } from './floatingWindowsStore'; // IMPORT NEW STORE ACTION
 import * as path from 'path-browserify'; // ADDED: path utility for base name extraction
+
 /**
  * Represents the content and state of the currently open file in the editor/viewer.
  */
@@ -48,17 +49,15 @@ const createMinimalEntry = (filePath: string): IFileSystemEntry => ({
 
 
 /**
-+ * Action to load file content directly into the editor store based on path. 
-+ * This is used for dedicated viewer pages (e.g., /codejector/editor?path=...)
-+ * It assumes the file is not media and should be rendered by the viewer component using global state.
-+ * @param filePath The absolute path of the file to load.
-+ */
+ * Action to load file content directly into the editor store based on path. 
+ * This is used for singleton viewer usage (e.g., Code Drawer).
+ * @param filePath The absolute path of the file to load.
+ */
 export const loadFileContentFromPath = async (filePath: string) => {
     const entry = createMinimalEntry(filePath);
 
     // 1. Set loading state
-    // We set isOpen: false here, as this function is expected to be called from a dedicated route component
-    // where the viewer is mounted permanently, unlike the drawer mode which requires isOpen: true.
+    // Note: We assume this is only called when mounting a singleton viewer, NOT the multi-tab dedicated route.
     editorStore.set({
         ...INITIAL_STATE, // Clear previous state fully
         fileEntry: entry,
