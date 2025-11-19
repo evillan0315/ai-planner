@@ -8,5 +8,9 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
+# Explicitly set indentation size for code, config, and documentation files
+[*.{ts,tsx,js,jsx,json,yaml,yml,css,html}]
+indent_size = 2
+
 [*.md]
 trim_trailing_whitespace = false
