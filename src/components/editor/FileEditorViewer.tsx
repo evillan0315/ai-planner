@@ -97,7 +97,8 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   // --- State Management Selection ---
   
   const globalState = useStore(editorStore);
-  const { tabs, activeTabId } = useStore(multiTabEditorStore);
+  // NOTE: activeTabId is now activeTabIndex (number index)
+  const { tabs, activeTabIndex } = useStore(multiTabEditorStore);
   
   let currentTabOrContent: (IEditorContent | IEditorTab | IWindowContent) | null;
   let currentFileEntry: IFileSystemEntry | null;
@@ -126,7 +127,10 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
 
   } else if (isDedicatedRouteMode) {
       // Dedicated Multi-Tab Mode
-      const activeTab = tabs.find(t => t.id === activeTabId) ?? null;
+      const activeTab = activeTabIndex !== null && activeTabIndex >= 0 && activeTabIndex < tabs.length 
+          ? tabs[activeTabIndex] 
+          : null; // Look up by index
+          
       currentTabOrContent = activeTab;
       currentFileEntry = activeTab ? { path: activeTab.filePath, name: activeTab.name, isDirectory: false, type: 'file' } : null; // Synthesize minimal entry
       isLoading = activeTab?.isLoading ?? false;
@@ -223,7 +227,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
     let headerContentNode: React.ReactNode | null = null;
     let footerContentNode: React.ReactNode | null = null;
     
-    const activeTab = tabs.find(t => t.id === activeTabId);
+    const activeTab = content && 'id' in content ? content as IEditorTab : null;
     const activePath = activeTab?.filePath || decodedUrlPath;
 
     if (isLoading && activePath && !activeTab) {
@@ -244,7 +248,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
                 </Alert>
             </Box>
         );
-    } else if (!activeTab || !activeTabId) {
+    } else if (!activeTab || activeTabIndex === null) {
         contentNode = (
             <Box sx={{ p: 4, height: '100%' }}>
                 <Alert severity="info">
@@ -254,7 +258,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
         );
     } else {
         // Content is ready for active tab
-        headerContentNode = <MultiTabHeader tabs={tabs} activeTabId={activeTabId} />;
+        headerContentNode = <MultiTabHeader tabs={tabs} activeTabIndex={activeTabIndex} />;
 
         contentNode = (
             <FileContentRenderer
@@ -288,7 +292,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
 
     return (
         <ContentLayout
-            headerHeight={38} // Tab height
+            headerHeight={48} // Tab height
             footerHeight={30} // Footer height
             headerContent={headerContentNode}
             headerRightActions={dedicatedRouteActions}
@@ -368,4 +372,3 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
 };
 
 export default FileEditorViewer;
-

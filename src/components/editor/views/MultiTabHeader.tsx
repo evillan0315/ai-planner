@@ -17,14 +17,14 @@ import { setActiveTab, closeTab } from '@/components/editor/stores/multiTabEdito
 
 interface MultiTabHeaderProps {
     tabs: IEditorTab[];
-    activeTabId: string | null;
+    activeTabIndex: number | null; // Changed to numeric index
 }
 
 // --- Styles ---
 
 const tabStyles = (theme: ReturnType<typeof useTheme>): SxProps => ({
-    minHeight: '38px',
-    height: '38px', // Ensure tabs are explicitly 38px high to match header
+    minHeight: '48px',
+    height: '48px', // Ensure tabs are explicitly 38px high to match header
     py: 0,
     px: 2,
     textTransform: 'none',
@@ -41,7 +41,7 @@ const tabStyles = (theme: ReturnType<typeof useTheme>): SxProps => ({
 
 const tabsContainerSx: SxProps = {
     height: '100%', 
-    minHeight: '38px', 
+    minHeight: '48px', 
     alignItems: 'flex-end', 
     borderBottom: 'none', 
     flexGrow: 1,
@@ -52,28 +52,28 @@ const tabsContainerSx: SxProps = {
 /**
  * Renders the tab bar for the Multi-Tab Editor Mode.
  */
-export const MultiTabHeader: React.FC<MultiTabHeaderProps> = ({ tabs, activeTabId }) => {
+export const MultiTabHeader: React.FC<MultiTabHeaderProps> = ({ tabs, activeTabIndex }) => {
     const theme = useTheme();
-
-    const handleTabChange = (_: SyntheticEvent, newTabId: string) => {
-        if (newTabId !== activeTabId) {
-             setActiveTab(newTabId);
+    // The `value` prop in MUI Tabs expects a number corresponding to the Tab's value.
+    const handleTabChange = (_: SyntheticEvent, newTabIndex: number) => {
+        if (newTabIndex !== activeTabIndex) {
+             setActiveTab(newTabIndex);
         }
     };
 
     return (
         <Tabs 
-            value={activeTabId ?? null} 
+            value={activeTabIndex ?? 0} // MUI expects number here. Use 0 as fallback if tabs exist but index is null temporarily.
             onChange={handleTabChange} 
             variant="scrollable"
             scrollButtons="auto"
             sx={tabsContainerSx}
         >
-            {tabs.map((tab) => (
+            {tabs.map((tab, index) => ( // Use index for iteration
                 <Tooltip title={tab.filePath} key={tab.id}>
                     <Tab 
                         component="div"
-                        value={tab.id}
+                        value={index} // Use the array index as the tab value
                         label={
                             <Box className="flex items-center">
                                 <Typography variant="body2" component="span" sx={{ mr: 1, fontStyle: tab.hasUnsavedChanges ? 'italic' : 'normal' }}>
@@ -99,4 +99,3 @@ export const MultiTabHeader: React.FC<MultiTabHeaderProps> = ({ tabs, activeTabI
         </Tabs>
     );
 };
-
