@@ -21,11 +21,11 @@ interface ContentLayoutProps {
   contentWrapperSx?: SxProps<Theme>;
 }
 
-const DEFAULT_HEADER_HEIGHT = 64;
-const DEFAULT_FOOTER_HEIGHT = 50;
+const DEFAULT_HEADER_HEIGHT = 30;
+const DEFAULT_FOOTER_HEIGHT = 30;
 
 const headerBarSx = (theme: Theme): SxProps => ({
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: theme.palette.background.default,
   borderBottom: `1px solid ${theme.palette.divider}`,
   color: theme.palette.text.primary,
   minHeight: `${DEFAULT_HEADER_HEIGHT}px`,
@@ -49,7 +49,7 @@ const mainContentSx = (hHeight: number, fHeight: number): SxProps => ({
 });
 
 const footerBarSx = (theme: Theme): SxProps => ({
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: theme.palette.background.default,
   borderTop: `1px solid ${theme.palette.divider}`,
   // Tailwind handles sticky positioning and Z-index
 });
@@ -78,9 +78,9 @@ export const ContentLayout: React.FC<ContentLayoutProps> = ({
 
   return (
     <Box className="flex flex-col h-full w-full">
-      {/* Sticky Header */}
+
       <AppBar position="static" className="sticky top-0 z-[400] shadow-sm" sx={headerBarSx(theme)}>
-        <Toolbar sx={{ ...toolbarSx, minHeight: headerHeight }}>
+        <Toolbar sx={{ ...toolbarSx, minHeight: `${DEFAULT_HEADER_HEIGHT}px` }}>
           <Box className="flex items-center flex-shrink-0 min-w-10">
             {renderedHeaderActionsLeft}
           </Box>
@@ -117,6 +117,8 @@ export const ContentLayout: React.FC<ContentLayoutProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            //backgroundColor: theme.palette.background.default,
+            //borderTop: `1px solid ${theme.palette.divider}`,
           }}
         >
           {footerContent}

@@ -318,7 +318,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
                     language={monacoLanguage}
                     options={{
                         readOnly: !isCodeEditable,
-                        minimap: { enabled: true },
+                        minimap: { enabled: false },
                         wordWrap: 'on',
                     }}
                     // Pass save function only if editable
@@ -355,7 +355,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
             scrollButtons="auto"
             sx={{
                 height: '100%', 
-                minHeight: '48px', 
+                minHeight: '38px', 
                 alignItems: 'flex-end', 
                 borderBottom: 'none', 
                 // Ensure Tabs container takes up the space in ContentLayout toolbar
@@ -382,7 +382,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
                         </Box>
                     }
                     sx={{
-                        minHeight: '48px',
+                        minHeight: '36px',
                         py: 0,
                         px: 2,
                         textTransform: 'none',
@@ -487,7 +487,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
         // Define footer content based on user request / consistency with drawer mode
         if (!isMedia) { 
              footerContentNode = (
-                <Box className="footer flex justify-between items-center px-4 py-1" sx={{backgroundColor: theme.palette.background.default, borderTop: `1px solid ${theme.palette.divider}` }}>
+                <Box className="flex justify-between items-center px-4 py-1" sx={{backgroundColor: theme.palette.background.default, borderTop: `1px solid ${theme.palette.divider}` }}>
                     <Typography variant="caption" color="text.secondary">
                         Path: <span className="font-mono">{fileEntry?.path}</span>
                     </Typography>
@@ -498,7 +498,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
 
     return (
         <ContentLayout
-            headerHeight={48} // Tabs look better at 48px
+            headerHeight={30} // Tabs look better at 48px
             footerHeight={30}
             headerContent={headerContentNode}
             headerRightActions={dedicatedRouteActions}
@@ -532,7 +532,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
     <Box sx={getContainerSx(isMedia)}> {/* Use dynamic container styles */}
       {/* Status Bar (Only visible for the main code editor drawer) */}
       {!isMedia && !isContextualMode && (
-        <Box className="header flex justify-between items-center px-4 py-3" sx={{borderBottom: `1px solid ${theme.palette.divider}`}}>
+        <Box className="header flex justify-between items-center px-4 py-1" sx={{borderBottom: `1px solid ${theme.palette.divider}`}}>
           <Typography variant="subtitle2" color="text.secondary">
             Path: <span className="font-mono">{fileEntry?.path}</span>
           </Typography>
