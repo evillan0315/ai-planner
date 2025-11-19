@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import {
   Box,
   Typography,
@@ -28,7 +28,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // Import ExpandMor
 
 import type { IPlan } from './types'; // Import necessary types
 import FloatingIconTextField from '@/components/ui/FloatingIconTextField'; // <-- ADDED
-import type { GlobalAction } from '@/components/ui/GlobalActionButton'; // <-- ADDED IMPORT
 
 interface PlanInputFormProps {
   userPrompt: string;
@@ -101,30 +100,6 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
 }) => {
   const theme = useTheme();
 
-  const floatingActions: GlobalAction[] = useMemo(() => [
-    {
-        label: `Select Project Root Directory: ${projectRoot}`,
-        action: openProjectRootPicker,
-        icon: <FolderOpenIcon fontSize="small" />,
-        color: 'secondary',
-        disabled: isLoading,
-    },
-    {
-        label: `Manage AI Scan Paths: ${scanPathsInput}`,
-        action: openScanPathsDrawer,
-        icon: <AddRoadIcon fontSize="small" />,
-        color: 'secondary',
-        disabled: isLoading,
-    },
-    {
-        label: selectedFile ? `Context File Attached: ${selectedFile.name}` : "Upload Context File (Image/Text)",
-        action: () => fileInputRef.current?.click(),
-        icon: <UploadFileIcon fontSize="small" />,
-        color: 'secondary',
-        disabled: isLoading || !!selectedFile, // Disable if file already selected
-    },
-], [projectRoot, scanPathsInput, isLoading, selectedFile, openProjectRootPicker, openScanPathsDrawer, fileInputRef]);
-
   return (
     <Card sx={cardSx} className="mb-6 flex-shrink-0">
       <CardContent sx={formSectionSx} className="flex flex-col">
@@ -158,7 +133,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
                 disabled={isLoading}
             />
             <FloatingIconTextField
-              label="Enter your prompt for the AI"
+              label="Enter your prompt"
               multiline
               rows={6}
               fullWidth
@@ -166,7 +141,43 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
               onChange={(e) => setUserPrompt(e.target.value)}
               variant="outlined"
               disabled={isLoading}
-              floatingActions={floatingActions}
+              floatingActions={(
+                  <Stack direction="row" spacing={0.5}>
+                      {/* 1. Project Root Picker */}
+                      <Tooltip title={`Select Project Root Directory: ${projectRoot}`}>
+                          <IconButton
+                              size="small"
+                              color="secondary"
+                              onClick={openProjectRootPicker}
+                              disabled={isLoading}
+                          >
+                              <FolderOpenIcon fontSize="small" />
+                          </IconButton>
+                      </Tooltip>
+                      {/* 2. Scan Paths Manager */}
+                      <Tooltip title={`Manage AI Scan Paths: ${scanPathsInput}`}>
+                          <IconButton
+                              size="small"
+                              color="secondary"
+                              onClick={openScanPathsDrawer}
+                              disabled={isLoading}
+                          >
+                              <AddRoadIcon fontSize="small" />
+                          </IconButton>
+                      </Tooltip>
+                      {/* 3. Upload Context File */}
+                      <Tooltip title="Upload Context File (Image/Text)">
+                          <IconButton
+                              size="small"
+                              color="secondary"
+                              onClick={() => fileInputRef.current?.click()}
+                              disabled={isLoading || !!selectedFile} // Disable if file already selected
+                          >
+                              <UploadFileIcon fontSize="small" />
+                          </IconButton>
+                      </Tooltip>
+                  </Stack>
+              )}
             />
             {/* Display file status below the prompt field, if a file is attached */}
             {selectedFile && (
