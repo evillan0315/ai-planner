@@ -30,6 +30,8 @@ interface FloatingIconTextFieldProps extends TextFieldProps {
 
 const DEFAULT_POSITIONING: IconPositioning = { x: 'right', y: 'bottom' };
 const ICON_OFFSET = 6; // px offset from edge (to align with typical MUI padding)
+const MIN_CONTENT_AREA_CLEARANCE = 40; // Minimum vertical clearance needed for a row of icons (approx 24px button + padding)
+
 
 const getFloatingActionsContainerSx = (
   positioning: IconPositioning,
@@ -45,6 +47,28 @@ const getFloatingActionsContainerSx = (
     { left: ICON_OFFSET, right: 'auto', flexDirection: 'row-reverse' }), // Reverse order if on left for alignment
 });
 
+const getInputAreaPaddingSx = (
+  positioning: IconPositioning,
+  multiline: boolean,
+): SxProps => {
+    if (!multiline) return {};
+    
+    // Target the actual textarea/input field within the multiline InputBase structure
+    return {
+        '& .MuiInputBase-inputMultiline': { 
+            // We use !important because default MUI padding can be hard to override otherwise.
+            // Add padding based on icon location to prevent overlap
+            ...(positioning.y === 'bottom' && { paddingBottom: `${MIN_CONTENT_AREA_CLEARANCE}px !important` }),
+            ...(positioning.y === 'top' && { paddingTop: `${MIN_CONTENT_AREA_CLEARANCE}px !important` }),
+            
+            // Apply horizontal padding as well, though the icons themselves might not be wide enough to require it fully.
+            // Using horizontal padding ensures space for a row of buttons if needed.
+            ...(positioning.x === 'right' && { paddingRight: `${MIN_CONTENT_AREA_CLEARANCE}px !important` }),
+            ...(positioning.x === 'left' && { paddingLeft: `${MIN_CONTENT_AREA_CLEARANCE}px !important` }),
+        }
+    };
+};
+
 
 /**
  * A TextField component with an optional floating action area positioned within the text area.
@@ -53,23 +77,51 @@ const getFloatingActionsContainerSx = (
 export default function FloatingIconTextField({
   floatingActions,
   iconPositioning = DEFAULT_POSITIONING,
-  ...props
+  InputProps: userInputProps, // Capture user InputProps
+  multiline, // Must be explicitly destructured if we need its value
+  ...props // Remaining TextFieldProps
 }: FloatingIconTextFieldProps) {
 
+  // Ensure multiline state is tracked correctly
+  const isMultiline = !!multiline; 
+
   const containerSx = useMemo(() => getFloatingActionsContainerSx(iconPositioning), [iconPositioning]);
+  
+  // Calculate padding only if isMultiline is true
+  const inputPaddingSx = useMemo(() => getInputAreaPaddingSx(iconPositioning, isMultiline), [iconPositioning, isMultiline]);
 
   const showActions = floatingActions && floatingActions.length > 0;
+  
+  // Combine calculated padding SX with user-provided InputProps SX
+  const combinedInputProps = useMemo(() => {
+      const existingSx = userInputProps?.sx || {};
+      
+      // Ensure we merge the calculated input padding SX
+      const combinedSx = Array.isArray(existingSx) 
+          ? [...existingSx, inputPaddingSx] 
+          : [existingSx, inputPaddingSx];
+
+      return {
+          ...userInputProps,
+          sx: combinedSx
+      };
+  }, [userInputProps, inputPaddingSx]);
+
 
   return (
     <Box position="relative" display="inline-block" width="100%">
-      {/* 
-        Ensure TextField minimum height accommodates the floating actions 
-        by setting appropriate padding internally or relying on MUI's default multi-line structure.
-      */}
-      <TextField fullWidth {...props} />
+      
+      <TextField 
+        fullWidth 
+        // Pass multiline back
+        multiline={multiline} 
+        {...props} 
+        InputProps={combinedInputProps} // Inject combined InputProps
+      />
 
       {showActions && (
         <Box sx={containerSx}>
+          {/* Note: GlobalActionButton handles the internal stack/spacing */}
           <GlobalActionButton globalActions={floatingActions} iconOnly={true} />
         </Box>
       )}
