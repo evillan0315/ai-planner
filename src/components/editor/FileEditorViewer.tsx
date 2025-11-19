@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import * as path from 'path-browserify';
 import { useStore } from '@nanostores/react';
@@ -152,6 +152,16 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   const content = currentTabOrContent;
   const fileEntry = currentFileEntry;
 
+// --- New Handler for Fullscreen Registration ---
+// Handler definition for VideoPlayer to pass its action upward to FloatingResizableDraggableBox
+const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
+    if (onRegisterPlayerAction) {
+        // Register action map: { requestFullscreen: fn } or empty map if fn is null
+        onRegisterPlayerAction(fn ? { requestFullscreen: fn } : {});
+    }
+}, [onRegisterPlayerAction]);
+
+
   // Check if content implies media based on mimeType for container styling
   const mimeType = fileEntry?.mimeType || content?.mimeType || '';
   const isMedia = IMAGE_MIME_TYPES.has(mimeType) || 
@@ -190,76 +200,9 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   ] : [];
 
 
-   if (isMedia) {
-        // Media should only happen in Contextual mode, if it happens here, it's an error/warning
-        if (!isContextualMode) {
-            return (
-                <Alert severity="info">
-                    Media files are typically opened in floating windows. Path: {fileEntry?.path}
-                </Alert>
-            );
-        }
-        
-        if (isLoading || mediaUrlLoading) {
-            return (
-                <Box className="flex justify-center items-center h-full">
-                    <CircularProgress />
-                    <Typography sx={{ml: 2}} color="text.secondary">Generating secured media stream URL...</Typography>
-                </Box>
-            );
-        }
-        
-        if (error || mediaUrlError) {
-            return (
-                <Alert severity="error">
-                    Error loading media stream: {error || mediaUrlError}
-                </Alert>
-            );
-        }
-
-        const url = mediaStreamUrl || fileEntry?.path; 
-
-        if (url) {
-            if (rendererType === 'image') {
-                return (
-                    <Box className="flex justify-center items-center w-full h-full"> 
-                        <img 
-                            src={url} 
-                            alt={fileEntry?.name || 'File Preview'} 
-                            className="w-full object-contain" 
-                            style={{ maxHeight: '100%', maxWidth: '100%' }}
-                        />
-                    </Box>
-                );
-            }
-            
-            if (rendererType === 'video') {
-                return (
-                    <Box className="flex justify-center items-center h-full">
-                        <VideoPlayer 
-                            src={url} 
-                            fileName={fileEntry?.name} 
-                            onRequestFullscreenReady={handleRegisterFullscreen}
-                        />
-                    </Box>
-                );
-            }
-            
-            // Audio rendering
-            if (rendererType === 'audio') {
-                return (
-                    <Box className="flex justify-center items-center h-full p-1"> 
-                        <AudioPlayer src={url} fileName={fileEntry?.name} />
-                    </Box>
-                );
-            }
-        }
-        
-        return <Alert severity="warning">Could not display media content.</Alert>
-    }
-
   // 1. Contextual Mode (Floating Box) - Read-only view, mainly for media
   if (isContextualMode) {
+    // Note: Loading/Error handling for media is centralized in FileContentRenderer
     return (
       <Box sx={getContainerSx(isMedia)} className="w-full h-full"> 
          {content && (
@@ -267,14 +210,14 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
                 <FileContentRenderer
                     content={content}
                     fileEntry={fileEntry}
-                    isLoading={isLoading || mediaUrlLoading}
-                    error={error || mediaUrlError}
+                    isLoading={isLoading}
+                    error={error}
                     draftContent={draftContent}
                     isContextualMode={true}
                     mediaStreamUrl={mediaStreamUrl}
                     mediaUrlLoading={mediaUrlLoading}
                     mediaUrlError={mediaUrlError}
-                    onRegisterPlayerAction={onRegisterPlayerAction}
+                    onRegisterPlayerAction={handleRegisterFullscreen} // Pass action registration
                 />
             </Box>
          )}
