@@ -6,18 +6,22 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime'; // Icon for visual 
 
 interface ClockAnalogProps {
   config: ClockConfig;
+  isConfigPreview?: boolean; // NEW PROP
 }
 
-const AnalogClockContainerSx: SxProps = {
+const AnalogClockContainerSx = (isConfigPreview: boolean): SxProps => ({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'flex-start',
-  padding: 0.5,
+  padding: 0.5, // MUI spacing 0.5 = 4px padding top/bottom/right (when used with inline flex)
   lineHeight: 1.1,
-  // Add visual separation from other clocks
-  borderLeft: '1px solid',
-  borderColor: 'divider',
-};
+  flexShrink: 0,
+  // Add visual separation from other clocks only when NOT in config preview
+  ...(isConfigPreview ? {} : {
+      borderLeft: '1px solid',
+      borderColor: 'divider',
+  }),
+});
 
 const TimeDisplaySx: SxProps = { 
     display: 'flex', 
@@ -25,12 +29,15 @@ const TimeDisplaySx: SxProps = {
     gap: 0.5,
 };
 
-const ClockAnalog: React.FC<ClockAnalogProps> = ({ config }) => {
+const ClockAnalog: React.FC<ClockAnalogProps> = ({ config, isConfigPreview = false }) => {
   // Pass 'analog' override to ensure 12-hour format is used regardless of stored config preference (for demonstration)
   const { time, date } = useLiveClock(config, 'analog'); 
 
+  // Preserve existing `pl-3` (p-left: 0.75rem / 12px) if it's not a preview, as it relies on this spacing when border is active.
+  const className = `flex-shrink-0 min-w-40 ${isConfigPreview ? '' : 'pl-3'}`;
+
   return (
-    <Box sx={AnalogClockContainerSx} className="flex-shrink-0 pl-3 min-w-40">
+    <Box sx={AnalogClockContainerSx(isConfigPreview)} className={className}>
       <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold' }} noWrap>
         {config.label}
       </Typography>

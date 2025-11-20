@@ -20,7 +20,6 @@ import {
   IconButton,
   List,
   ListItem,
-  ListItemText,
   useTheme,
   Divider,
 } from '@mui/material';
@@ -28,7 +27,12 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DvrIcon from '@mui/icons-material/Dvr';
 import AlarmOnIcon from '@mui/icons-material/AlarmOn';
-import { ClockDisplayType } from './types';
+import VisibilityIcon from '@mui/icons-material/Visibility'; // NEW IMPORT
+
+import { ClockDisplayType, ClockConfig } from './types';
+// NEW IMPORTS
+import ClockAnalog from './ClockAnalog'; 
+import ClockDigital from './ClockDigital'; 
 
 interface ClockConfigDialogProps {
   open: boolean;
@@ -70,9 +74,17 @@ const ClockConfigDialog: React.FC<ClockConfigDialogProps> = ({ open, onClose }) 
       updateClockConfig(id, { timezone: newTimezone });
   }, []);
   
+  const renderClockPreview = (config: ClockConfig) => {
+    if (config.displayType === 'digital') {
+      // Pass isConfigPreview = true
+      return <ClockDigital config={config} isConfigPreview={true} />;
+    }
+    // Pass isConfigPreview = true
+    return <ClockAnalog config={config} isConfigPreview={true} />;
+  };
 
   const dialogContent = useMemo(() => (
-    <Box sx={{ p: 2, minWidth: 400 }}>
+    <Box sx={{ p: 2, minWidth: 900 }}> // Increased minWidth for better layout
       <Typography variant="h6" gutterBottom>
         Manage Clocks ({configs.length})
       </Typography>
@@ -82,66 +94,85 @@ const ClockConfigDialog: React.FC<ClockConfigDialogProps> = ({ open, onClose }) 
         {configs.map((config) => (
           <ListItem 
             key={config.id}
-            secondaryAction={
-                <Box className="flex gap-2 items-center">
-                    {/* Timezone Selector */}
-                    <FormControl size="small" sx={{ minWidth: 120 }}>
-                        <Select
-                            value={config.timezone}
-                            onChange={(e) => handleUpdateTimezone(config.id, e.target.value as string)}
-                            displayEmpty
-                        >
-                            {AvailableTimezones.map((tz) => (
-                                <MenuItem key={tz.value} value={tz.value}>{tz.label}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-
-                    {/* Display Toggle */}
-                    <Button
-                        variant={config.displayType === 'digital' ? 'contained' : 'outlined'}
-                        onClick={() => handleUpdateDisplayType(config.id, 'digital')}
-                        startIcon={<DvrIcon />}
-                        size="small"
-                        sx={{ minWidth: 80 }}
-                    >
-                        Digital
-                    </Button>
-                    <Button
-                        variant={config.displayType === 'analog' ? 'contained' : 'outlined'}
-                        onClick={() => handleUpdateDisplayType(config.id, 'analog')}
-                        startIcon={<AlarmOnIcon />}
-                        size="small"
-                        sx={{ minWidth: 80 }}
-                    >
-                        Traditional
-                    </Button>
-
-                    {/* Delete Button */}
-                    <IconButton 
-                        edge="end" 
-                        aria-label="delete" 
-                        onClick={() => handleRemoveClock(config.id)}
-                        color="error"
-                        disabled={configs.length === 1} // Prevent deleting the last clock
-                    >
-                        <DeleteIcon />
-                    </IconButton>
-                </Box>
-            }
-            sx={{ borderBottom: `1px solid ${theme.palette.divider}`, pr: 20 }}
+            // secondaryAction removed, using internal flex layout
+            sx={{ 
+                borderBottom: `1px solid ${theme.palette.divider}`, 
+                pr: 2, 
+                // Set the list item to use flex layout internally for better control
+                display: 'flex', 
+                alignItems: 'center',
+                gap: 2, // Gap between sections
+                py: 1, // Add vertical padding to accommodate clock size
+            }}
           >
-            <ListItemText 
-                primary={(
-                    <TextField
-                        value={config.label}
-                        onChange={(e) => handleUpdateLabel(config.id, e.target.value)}
-                        variant="standard"
-                        size="small"
-                        className="w-40"
-                    />
-                )}
-            />
+            
+            {/* 1. Label Editor (Flex-shrink-0, fixed width) */}
+            <Box className="flex-shrink-0 w-36">
+                 <TextField
+                    value={config.label}
+                    onChange={(e) => handleUpdateLabel(config.id, e.target.value)}
+                    variant="standard"
+                    size="small"
+                    fullWidth
+                    label="Label"
+                />
+            </Box>
+
+            {/* 2. Clock Preview (Flex-shrink-0, border separator) */}
+            <Box 
+                className="flex-shrink-0 flex items-center gap-1 border-r pr-4 pl-2 self-stretch"
+                sx={{borderColor: 'divider'}}
+            >
+                <VisibilityIcon fontSize="small" color="action" sx={{ alignSelf: 'center', mt: 1}} />
+                {renderClockPreview(config)}
+            </Box>
+            
+            {/* 3. Controls (Timezone, Display Type, Delete) (Flex-grow, justify-end) */}
+            <Box className="flex gap-2 items-center flex-grow justify-end">
+                {/* Timezone Selector */}
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <Select
+                        value={config.timezone}
+                        onChange={(e) => handleUpdateTimezone(config.id, e.target.value as string)}
+                        displayEmpty
+                    >
+                        {AvailableTimezones.map((tz) => (
+                            <MenuItem key={tz.value} value={tz.value}>{tz.label}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+
+                {/* Display Toggle */}
+                <Button
+                    variant={config.displayType === 'digital' ? 'contained' : 'outlined'}
+                    onClick={() => handleUpdateDisplayType(config.id, 'digital')}
+                    startIcon={<DvrIcon />}
+                    size="small"
+                    sx={{ minWidth: 80 }}
+                >
+                    Digital
+                </Button>
+                <Button
+                    variant={config.displayType === 'analog' ? 'contained' : 'outlined'}
+                    onClick={() => handleUpdateDisplayType(config.id, 'analog')}
+                    startIcon={<AlarmOnIcon />}
+                    size="small"
+                    sx={{ minWidth: 80 }}
+                >
+                    Traditional
+                </Button>
+
+                {/* Delete Button */}
+                <IconButton 
+                    edge="end" 
+                    aria-label="delete" 
+                    onClick={() => handleRemoveClock(config.id)}
+                    color="error"
+                    disabled={configs.length === 1} // Prevent deleting the last clock
+                >
+                    <DeleteIcon />
+                </IconButton>
+            </Box>
           </ListItem>
         ))}
       </List>
@@ -207,7 +238,7 @@ const ClockConfigDialog: React.FC<ClockConfigDialogProps> = ({ open, onClose }) 
       }}
       title="Clock Configuration"
       content={dialogContent}
-      maxWidth="md"
+      maxWidth="lg"
       fullWidth={false}
       showCloseButton={true}
     />
