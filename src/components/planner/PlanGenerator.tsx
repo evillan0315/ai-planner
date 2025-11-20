@@ -4,7 +4,7 @@ import {
   Typography,
   // REMOVED Snackbar,
   useTheme,
-  // Removed IconButton, Tooltip, Alert
+  Paper,
   CircularProgress,
   Tooltip,
   IconButton,
@@ -481,15 +481,177 @@ const planTitleHeader = useMemo(() => {
                 p: 0, 
             }}
         >
-            {/* PlanDisplay content scrolls inside ContentLayout's main area or shows status/loading */}
+            <Paper elevation={3} sx={{backgroundColor:theme.palette.background.default}} className="h-full">
             <PlanGenerationStatus
                 isLoading={isLoading}
                 plan={plan}
                 onEditPlanMetadata={() => setIsPlanMetadataEditorOpen(true)}
                 onEditFileChange={handleEditFileChangeRequest}
             />
+            </Paper>
         </ContentLayout>
       </Box>
 
+
+
+
+
+
+
       {/* 2. Fixed Input Form (Sticky Bottom area) */}
-// ... (rest of component is unchanged)
+      {/* ADDED WRAPPER with p-2 and theme styling for visual anchor */}
+      <Box 
+        className="flex-shrink-0 p-2"
+        sx={{
+            backgroundColor: theme.palette.background.paper,
+            borderTop: `1px solid ${theme.palette.divider}`
+        }}
+      >
+        <PlanInputForm
+          userPrompt={userPrompt}
+          setUserPrompt={setUserPrompt}
+          projectRoot={projectRoot}
+          scanPathsInput={scanPathsInput}
+          additionalInstructions={additionalInstructions}
+          expectedOutputFormat={expectedOutputFormat}
+          fileData={fileData}
+          fileMimeType={fileMimeType}
+          selectedFile={selectedFile}
+          isLoading={isLoading}
+          error={error}
+          fileInputRef={fileInputRef}
+          handleFileChange={handleFileChange}
+          handleClearFile={handleClearFile}
+          handleGeneratePlan={handleGeneratePlan}
+          handleClearPlan={handleClearPlan}
+          openProjectRootPicker={openProjectRootPicker} // Use local helper
+          openScanPathsDrawer={openScanPathsDrawer}     // Use local helper
+          openPlannerListDrawer={() => setIsPlannerListDrawerOpen(true)}
+          openAiInstructionDrawer={() => setIsAiInstructionDrawerOpen(true)}
+          openExpectedOutputDrawer={() => setIsExpectedOutputDrawerOpen(true)}
+          openErrorDetailsDrawer={() => setIsErrorDetailsDrawerOpen(true)}
+          plan={plan}
+        />
+      </Box>
+
+
+      <CustomDrawer
+        open={isProjectRootPickerDialogOpen}
+        onClose={() => setIsProjectRootPickerDialogOpen(false)}
+        position="left"
+        size="medium" // Increased size for better file viewing
+        title="Select Project Root Folder"
+        hasBackdrop={true}
+        footerActionButton={directoryPickerDrawerActions}
+      >
+        <FileExplorerPlannerDrawerContent
+          mode="root"
+          // Pass the local state which is updated by the inner FileExplorerControls' onUsePath handler
+          currentPath={tempDrawerProjectRootInput || '/'}
+          currentScanPaths={[]} // Not used in root mode
+          onPathChange={setTempDrawerProjectRootInput} // Updates local state
+          onScanPathsChange={() => {}} // N/A, not used in root mode
+        />
+      </CustomDrawer>
+
+ 
+      <CustomDrawer
+        open={isScanPathsDialogOpen}
+        onClose={() => setIsScanPathsDialogOpen(false)}
+        position="left"
+        size="medium"
+        title="Manage AI Scan Paths"
+        hasBackdrop={true}
+        footerActionButton={scanPathsDrawerActions}
+      >
+        <FileExplorerPlannerDrawerContent
+          mode="scan"
+          currentPath={projectRoot} // Browsing starts at project root
+          currentScanPaths={localScanPaths}
+          onPathChange={() => {}} // N/A, path navigation is handled internally by FileExplorer
+          onScanPathsChange={setLocalScanPaths} // Update local state
+        />
+      </CustomDrawer>
+
+      <InstructionEditorDrawer
+        open={isAiInstructionDrawerOpen}
+        onClose={() => setIsAiInstructionDrawerOpen(false)}
+        type="ai"
+      />
+
+      <InstructionEditorDrawer
+        open={isExpectedOutputDrawerOpen}
+        onClose={() => setIsExpectedOutputDrawerOpen(false)}
+        type="expected"
+      />
+
+      {plan && (
+        <PlanMetadataEditorDrawer
+          open={isPlanMetadataEditorOpen}
+          onClose={() => setIsPlanMetadataEditorOpen(false)}
+          initialTitle={plan.title}
+          initialSummary={plan.summary}
+          initialThoughtProcess={plan.thoughtProcess}
+          initialDocumentation={plan.documentation}
+          initialAssumptions={plan.assumptions}
+          initialConfidence={plan.confidence}
+          initialEstimatedEffortMinutes={plan.estimatedEffortMinutes} // Corrected prop name
+          initialBuildScripts={plan.buildScripts}
+          initialGitInstructions={plan.gitInstructions}
+          onSave={handleSavePlanMetadata}
+        />
+      )}
+
+      {editingFileChange && (
+        <FileChangeEditorDrawer
+          open={isFileChangeEditorOpen}
+          onClose={() => setIsFileChangeEditorOpen(false)}
+          initialFileChange={editingFileChange}
+          onSave={handleSaveEditedFileChange}
+        />
+      )}
+
+      <CustomDrawer
+        open={isPlannerListDrawerOpen}
+        onClose={() => setIsPlannerListDrawerOpen(false)}
+        position="right"
+        size="medium"
+        title="All AI Plans"
+        hasBackdrop={true}
+        footerActionButton={plannerListDrawerActions}
+      >
+        <PlannerList />
+      </CustomDrawer>
+
+      <CustomDrawer
+        open={isErrorDetailsDrawerOpen}
+        onClose={() => setIsErrorDetailsDrawerOpen(false)}
+        position="right"
+        size="medium"
+        title="Error Details"
+        hasBackdrop={true}
+        footerActionButton={errorDrawerActions}
+      >
+        <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            Detailed information about the last error encountered during plan generation.
+          </Typography>
+        </Box>
+      </CustomDrawer>
+
+      {/* Snackbar for General Errors (generation failure) OR Apply Status */}
+      <CustomSnackbar
+        open={snackbarOpen}
+        autoHideDuration={6000} // Added autoHideDuration for consistency
+        onClose={handleSnackbarClose}
+        severity={snackbarSeverity}
+        message={snackbarMessage || error || 'An unknown error occurred.'} // Use message state, fallback to generation error
+      />
+    </Box>
+  );
+};
+
+export default PlanGenerator;
+
+
+

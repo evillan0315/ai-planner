@@ -172,7 +172,44 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
   return (
     <Box className="space-y-4 p-2 w-full h-full"> 
 
-      {/* 1. REMOVED Plan Metadata Card (Title & Summary) */}
+      {(plan.summary || plan.metadata?.planId || plan.metadata?.tokensUsed !== undefined) && (
+        <Card className="rounded-xl shadow-lg border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md">
+          <CardContent>
+            <Box className="flex items-center justify-between mb-2">
+                <Typography variant="h6" fontWeight="bold" color="primary.main" className="mb-0">
+                    Plan Details
+                </Typography>
+                <Tooltip title="Edit Plan Metadata">
+                    <IconButton
+                        onClick={onEditPlanMetadata}
+                        size="small"
+                        color="primary"
+                        aria-label="edit plan metadata"
+                    >
+                        <EditIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
+            </Box>
+            
+            {plan.summary && (
+              <Typography variant="body1" paragraph color="text.secondary">
+                {plan.summary}
+              </Typography>
+            )}
+
+            {plan.metadata?.planId && (
+              <Typography variant="body1" color="text.primary">
+                Plan ID: {plan.metadata.planId}
+              </Typography>
+            )}
+            {plan.metadata?.tokensUsed !== undefined && plan.metadata?.tokensUsed !== null && (
+              <Typography variant="body1" color="text.primary">
+                Tokens Used: {plan.metadata.tokensUsed}
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
+      )}
       
       {/* 2. Thought Process */}
       <PlanSectionAccordion title="Thought Process" defaultExpanded>
@@ -252,45 +289,6 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
         </PlanSectionAccordion>
       )}
 
-      {/* 10. Plan Details / Metadata (Includes Summary and Edit button) */}
-      {(plan.summary || plan.metadata?.planId || plan.metadata?.tokensUsed !== undefined) && (
-        <Card className="rounded-xl shadow-lg border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md">
-          <CardContent>
-            <Box className="flex items-center justify-between mb-2">
-                <Typography variant="h6" fontWeight="bold" color="primary.main" className="mb-0">
-                    Plan Details
-                </Typography>
-                <Tooltip title="Edit Plan Metadata">
-                    <IconButton
-                        onClick={onEditPlanMetadata}
-                        size="small"
-                        color="primary"
-                        aria-label="edit plan metadata"
-                    >
-                        <EditIcon fontSize="small" />
-                    </IconButton>
-                </Tooltip>
-            </Box>
-            
-            {plan.summary && (
-              <Typography variant="body1" paragraph color="text.secondary">
-                {plan.summary}
-              </Typography>
-            )}
-
-            {plan.metadata?.planId && (
-              <Typography variant="body1" color="text.primary">
-                Plan ID: {plan.metadata.planId}
-              </Typography>
-            )}
-            {plan.metadata?.tokensUsed !== undefined && plan.metadata?.tokensUsed !== null && (
-              <Typography variant="body1" color="text.primary">
-                Tokens Used: {plan.metadata.tokensUsed}
-              </Typography>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
 
       {plan.error && (

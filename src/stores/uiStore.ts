@@ -7,19 +7,31 @@ const DEFAULT_RIGHT_WIDTH = 400;
 
 // --- State Definitions ---
 
-export const isLeftSidebarVisible = persistentAtom<boolean>('isLeftSidebarVisible', false);
-export const isRightSidebarVisible = persistentAtom<boolean>('isRightSidebarVisible', false);
+export const isLeftSidebarVisible = persistentAtom<boolean>(
+  'isLeftSidebarVisible',
+  false,
+);
+export const isRightSidebarVisible = persistentAtom<boolean>(
+  'isRightSidebarVisible',
+  false,
+);
 
 // Use persistent atoms for width to maintain user preference across sessions
-export const leftSidebarWidth = persistentAtom<number>('leftSidebarWidth', DEFAULT_LEFT_WIDTH);
-export const rightSidebarWidth = persistentAtom<number>('rightSidebarWidth', DEFAULT_RIGHT_WIDTH);
+export const leftSidebarWidth = persistentAtom<number>(
+  'leftSidebarWidth',
+  DEFAULT_LEFT_WIDTH,
+);
+export const rightSidebarWidth = persistentAtom<number>(
+  'rightSidebarWidth',
+  DEFAULT_RIGHT_WIDTH,
+);
 
 // --- Actions ---
 
 export const toggleLeftSidebar = () => {
-    isLeftSidebarVisible.set(!isLeftSidebarVisible.get());
+  isLeftSidebarVisible.set(!isLeftSidebarVisible.get());
 };
 
 export const toggleRightSidebar = () => {
-    isRightSidebarVisible.set(!isRightSidebarVisible.get());
+  isRightSidebarVisible.set(!isRightSidebarVisible.get());
 };

@@ -26,55 +26,60 @@ const Footer = () => {
   return (
     <>
       <Box className="flex justify-between items-center w-full h-full">
-        
         {/* LEFT & CENTER Content (Sidebar Toggles, Status, Logger/Terminal Icons) */}
         <Box className="flex justify-start items-center flex-grow pl-2">
-          
           {/* Toggle Left Sidebar (File Explorer) */}
-          <Tooltip title={leftVisible ? "Hide File Explorer" : "Show File Explorer"}>
-            <IconButton 
-              onClick={toggleLeftSidebar} 
-              color="inherit" 
+          <Tooltip
+            title={leftVisible ? 'Hide File Explorer' : 'Show File Explorer'}
+          >
+            <IconButton
+              onClick={toggleLeftSidebar}
+              color="inherit"
               size="small"
-              aria-label={leftVisible ? "hide left sidebar" : "show left sidebar"}
+              aria-label={
+                leftVisible ? 'hide left sidebar' : 'show left sidebar'
+              }
             >
               {leftVisible ? <ChevronLeftIcon /> : <ChevronRightIcon />}
             </IconButton>
           </Tooltip>
 
           {/* Toggle Right Sidebar (Planner Output) */}
-          <Tooltip title={rightVisible ? "Hide Plan Output" : "Show Plan Output"}>
-            <IconButton 
-              onClick={toggleRightSidebar} 
-              color="inherit" 
+          <Tooltip
+            title={rightVisible ? 'Hide Plan Output' : 'Show Plan Output'}
+          >
+            <IconButton
+              onClick={toggleRightSidebar}
+              color="inherit"
               size="small"
-              aria-label={rightVisible ? "hide right sidebar" : "show right sidebar"}
+              aria-label={
+                rightVisible ? 'hide right sidebar' : 'show right sidebar'
+              }
             >
               {rightVisible ? <ChevronRightIcon /> : <ChevronLeftIcon />}
             </IconButton>
           </Tooltip>
-          
+
           {/* Placeholder for center content (e.g., status messages, progress, logs/terminal buttons) */}
           <Box className="ml-2 flex items-center gap-1">
             {/* Placeholder Icons */}
-             <Tooltip title="Open Output Logger">
-                <IconButton
-                    color="inherit"
-                    aria-label="open output logger"
-                    size="small"
-                ></IconButton>
-             </Tooltip>
-             <Tooltip title="Open Terminal">
-                <IconButton 
-                    color="inherit" 
-                    aria-label="open terminal"
-                    size="small"
-                ></IconButton>
-             </Tooltip>
+            <Tooltip title="Open Output Logger">
+              <IconButton
+                color="inherit"
+                aria-label="open output logger"
+                size="small"
+              ></IconButton>
+            </Tooltip>
+            <Tooltip title="Open Terminal">
+              <IconButton
+                color="inherit"
+                aria-label="open terminal"
+                size="small"
+              ></IconButton>
+            </Tooltip>
           </Box>
-
         </Box>
-        
+
         {/* FAR RIGHT Content: Live Clock & Configuration */}
         <Box className="flex justify-end items-center flex-shrink-0 pr-2 h-full">
           <LiveClock />
