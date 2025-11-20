@@ -19,7 +19,7 @@ Watch a short demo: https://youtu.be/Lcls1s0MJV0
 
 ## 🖼️ Screenshots
 
-![Planner 01](https://github.com/evillan0315/ai-planner/blob/main/screens/planner01.png)
+![Planner 01](https://github.com/evillan0315/ai-planner/blob/main/screens/planner03.png)
 ![Planner 02](https://github.com/evillan0315/ai-planner/blob/main/screens/planner02.png)
 
 
