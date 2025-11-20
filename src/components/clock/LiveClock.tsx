@@ -56,7 +56,7 @@ const LiveClock: React.FC = () => {
       </Tooltip>
 
       {/* Configuration Dialog */}
-      <ClockConfigDialog open={isConfigOpen} onClose={handleCloseConfig} />
+      <ClockConfigDialog open={isConfigOpen} onClose={handleCloseConfig} maxWidth="lg"/>
     </Box>
   );
 };

@@ -143,10 +143,9 @@ const CustomDialog: React.FC<CustomDialogProps> = ({
 
   return (
     <Dialog
-   
       open={open}
       onClose={handleNativeClose as any} // Cast to any because we handle extra reason 'closeButtonClick' outside native MUI
-      maxWidth={maxWidth || 'xl'}
+      maxWidth={maxWidth || 'lg'}
       fullWidth={fullWidth || true}
       disableEscapeKeyDown={disableEscapeKeyDown} // MUI handles the initial escape suppression
       PaperProps={{

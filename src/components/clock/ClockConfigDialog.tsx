@@ -207,7 +207,7 @@ const ClockConfigDialog: React.FC<ClockConfigDialogProps> = ({ open, onClose }) 
       }}
       title="Clock Configuration"
       content={dialogContent}
-      maxWidth="lg"
+      maxWidth="md"
       fullWidth={false}
       showCloseButton={true}
     />
