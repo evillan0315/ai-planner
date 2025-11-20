@@ -5,25 +5,22 @@ import {
   CardContent,
   Typography,
   Alert,
-  Button,
-  CircularProgress,
   Tooltip,
   IconButton,
-  // REMOVED Snackbar,
+  CircularProgress,
 } from '@mui/material';
 import { useStore } from '@nanostores/react';
-import { plannerStore, setApplyStatus } from './stores/plannerStore';
+import { plannerStore } from './stores/plannerStore';
 import { plannerService } from './api/plannerService';
 import type { IPlan, IFileChange } from './types';
-// REMOVED CloseIcon import
 import EditIcon from '@mui/icons-material/Edit';
-import MarkdownRenderer from '@/components/markdown/MarkdownRenderer'; // Import MarkdownRenderer
+import MarkdownRenderer from '@/components/markdown/MarkdownRenderer'; 
 
 // New Sub-components
 import PlanSectionAccordion from './PlanSectionAccordion';
 import PlanMetricsDisplay from './PlanMetricsDisplay';
 import PlanFileChangesTable from './PlanFileChangesTable';
-import { CustomSnackbar } from '@/components/ui/CustomSnackbar'; // <-- ADDED
+import { CustomSnackbar } from '@/components/ui/CustomSnackbar'; 
 
 interface PlanDisplayProps {
   plan: IPlan;
@@ -38,32 +35,11 @@ interface FileChangeStatus {
     error: string | null;
 }
 
-const mainTitleSx = {
-  marginBottom: 0,
-  color: 'primary.main',
-  fontWeight: 'bold',
-  display: 'flex',
-  alignItems: 'center',
-  gap: 1,
-};
-
-const loadingOverlaySx = {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 10,
-  borderRadius: '12px',
-};
+// Removed mainTitleSx and loadingOverlaySx
 
 const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onEditFileChange }) => {
-  const { applyStatus, applyError, projectRoot } = useStore(plannerStore);
+  // We need globalApplyStatus to reset individual change statuses upon global application
+  const { applyStatus: globalApplyStatus, projectRoot } = useStore(plannerStore); 
   const [individualChangeStatus, setIndividualChangeStatus] = useState<
     Map<number, FileChangeStatus>
   >(new Map());
@@ -118,21 +94,23 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
     return '';
   }, [plan.gitInstructions]);
 
+  // Effect: Reset individual statuses when global application starts/succeeds
   useEffect(() => {
-    if (applyStatus === 'success') {
-      setSnackbarMessage('Plan applied successfully! Please check your project directory.');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
-    } else if (applyStatus === 'failure') {
-      setSnackbarMessage(`Error applying plan: ${applyError}`);
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+    if (globalApplyStatus === 'success') {
+      // Mark all changes as success if global application succeeded
+      const newStatuses = new Map<number, FileChangeStatus>();
+      plan.changes.forEach((_, index) => {
+        newStatuses.set(index, { status: 'success', error: null });
+      });
+      setIndividualChangeStatus(newStatuses);
+    } else if (globalApplyStatus === 'applying' || globalApplyStatus === 'idle') {
+        // Reset statuses when global apply starts or is idle/failed
+        // Note: We only fully reset if we were previously successful, otherwise preserve manual attempts
+        if (Array.from(individualChangeStatus.values()).some(s => s.status === 'success')) {
+             setIndividualChangeStatus(new Map());
+        }
     }
-    // Reset snackbar state when applyStatus goes back to idle/applying
-    else if (applyStatus === 'idle' || applyStatus === 'applying') {
-      setSnackbarOpen(false);
-    }
-  }, [applyStatus, applyError]);
+  }, [globalApplyStatus, plan.changes]);
 
   const handleSnackbarClose = (_event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
@@ -141,34 +119,14 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
     setSnackbarOpen(false);
   };
 
-  const handleApplyPlan = async () => {
-    if (!plan || !plan.id) {
-      setApplyStatus('failure', 'No plan available to apply or plan ID is missing.');
-      return;
-    }
-    setApplyStatus('applying');
-    try {
-      const result = await plannerService.applyPlan(plan, projectRoot);
-      if (result.ok) {
-        setApplyStatus('success');
-        const newStatuses = new Map(individualChangeStatus);
-        plan.changes.forEach((_, index) => {
-          newStatuses.set(index, { status: 'success', error: null });
-        });
-        setIndividualChangeStatus(newStatuses);
-      } else {
-        setApplyStatus('failure', result.error || 'Failed to apply plan.');
-      }
-    } catch (err: unknown) {
-      setApplyStatus('failure', (err as Error).message || 'An unexpected error occurred during application.');
-    }
-  };
-
   const handleApplySingleChange = async (changeIndex: number) => {
     if (!plan || !plan.id) {
       setIndividualChangeStatus((prev) =>
         new Map(prev).set(changeIndex, { status: 'failure', error: 'No plan available.' }),
       );
+      setSnackbarMessage('Error: No plan available to apply individual change.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
       return;
     }
 
@@ -182,61 +140,40 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
         setIndividualChangeStatus((prev) =>
           new Map(prev).set(changeIndex, { status: 'success', error: null }),
         );
+        setSnackbarMessage(`Change to ${plan.changes[changeIndex]?.filePath} applied successfully.`);
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
       } else {
+        const errorMsg = result.error || 'Failed to apply change.';
         setIndividualChangeStatus((prev) =>
           new Map(prev).set(changeIndex, {
             status: 'failure',
-            error: result.error || 'Failed to apply change.',
+            error: errorMsg,
           }),
         );
+        setSnackbarMessage(`Failed to apply change: ${errorMsg}`);
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
       }
     } catch (err: unknown) {
+      const errorMsg = (err as Error).message || 'An unexpected error occurred.';
       setIndividualChangeStatus((prev) =>
         new Map(prev).set(changeIndex, {
           status: 'failure',
-          error: (err as Error).message || 'An unexpected error occurred.',
+          error: errorMsg,
         }),
       );
+      setSnackbarMessage(`Failed to apply change: ${errorMsg}`);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     }
   };
 
   return (
-    <Box className="space-y-4 p-2 relative">
-      {applyStatus === 'applying' && (
-        <Box sx={loadingOverlaySx}>
-          <CircularProgress color="primary" size={60} />
-          <Typography variant="h6" color="primary.contrastText" sx={{ mt: 2 }}>
-            Applying Plan...
-          </Typography>
-        </Box>
-      )}
+    <Box className="space-y-4 p-2 w-full h-full"> 
 
-      {/* 1. Plan Metadata (Title & Summary) */}
-      <Card className="mb-4 rounded-xl shadow-lg border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md">
-        <CardContent>
-          <Box className="flex items-center justify-between mb-2">
-            <Typography variant="h5" component="h2" gutterBottom sx={mainTitleSx}>
-              {plan.title}
-            </Typography>
-            <Tooltip title="Edit Plan Metadata">
-              <IconButton
-                onClick={onEditPlanMetadata}
-                size="small"
-                color="primary"
-                aria-label="edit plan metadata"
-              >
-                <EditIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-          {plan.summary && (
-            <Typography variant="body1" paragraph color="text.secondary">
-              {plan.summary}
-            </Typography>
-          )}
-        </CardContent>
-      </Card>
-
+      {/* 1. REMOVED Plan Metadata Card (Title & Summary) */}
+      
       {/* 2. Thought Process */}
       <PlanSectionAccordion title="Thought Process" defaultExpanded>
         {thoughtProcessContent ? (
@@ -315,17 +252,38 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
         </PlanSectionAccordion>
       )}
 
-      {/* 10. Metadata */}
-      {plan.metadata && (plan.metadata.planId || plan.metadata.tokensUsed !== undefined && plan.metadata.tokensUsed !== null) && (
+      {/* 10. Plan Details / Metadata (Includes Summary and Edit button) */}
+      {(plan.summary || plan.metadata?.planId || plan.metadata?.tokensUsed !== undefined) && (
         <Card className="rounded-xl shadow-lg border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md">
           <CardContent>
-            <Typography variant="h6" sx={mainTitleSx} className="mb-0">Metadata</Typography>
-            {plan.metadata.planId && (
+            <Box className="flex items-center justify-between mb-2">
+                <Typography variant="h6" fontWeight="bold" color="primary.main" className="mb-0">
+                    Plan Details
+                </Typography>
+                <Tooltip title="Edit Plan Metadata">
+                    <IconButton
+                        onClick={onEditPlanMetadata}
+                        size="small"
+                        color="primary"
+                        aria-label="edit plan metadata"
+                    >
+                        <EditIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
+            </Box>
+            
+            {plan.summary && (
+              <Typography variant="body1" paragraph color="text.secondary">
+                {plan.summary}
+              </Typography>
+            )}
+
+            {plan.metadata?.planId && (
               <Typography variant="body1" color="text.primary">
                 Plan ID: {plan.metadata.planId}
               </Typography>
             )}
-            {plan.metadata.tokensUsed !== undefined && plan.metadata.tokensUsed !== null && (
+            {plan.metadata?.tokensUsed !== undefined && plan.metadata?.tokensUsed !== null && (
               <Typography variant="body1" color="text.primary">
                 Tokens Used: {plan.metadata.tokensUsed}
               </Typography>
@@ -334,24 +292,12 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
         </Card>
       )}
 
+
       {plan.error && (
         <Alert severity="error" className="mb-4">Plan Error: {plan.error}</Alert>
       )}
 
-      {/* Apply Button */}
-      <Box className="flex justify-end p-4">
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleApplyPlan}
-          disabled={applyStatus === 'applying'}
-          startIcon={applyStatus === 'applying' && <CircularProgress size={20} color="inherit" />}
-        >
-          {applyStatus === 'applying' ? 'Applying Plan...' : 'Apply Plan'}
-        </Button>
-      </Box>
-
-      {/* REPLACED SNACKBAR */}
+      {/* Individual Change Status Snackbar */}
       {snackbarOpen && (
         <CustomSnackbar
           open={snackbarOpen}

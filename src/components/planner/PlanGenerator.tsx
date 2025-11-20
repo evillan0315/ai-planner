@@ -4,9 +4,10 @@ import {
   Typography,
   // REMOVED Snackbar,
   useTheme,
-  IconButton,
+  // Removed IconButton, Tooltip, Alert
+  CircularProgress,
   Tooltip,
-  // REMOVED Alert,
+  IconButton,
 } from '@mui/material';
 import { useStore } from '@nanostores/react';
 import {
@@ -23,18 +24,20 @@ import {
   setAdditionalInstructions,
   setExpectedOutputFormat,
   setFileDataAndMimeType,
+  setApplyStatus, // <-- ADDED
 } from './stores/plannerStore';
 import { plannerService } from './api/plannerService';
 import type { GlobalAction } from '@/components/ui/GlobalActionButton';
-import type { ILlmInput, IFileChange, IGitInstructions } from './types'; // ADDED IGitInstructions
+import type { ILlmInput, IFileChange, IGitInstructions } from './types'; 
 import { useNavigate } from 'react-router-dom';
 
 import BugReportIcon from '@mui/icons-material/BugReport';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch'; // <-- ADDED
 
 import CustomDrawer from '@/components/Drawer/CustomDrawer';
-import FileExplorerPlannerDrawerContent from '@/components/planner/drawerContent/FileExplorerPlannerDrawerContent'; // NEW IMPORT
+import FileExplorerPlannerDrawerContent from '@/components/planner/drawerContent/FileExplorerPlannerDrawerContent'; 
 import InstructionEditorDrawer from '@/components/planner/drawerContent/InstructionEditorDrawer';
 import PlanMetadataEditorDrawer from '@/components/planner/drawerContent/PlanMetadataEditorDrawer';
 import FileChangeEditorDrawer from '@/components/planner/drawerContent/FileChangeEditorDrawer';
@@ -44,7 +47,8 @@ import { projectRootDirectoryStore, setProjectRoot } from '@/components/file-exp
 // New components
 import { PlanInputForm } from './PlanInputForm';
 import { PlanGenerationStatus } from './PlanGenerationStatus';
-import { CustomSnackbar } from '@/components/ui/CustomSnackbar'; // <-- ADDED
+import { CustomSnackbar } from '@/components/ui/CustomSnackbar'; 
+import { ContentLayout } from '@/components/ui/layouts/ContentLayout'; // <-- ADDED
 
 // Interface reflecting the normalized data structure passed from PlanMetadataEditorDrawer.
 // Matches the input requirements of updateCurrentPlanMetadata.
@@ -59,6 +63,13 @@ interface IPlanMetadataUpdatePayload {
   buildScripts?: Record<string, string>;
   gitInstructions?: IGitInstructions;
 }
+
+// Helper function for truncation
+const truncateTitle = (title: string, maxLength = 40): string => {
+    if (!title || title.length <= maxLength) return title;
+    return `${title.substring(0, maxLength - 3)}...`;
+};
+
 
 // Styles for the error drawer content
 const drawerErrorContentSx = {
@@ -80,6 +91,8 @@ const PlanGenerator: React.FC = () => {
     currentPlanId,
     fileData,
     fileMimeType,
+    applyStatus, // <-- ADDED
+    applyError, // <-- ADDED
   } = useStore(plannerStore);
   const globalProjectRoot = useStore(projectRootDirectoryStore);
   const navigate = useNavigate();
@@ -95,6 +108,8 @@ const PlanGenerator: React.FC = () => {
   const [editingFileChangeIndex, setEditingFileChangeIndex] = useState<number | null>(null);
   const [isPlannerListDrawerOpen, setIsPlannerListDrawerOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('info'); // <-- ADDED
+  const [snackbarMessage, setSnackbarMessage] = useState(''); // <-- ADDED
   const [isErrorDetailsDrawerOpen, setIsErrorDetailsDrawerOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -132,12 +147,31 @@ const PlanGenerator: React.FC = () => {
     }
   }, [plan, currentPlanId, globalProjectRoot, projectRoot]);
 
-  // Effect to open snackbar when an error occurs in the store
+  // Effect to handle generation error snackbar (Original logic)
   useEffect(() => {
     if (error) {
+      setSnackbarMessage(error);
+      setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
   }, [error]);
+  
+  // Effect to handle GLOBAL Apply Status snackbar (MOVED FROM PlanDisplay)
+  useEffect(() => {
+    if (applyStatus === 'success') {
+      setSnackbarMessage('Plan applied successfully! Please check your project directory.');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } else if (applyStatus === 'failure') {
+      setSnackbarMessage(`Error applying plan: ${applyError}`);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+    // Reset snackbar visibility when status changes to something pending/idle
+    else if (applyStatus === 'idle' || applyStatus === 'applying') {
+      setSnackbarOpen(false);
+    }
+  }, [applyStatus, applyError]);
 
   const currentScanPathsArray = useMemo(
     () =>
@@ -233,6 +267,26 @@ const PlanGenerator: React.FC = () => {
       // setIsLoading(false) is handled by setPlan or setError
     }
   };
+
+  const handleApplyPlan = useCallback(async () => { // <-- MOVED FROM PlanDisplay.tsx
+    if (!plan || !plan.id) {
+      setApplyStatus('failure', 'No plan available to apply or plan ID is missing.');
+      return;
+    }
+    setApplyStatus('applying');
+    try {
+      // NOTE: PlanDisplay is now responsible for initializing/updating individual change statuses 
+      // if it detects a global success.
+      const result = await plannerService.applyPlan(plan, projectRoot);
+      if (result.ok) {
+        setApplyStatus('success');
+      } else {
+        setApplyStatus('failure', result.error || 'Failed to apply plan.');
+      }
+    } catch (err: unknown) {
+      setApplyStatus('failure', (err as Error).message || 'An unexpected error occurred during application.');
+    }
+  }, [plan, projectRoot]);
 
   const handleClearPlan = () => {
     resetPlannerState();
@@ -354,33 +408,80 @@ const PlanGenerator: React.FC = () => {
     },
   ];
 
-  const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
-    if (reason === 'clickaway' || reason === 'timeout') {
-      // Allow MUI to handle auto-hide if needed
-      // If we cleared the error here, it would immediately re-open the snackbar 
-      // via the useEffect hook, so we ONLY close the local state.
-      setSnackbarOpen(false);
-    } else if (reason === 'closeButtonClick') {
-       // When user explicitly clicks close, we might want to also clear the error from the store
-       // to prevent it re-appearing on next render cycle if the store state is sticky.
-       // However, the original intent was NOT to clear the store error here:
-       // "Do NOT clear the error from the store here. The error state in plannerStore
-       // should persist until a new generation or an explicit clear action."
-       setSnackbarOpen(false);
+  const handleSnackbarClose = (_event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
     }
+    setSnackbarOpen(false);
   };
+
+// --- New Header Configuration Memoization ---
+
+const headerRightActions: GlobalAction[] = useMemo(() => {
+    if (!plan) return [];
+
+    const isApplying = applyStatus === 'applying';
+    const isSuccess = applyStatus === 'success';
+
+    return [{
+        label: isApplying ? 'Applying...' : isSuccess ? 'Applied!' : 'Apply Plan',
+        action: handleApplyPlan,
+        icon: isApplying ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon fontSize="small" />,
+        color: isSuccess ? 'success' : 'primary',
+        variant: 'contained',
+        disabled: isApplying || isSuccess,
+    }];
+}, [plan, applyStatus, handleApplyPlan]);
+
+const planTitleHeader = useMemo(() => {
+    if (!plan) return null;
+    return (
+        <Typography 
+            variant="subtitle1" 
+            fontWeight="bold" 
+            className="truncate"
+            title={plan.title}
+        >
+            Plan: {truncateTitle(plan.title)}
+        </Typography>
+    );
+}, [plan]);
+
 
   return (
     <Box className="flex flex-col h-full w-full overflow-hidden">
      
-      {/* 1. Scrollable Plan Status/Display area */}
-      <Box className="flex-grow overflow-y-auto">
-        <PlanGenerationStatus
-          isLoading={isLoading}
-          plan={plan}
-          onEditPlanMetadata={() => setIsPlanMetadataEditorOpen(true)}
-          onEditFileChange={handleEditFileChangeRequest}
-        />
+      {/* 1. Scrollable Plan Status/Display area - Now wrapped in ContentLayout if plan exists */}
+      <Box className="flex-grow min-h-0 overflow-hidden">
+        {(plan && !isLoading) ? (
+            <ContentLayout 
+                headerContent={planTitleHeader}
+                headerRightActions={headerRightActions}
+                headerHeight={48} 
+                footerHeight={0}
+                contentWrapperSx={{ 
+                    p: 0, 
+                }}
+            >
+                {/* PlanDisplay content scrolls inside ContentLayout's main area */}
+                <PlanGenerationStatus
+                    isLoading={isLoading}
+                    plan={plan}
+                    onEditPlanMetadata={() => setIsPlanMetadataEditorOpen(true)}
+                    onEditFileChange={handleEditFileChangeRequest}
+                />
+            </ContentLayout>
+        ) : (
+             /* Fallback for Loading or Initial Empty state */
+             <Box className="flex-grow h-full overflow-y-auto">
+                 <PlanGenerationStatus
+                    isLoading={isLoading}
+                    plan={plan}
+                    onEditPlanMetadata={() => setIsPlanMetadataEditorOpen(true)}
+                    onEditFileChange={handleEditFileChangeRequest}
+                 />
+             </Box>
+        )}
       </Box>
 
       {/* 2. Fixed Input Form (Sticky Bottom area) */}
@@ -521,19 +622,16 @@ const PlanGenerator: React.FC = () => {
           <Typography variant="body2" color="text.secondary">
             Detailed information about the last error encountered during plan generation.
           </Typography>
-          {/* Note: The Alert component here is fine, it's not the Snackbar */}
-          {/* <Alert severity="error" sx={{ my: 2 }}>
-            {error || 'No error details available.'}
-          </Alert> */}
         </Box>
       </CustomDrawer>
 
-      {/* REPLACED SNACKBAR */}
+      {/* Snackbar for General Errors (generation failure) OR Apply Status */}
       <CustomSnackbar
         open={snackbarOpen}
+        autoHideDuration={6000} // Added autoHideDuration for consistency
         onClose={handleSnackbarClose}
-        severity="error"
-        message={error || 'An unknown error occurred.'}
+        severity={snackbarSeverity}
+        message={snackbarMessage || error || 'An unknown error occurred.'} // Use message state, fallback to generation error
       />
     </Box>
   );
