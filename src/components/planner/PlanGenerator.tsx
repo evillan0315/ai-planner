@@ -411,7 +411,7 @@ const PlanGenerator: React.FC = () => {
       <CustomDrawer
         open={isProjectRootPickerDialogOpen}
         onClose={() => setIsProjectRootPickerDialogOpen(false)}
-        position="right"
+        position="left"
         size="medium" // Increased size for better file viewing
         title="Select Project Root Folder"
         hasBackdrop={true}
@@ -431,7 +431,7 @@ const PlanGenerator: React.FC = () => {
       <CustomDrawer
         open={isScanPathsDialogOpen}
         onClose={() => setIsScanPathsDialogOpen(false)}
-        position="right"
+        position="left"
         size="medium"
         title="Manage AI Scan Paths"
         hasBackdrop={true}

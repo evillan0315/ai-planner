@@ -209,7 +209,7 @@ const PlanMetadataEditorDrawer: React.FC<PlanMetadataEditorDrawerProps> = ({
     <CustomDrawer
       open={open}
       onClose={handleCancel}
-      position="right"
+      position="left"
       size="medium"
       title="Edit Plan Metadata"
       hasBackdrop={true}

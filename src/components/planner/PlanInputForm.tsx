@@ -25,21 +25,10 @@ import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import NoteAddIcon from '@mui/icons-material/NoteAdd'; 
 
 import type { IPlan } from './types'; 
+import  { PROJECT_ROOT_TOOLTIP_DOCS } from './constants/documentation'; 
 import FloatingIconTextField from '@/components/ui/FloatingIconTextField'; 
 import type { GlobalAction } from '@/components/ui/GlobalActionButton'; 
 import type { GlobalActionGroup } from '@/components/ui/GlobalActioButtonGroup'; 
-
-// --- New content constants and helpers ---
-
-/** Documentation content for the Project Root tooltip. */
-const PROJECT_ROOT_TOOLTIP_DOCS = `
-The Project Root is the absolute path to the base directory of the code you want the AI Planner to interact with.
-
-1.  **Scanning:** All \`Scan Paths\` are resolved relative to this root.
-2.  **Application:** All file changes (ADD/MODIFY/DELETE) are applied relative to this root.
-
-Click the folder icon (bottom left) in the prompt field to change this path.
-`;
 
 /**
  * Truncates a file path to show start/end segments for display.
@@ -154,13 +143,13 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
         // ADDED: Error details icon moved here
         ...errorDetailsAction,
         
-        {n          label: "New Plan (Clear existing content)",
+        {          label: "New Plan (Clear existing content)",
           action: handleClearPlan,
           icon: <NoteAddIcon fontSize="small" color="inherit" />,
           color: 'secondary',
           disabled: isLoading && !plan,
         },
-        {n          label: "Generate Plan",
+        {          label: "Generate Plan",
           action: handleGeneratePlan,
           icon: isLoading ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon fontSize="small" />,
           color: 'success',
@@ -170,13 +159,15 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
     
     // 2. Model Settings Actions (Top Right)
     const modelSettingsActions: GlobalAction[] = [
-        {n          label: "Edit AI Instructions / System Prompt",
+        {          
+          label: "Edit AI Instructions / System Prompt",
           action: openAiInstructionDrawer,
           icon: <SettingsIcon fontSize="small" />,
           color: additionalInstructions.length > 50 ? 'primary' : 'secondary', // Highlight if custom instructions exist
           disabled: isLoading,
         },
-        {n          label: `Edit Expected Output Format / JSON Schema`,
+        {          
+          label: `Edit Expected Output Format / JSON Schema`,
           action: openExpectedOutputDrawer,
           icon: <SchemaIcon fontSize="small" />,
           color: expectedOutputFormat.length > 50 ? 'primary' : 'secondary', // Highlight if custom schema exists
@@ -187,25 +178,29 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
     // 3. Context Actions (Bottom Left)
     const contextActions: GlobalAction[] = [
         // ADDED: View All Saved Plans (ListAltIcon) moved here
-        {n          label: "View All Saved Plans",
+        {          
+          label: "View All Saved Plans",
           action: openPlannerListDrawer,
           icon: <ListAltIcon fontSize="small" />,
           color: 'primary',
           disabled: isLoading,
         },
-        {n          label: `Set Project Root Directory (${truncatePathDisplay(projectRoot)})`,
+        {          
+          label: `Set Project Root Directory (${truncatePathDisplay(projectRoot)})`,
           action: openProjectRootPicker,
           icon: <FolderOpenIcon fontSize="small" />,
           color: 'secondary',
           disabled: isLoading,
         },
-        {n          label: `Manage AI Scan Paths (${scanPathsInput.split(',').filter(Boolean).length} included)`,
+        {          
+          label: `Manage AI Scan Paths (${scanPathsInput.split(',').filter(Boolean).length} included)`,
           action: openScanPathsDrawer,
           icon: <AddRoadIcon fontSize="small" />,
           color: 'secondary',
           disabled: isLoading,
         },
-        {n          label: "Upload Context File (Image/Text)",
+        {          
+          label: "Upload Context File (Image/Text)",
           action: () => fileInputRef.current?.click(),
           icon: <UploadFileIcon fontSize="small" />,
           color: 'secondary',
@@ -254,17 +249,16 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
 
   return (
     <Card sx={cardSx} className="mb-6 flex-shrink-0">
-      <CardContent sx={formSectionSx} className="flex flex-col">
+      <CardContent sx={formSectionSx} className="flex flex-col p-2">
         {/* Header Area: Removed BugReportIcon, now managed as a floating action */}
-        <Box className="flex items-center justify-between mb-4">
+        <Box className="flex items-center justify-between mb-1">
           <Typography variant="h6" gutterBottom className="text-text-primary mb-0">
             Generate a New Plan
           </Typography>
         </Box>
 
-        {/* User Prompt Area (NO ACCORDION) */}
         <Box className="mb-4">
-            {/* Hidden input for file upload */}
+
             <input
                 type="file"
                 ref={fileInputRef}
@@ -272,36 +266,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
                 style={{ display: 'none' }}
                 disabled={isLoading}
             />
-            <FloatingIconTextField
-              label="Enter your prompt"
-              multiline
-              rows={6} // Default visible rows
-              fullWidth
-              value={userPrompt}
-              onChange={(e) => setUserPrompt(e.target.value)}
-              disabled={isLoading}
-              floatingActionGroupsByCorner={floatingActionGroupsByCorner} 
-              sx={{backgroundColor:'background.paper'}}
-            />
-
-            {/* Status Display Area (Project Root + Attached File) */}
-            <Stack 
-                direction="row" 
-                spacing={2} 
-                alignItems="center" 
-                className="mt-3 text-sm text-text-secondary" 
-                flexWrap="wrap"
-            >
-                {/* 1. Project Root Display with Help Icon */}
-                <Box className="flex items-center gap-1 flex-shrink-0 min-w-0">
-                    <Typography variant="caption" color="text.secondary" fontWeight="bold">
-                        Project Root:
-                    </Typography>
-                    <Tooltip title={projectRoot} arrow placement="top">
-                        <Typography variant="caption" className="font-mono font-semibold text-text-primary truncate max-w-[180px] sm:max-w-sm">
-                            {truncatePathDisplay(projectRoot)}
-                        </Typography>
-                    </Tooltip>
+            <Box className="flex items-center gap-1 flex-shrink-0 min-w-0 mb-1">
                     <Tooltip 
                         title={
                             <Box sx={{ whiteSpace: 'pre-wrap', p: 1, maxWidth: 350 }}>
@@ -318,7 +283,33 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
                             <DescriptionIcon sx={{ fontSize: 16 }} />
                         </IconButton>
                     </Tooltip>
+                    <Tooltip title={projectRoot} arrow placement="top">
+                        <Typography variant="caption" className="font-mono font-semibold text-text-primary truncate max-w-[180px] sm:max-w-sm">
+                            {truncatePathDisplay(projectRoot)}
+                        </Typography>
+                    </Tooltip>
+                    
                 </Box>
+            <FloatingIconTextField
+              label="Enter your prompt"
+              multiline
+              rows={2} // Default visible rows
+              fullWidth
+              value={userPrompt}
+              onChange={(e) => setUserPrompt(e.target.value)}
+              disabled={isLoading}
+              floatingActionGroupsByCorner={floatingActionGroupsByCorner} 
+              sx={{backgroundColor:'background.paper'}}
+            />
+            <Stack 
+                direction="row" 
+                spacing={2} 
+                alignItems="center" 
+                className="mt-3 text-sm text-text-secondary" 
+                flexWrap="wrap"
+            >
+
+                
                 
                 {/* 2. Attached File Status */}
                 {selectedFile && (

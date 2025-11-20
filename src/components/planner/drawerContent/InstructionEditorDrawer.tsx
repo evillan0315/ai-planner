@@ -95,7 +95,7 @@ const InstructionEditorDrawer: React.FC<InstructionEditorDrawerProps> = ({
     <CustomDrawer
       open={open}
       onClose={handleCancel} // Use handleCancel for consistent behavior on close
-      position="right"
+      position="left"
       size="medium"
       title={drawerTitle}
       hasBackdrop={true}

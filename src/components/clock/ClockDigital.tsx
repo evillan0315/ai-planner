@@ -19,7 +19,7 @@ const ClockDigital: React.FC<ClockDigitalProps> = ({ config }) => {
   const { time } = useLiveClock(config);
 
   return (
-    <Box sx={DigitalClockContainerSx} className="text-right flex-shrink-0 min-w-28">
+    <Box sx={DigitalClockContainerSx} className="text-right flex items-center min-w-28">
       <Typography variant="caption" sx={{ color: 'text.secondary' }} noWrap>
         {config.label}
       </Typography>
