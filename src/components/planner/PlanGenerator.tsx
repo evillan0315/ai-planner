@@ -428,11 +428,24 @@ const headerRightActions: GlobalAction[] = useMemo(() => {
         action: handleApplyPlan,
         icon: isApplying ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon fontSize="small" />,
         color: isSuccess ? 'success' : 'primary',
-        variant: 'contained',
+        //variant: 'contained',
         disabled: isApplying || isSuccess,
     }];
 }, [plan, applyStatus, handleApplyPlan]);
+const headerLeftActions: GlobalAction[] = useMemo(() => {
+    if (!plan) return [];
 
+    const isApplying = applyStatus === 'applying';
+    const isSuccess = applyStatus === 'success';
+
+    return [{
+        label: "Plan",
+          action: handleApplyPlan,
+          icon: <RocketLaunchIcon fontSize="small" />,
+          color: 'primary',
+          disabled: isApplying || isSuccess,
+    }];
+}, [plan, applyStatus, handleApplyPlan]);
 const planTitleHeader = useMemo(() => {
     if (!plan) return null;
     return (
@@ -457,6 +470,7 @@ const planTitleHeader = useMemo(() => {
             <ContentLayout 
                 headerContent={planTitleHeader}
                 headerRightActions={headerRightActions}
+                headerLeftActions={headerLeftActions}
                 headerHeight={48} 
                 footerHeight={0}
                 contentWrapperSx={{ 

@@ -37,7 +37,7 @@ const toolbarSx: SxProps = {
   justifyContent: 'space-between',
   alignItems: 'center',
   width: '100%',
-  px: 2,
+  px: 1,
   minHeight: `38px`
 };
 
@@ -85,7 +85,7 @@ export const ContentLayout: React.FC<ContentLayoutProps> = ({
           <Box className="flex items-center flex-shrink-0 min-w-10">
             {renderedHeaderActionsLeft}
           </Box>
-          <Box className="flex-grow flex justify-center items-center px-4 min-w-0">
+          <Box className="flex-grow flex justify-start items-center px-4 min-w-0">
             {headerContent}
           </Box>
           <Box className="flex items-center flex-shrink-0 min-w-10">

@@ -142,13 +142,15 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
         // ADDED: Error details icon moved here
         ...errorDetailsAction,
         
-        {          label: "New Plan (Clear existing content)",
+        {          
+          label: "New Plan (Clear existing content)",
           action: handleClearPlan,
           icon: <NoteAddIcon fontSize="small" color="inherit" />,
           color: 'secondary',
           disabled: isLoading && !plan,
         },
-        {          label: "Generate Plan",
+        {          
+          label: "Generate Plan",
           action: handleGeneratePlan,
           icon: isLoading ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon fontSize="small" />,
           color: 'success',
