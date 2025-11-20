@@ -7,6 +7,7 @@ import {
   IconButton,
   CircularProgress,
   SxProps,
+  Box
 } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
@@ -53,13 +54,24 @@ const PlanChangeTableRow: React.FC<PlanChangeTableRowProps> = ({
 
   return (
     <TableRow key={index} hover>
-      <TableCell>{change.filePath}</TableCell>
+      <TableCell className="truncate nowrap max-w-[100px]">
+        <Tooltip title={change.filePath}>
+          {change.filePath}
+        </Tooltip>
+      </TableCell>
       <TableCell>
         <Chip label={change.action} color={getChipColor(change.action)} size="small" />
       </TableCell>
       <TableCell>
         {change.reason ? (
-          <MarkdownRenderer content={change.reason} sx={reasonRendererSx} />
+        
+          <Tooltip title={<MarkdownRenderer content={change.reason} sx={reasonRendererSx} />}>
+            <Box className="truncate nowrap max-w-xs">
+            {change.reason}
+            </Box>
+          </Tooltip>
+        
+          
         ) : (
           '-'
         )}
