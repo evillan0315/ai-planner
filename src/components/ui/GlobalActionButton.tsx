@@ -52,7 +52,7 @@ function GlobalActionButton({ globalActions, iconOnly = false }: GlobalActionBut
               key={index}
               onClick={action.action}
               color={action.color || 'primary'}
-              variant={action.variant || 'contained'}
+              variant={action.variant || ''}
               startIcon={action.icon || null}
               disabled={action.disabled}
             >

@@ -34,7 +34,8 @@ import { useNavigate } from 'react-router-dom';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
-import RocketLaunchIcon from '@mui/icons-material/RocketLaunch'; // <-- ADDED
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch'; 
+import AddRoadIcon from '@mui/icons-material/AddRoad';
 
 import CustomDrawer from '@/components/Drawer/CustomDrawer';
 import FileExplorerPlannerDrawerContent from '@/components/planner/drawerContent/FileExplorerPlannerDrawerContent'; 
@@ -426,7 +427,7 @@ const headerRightActions: GlobalAction[] = useMemo(() => {
     return [{
         label: isApplying ? 'Applying...' : isSuccess ? 'Applied!' : 'Apply Plan',
         action: handleApplyPlan,
-        icon: isApplying ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon fontSize="small" />,
+        icon: isApplying ? <CircularProgress size={16} color="inherit" /> : <AddRoadIcon />,
         color: isSuccess ? 'success' : 'primary',
         //variant: 'contained',
         disabled: isApplying || isSuccess,
@@ -449,7 +450,7 @@ const headerLeftActions: GlobalAction[] = useMemo(() => {
 const planTitleHeader = useMemo(() => {
     if (!plan) {
       return (
-          <Typography variant="subtitle1" fontWeight="bold" >Generate New Plan</Typography>
+          <Typography variant="subtitle1" fontWeight="bold" ><AddRoadIcon /> Generate New Plan</Typography>
       );
     } else {
       return (
