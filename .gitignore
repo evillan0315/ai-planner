@@ -6,6 +6,7 @@
 /.pnpm-cache
 /samples/recorded
 /recorded
+/logs
 # build output
 /dist
 /build
