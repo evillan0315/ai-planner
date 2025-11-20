@@ -447,17 +447,22 @@ const headerLeftActions: GlobalAction[] = useMemo(() => {
     }];
 }, [plan, applyStatus, handleApplyPlan]);
 const planTitleHeader = useMemo(() => {
-    if (!plan) return null;
-    return (
-        <Typography 
-            variant="subtitle1" 
-            fontWeight="bold" 
-            className="truncate"
-            title={plan.title}
-        >
-            Plan: {truncateTitle(plan.title)}
-        </Typography>
-    );
+    if (!plan) {
+      return (
+          <Typography variant="subtitle1" fontWeight="bold" >Generate New Plan</Typography>
+      );
+    } else {
+      return (
+          <Typography 
+              variant="subtitle1" 
+              fontWeight="bold" 
+              className="truncate"
+              title={plan.title}
+          >
+              {plan.title}
+          </Typography>
+      );
+    }
 }, [plan]);
 
 
