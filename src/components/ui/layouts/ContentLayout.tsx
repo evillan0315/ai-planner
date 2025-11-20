@@ -69,7 +69,7 @@ export const ContentLayout: React.FC<ContentLayoutProps> = ({
 
   const renderedHeaderActionsLeft = useMemo(() => {
     if (!headerLeftActions || headerLeftActions.length === 0) return null;
-    return <GlobalActionButton globalActions={headerLeftActions} />;
+    return <GlobalActionButton globalActions={headerLeftActions} iconOnly={true}/>;
   }, [headerLeftActions]);
 
   const renderedHeaderActionsRight = useMemo(() => {

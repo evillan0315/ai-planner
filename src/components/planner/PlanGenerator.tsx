@@ -427,7 +427,7 @@ const headerRightActions: GlobalAction[] = useMemo(() => {
     return [{
         label: isApplying ? 'Applying...' : isSuccess ? 'Applied!' : 'Apply Plan',
         action: handleApplyPlan,
-        icon: isApplying ? <CircularProgress size={16} color="inherit" /> : <AddRoadIcon />,
+        icon: isApplying ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon />,
         color: isSuccess ? 'success' : 'primary',
         //variant: 'contained',
         disabled: isApplying || isSuccess,
@@ -441,8 +441,9 @@ const headerLeftActions: GlobalAction[] = useMemo(() => {
 
     return [{
         label: "Plan",
-          action: handleApplyPlan,
-          icon: <RocketLaunchIcon fontSize="small" />,
+          //action: handleApplyPlan,
+          iconOnly: true,
+          icon: <AddRoadIcon fontSize="small" />,
           color: 'primary',
           disabled: isApplying || isSuccess,
     }];
