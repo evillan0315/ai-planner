@@ -46,6 +46,9 @@ const ClockConfigDialog: React.FC<ClockConfigDialogProps> = ({ open, onClose }) 
   const [newClockLabel, setNewClockLabel] = useState('New Clock');
   const [newClockTimezone, setNewClockTimezone] = useState(AvailableTimezones[0].value);
   const [newClockDisplayType, setNewClockDisplayType] = useState<ClockDisplayType>('digital');
+  // NEW STATE: Default to 12hr format (false)
+  const [newClockFormat24Hr, setNewClockFormat24Hr] = useState(false);
+
 
   const handleAddClock = useCallback(() => {
     const newId = `clock-${Date.now()}`;
@@ -54,14 +57,20 @@ const ClockConfigDialog: React.FC<ClockConfigDialogProps> = ({ open, onClose }) 
       label: newClockLabel,
       timezone: newClockTimezone,
       displayType: newClockDisplayType,
+      format24Hr: newClockDisplayType === 'digital' ? newClockFormat24Hr : undefined, // Only save if digital
     });
     setNewClockLabel('New Clock'); // Reset input
-  }, [newClockLabel, newClockTimezone, newClockDisplayType]);
+    setNewClockFormat24Hr(false); // Reset format preference
+  }, [newClockLabel, newClockTimezone, newClockDisplayType, newClockFormat24Hr]);
   
   const handleUpdateDisplayType = useCallback((id: string, newType: ClockDisplayType) => {
     updateClockConfig(id, { displayType: newType });
   }, []);
   
+  const handleUpdateFormat = useCallback((id: string, format24Hr: boolean) => {
+    updateClockConfig(id, { format24Hr });
+  }, []);
+
   const handleUpdateLabel = useCallback((id: string, newLabel: string) => {
     updateClockConfig(id, { label: newLabel });
   }, []);
@@ -125,7 +134,7 @@ const ClockConfigDialog: React.FC<ClockConfigDialogProps> = ({ open, onClose }) 
                 {renderClockPreview(config)}
             </Box>
             
-            {/* 3. Controls (Timezone, Display Type, Delete) (Flex-grow, justify-end) */}
+            {/* 3. Controls (Timezone, Display Type, Format, Delete) (Flex-grow, justify-end) */}
             <Box className="flex gap-2 items-center flex-grow justify-end">
                 {/* Timezone Selector */}
                 <FormControl size="small" sx={{ minWidth: 120 }}>
@@ -159,6 +168,30 @@ const ClockConfigDialog: React.FC<ClockConfigDialogProps> = ({ open, onClose }) 
                 >
                     Traditional
                 </Button>
+                
+                {/* NEW: 12hr / 24hr Format Toggle (only for digital clocks) */}
+                {config.displayType === 'digital' && (
+                     <Box className="flex gap-1 items-center flex-shrink-0">
+                        <Typography variant="caption" color="text.secondary">Format:</Typography>
+                        <Button
+                            variant={config.format24Hr === true ? 'outlined' : 'contained'} // Contained for 12hr (default)
+                            onClick={() => handleUpdateFormat(config.id, false)}
+                            size="small"
+                            sx={{ minWidth: 60 }}
+                        >
+                            12 Hr
+                        </Button>
+                        <Button
+                            variant={config.format24Hr === true ? 'contained' : 'outlined'} // Contained for 24hr
+                            onClick={() => handleUpdateFormat(config.id, true)}
+                            size="small"
+                            sx={{ minWidth: 60 }}
+                        >
+                            24 Hr
+                        </Button>
+                    </Box>
+                )}
+
 
                 {/* Delete Button */}
                 <IconButton 
@@ -211,6 +244,21 @@ const ClockConfigDialog: React.FC<ClockConfigDialogProps> = ({ open, onClose }) 
               <MenuItem value="analog">Traditional</MenuItem>
           </Select>
         </FormControl>
+        
+        {/* NEW: Time Format Selector (Conditional based on display type) */}
+        {newClockDisplayType === 'digital' && (
+             <FormControl size="small" sx={{ minWidth: 100 }} required>
+                <InputLabel>Time Format</InputLabel>
+                <Select
+                    value={newClockFormat24Hr ? '24hr' : '12hr'}
+                    onChange={(e) => setNewClockFormat24Hr(e.target.value === '24hr')}
+                    label="Time Format"
+                >
+                    <MenuItem value="12hr">12 Hr</MenuItem>
+                    <MenuItem value="24hr">24 Hr</MenuItem>
+                </Select>
+             </FormControl>
+        )}
 
         <Button
           onClick={handleAddClock}
@@ -223,7 +271,7 @@ const ClockConfigDialog: React.FC<ClockConfigDialogProps> = ({ open, onClose }) 
         </Button>
       </Box>
     </Box>
-  ), [configs, newClockLabel, newClockTimezone, newClockDisplayType, handleAddClock, handleUpdateDisplayType, handleRemoveClock, handleUpdateLabel, handleUpdateTimezone, theme.palette.divider]);
+  ), [configs, newClockLabel, newClockTimezone, newClockDisplayType, newClockFormat24Hr, handleAddClock, handleUpdateDisplayType, handleUpdateFormat, handleRemoveClock, handleUpdateLabel, handleUpdateTimezone, theme.palette.divider]);
 
   return (
     <CustomDialog
@@ -236,8 +284,8 @@ const ClockConfigDialog: React.FC<ClockConfigDialogProps> = ({ open, onClose }) 
       }}
       title="Clock Configuration"
       content={dialogContent}
-      maxWidth="md"
-      fullWidth={false}
+      maxWidth="lg" // Use large size to accommodate expanded content
+      fullWidth={true}
       showCloseButton={true}
     />
   );

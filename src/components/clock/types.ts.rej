@@ -1,0 +1,7 @@
+diff a/src/components/clock/types.ts b/src/components/clock/types.ts	(rejected hunks)
+@@ -4,4 +4,5 @@
+   label: string;
+   timezone: string; // IANA Timezone string, e.g., 'America/New_York'
+   displayType: ClockDisplayType;
++  format24Hr?: boolean; // NEW: true for 24-hour format (digital clocks only)
+ }
