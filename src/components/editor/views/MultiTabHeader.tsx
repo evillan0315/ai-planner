@@ -39,14 +39,31 @@ const tabStyles = (theme: ReturnType<typeof useTheme>): SxProps => ({
     borderTopRightRadius: theme.shape.borderRadius,
 });
 
-const tabsContainerSx: SxProps = {
+// Custom styles for the Tabs container and scroll buttons
+const tabsRootSx = (theme: ReturnType<typeof useTheme>): SxProps => ({
     height: '100%', 
-    //minHeight: '48px', 
     alignItems: 'flex-end', 
     borderBottom: 'none', 
     flexGrow: 1,
     justifyContent: 'flex-start',
-};
+    
+    // Fix 1 & 2: Ensure scroll buttons are full height (100%) and centered.
+    // scrollButtons="auto" handles visibility based on overflow.
+    '& .MuiTabs-scrollButtons': {
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center', 
+        
+        // Ensure the actual button element respects the centering
+        '& button': {
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            // Default MUI buttons have some padding/margin that might need normalizing, 
+            // but setting height: 100% on the container often resolves vertical misalignment.
+        }
+    },
+});
 
 
 /**
@@ -67,7 +84,7 @@ export const MultiTabHeader: React.FC<MultiTabHeaderProps> = ({ tabs, activeTabI
             onChange={handleTabChange} 
             variant="scrollable"
             scrollButtons="auto"
-            sx={tabsContainerSx}
+            sx={tabsRootSx(theme)}
         >
             {tabs.map((tab, index) => ( // Use index for iteration
                 <Tooltip title={tab.filePath} key={tab.id}>
