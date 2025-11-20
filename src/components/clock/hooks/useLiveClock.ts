@@ -11,11 +11,15 @@ interface LiveClockData {
 /**
  * Custom hook to manage real-time clock updates for a specific timezone.
  * Uses the browser's Intl API for timezone-aware date creation and formatting.
+ *
+ * It respects the ClockConfig's `format24Hr` setting for digital clocks.
  */
 export const useLiveClock = (
   config: ClockConfig,
   displayTypeOverride?: ClockDisplayType,
 ): LiveClockData => {
+  // Analog override is used by ClockAnalog.tsx to force 12hr display,
+  // but if digital is requested, we respect the config format preference.
   const effectiveDisplayType = displayTypeOverride ?? config.displayType;
 
   const [rawDate, setRawDate] = useState(new Date());
@@ -38,18 +42,27 @@ export const useLiveClock = (
 
     let timeFormatOptions: Intl.DateTimeFormatOptions;
     let dateFormatOptions: Intl.DateTimeFormatOptions;
-    let timeString: string;
-    let dateString: string;
 
-    if (effectiveDisplayType === 'digital') {
-      // Default Digital: 24-hour time, detailed seconds
-      timeFormatOptions = {
+    // Determine 12hr/24hr preference. Default to 12hr if not specified (config.format24Hr is false/undefined).
+    // hour12: true => 12-hour clock (e.g., 5:30 PM)
+    // hour12: false => 24-hour clock (e.g., 17:30)
+    const is12HourFormat = effectiveDisplayType === 'analog' || config.format24Hr !== true;
+    
+    // Determine if seconds should be displayed. Only digital includes seconds.
+    const includeSeconds = effectiveDisplayType === 'digital';
+    
+    // --- Time Formatting ---
+    timeFormatOptions = {
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
+        ...(includeSeconds && { second: '2-digit' }),
+        hour12: is12HourFormat,
         timeZone: config.timezone,
-      };
+    };
+
+
+    // --- Date Formatting ---
+    if (effectiveDisplayType === 'digital') {
       dateFormatOptions = {
         weekday: 'short',
         month: 'short',
@@ -58,13 +71,6 @@ export const useLiveClock = (
       };
     } else {
       // 'analog' style (simulated traditional look)
-      // Traditional/Analog style: 12-hour time, AM/PM, no seconds in main display
-      timeFormatOptions = {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: config.timezone,
-      };
       dateFormatOptions = {
         month: 'long',
         year: 'numeric',
@@ -74,11 +80,12 @@ export const useLiveClock = (
     }
 
     // Use Intl for reliable formatting based on options
-    timeString = timezoneAdjustedDate.toLocaleTimeString(
+    // Using 'en-US' locale for consistent output structure (e.g., AM/PM placement if used)
+    const timeString = timezoneAdjustedDate.toLocaleTimeString(
       'en-US',
       timeFormatOptions,
     );
-    dateString = timezoneAdjustedDate.toLocaleDateString(
+    const dateString = timezoneAdjustedDate.toLocaleDateString(
       'en-US',
       dateFormatOptions,
     );

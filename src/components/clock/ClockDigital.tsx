@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, SxProps } from '@mui/material';
 import { ClockConfig } from './types';
-import { useLiveClock } from '@/hooks/useLiveClock';
+import { useLiveClock } from './hooks/useLiveClock';
 
 interface ClockDigitalProps {
   config: ClockConfig;

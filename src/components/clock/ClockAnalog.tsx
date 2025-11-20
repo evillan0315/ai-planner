@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, SxProps } from '@mui/material';
 import { ClockConfig } from './types';
-import { useLiveClock } from '@/hooks/useLiveClock';
+import { useLiveClock } from './hooks/useLiveClock';
 import AccessTimeIcon from '@mui/icons-material/AccessTime'; // Icon for visual flair
 
 interface ClockAnalogProps {
