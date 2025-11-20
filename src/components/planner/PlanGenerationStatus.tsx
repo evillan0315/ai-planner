@@ -19,7 +19,7 @@ export const PlanGenerationStatus: React.FC<PlanGenerationStatusProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <Box className="flex-grow flex items-center justify-center">
+      <Box className="flex-grow flex items-center justify-center h-full">
         <Loading type="circular" message="Generating Plan..." />
       </Box>
     );
@@ -35,7 +35,7 @@ export const PlanGenerationStatus: React.FC<PlanGenerationStatusProps> = ({
     );
   } else {
     return (
-      <Box className="flex-grow flex items-center justify-center pt-4">
+      <Box className="flex-grow flex items-center justify-center pt-4 h-full">
         <Typography variant="h6" color="text.secondary">
           Enter a prompt and click "Generate Plan" to begin.
         </Typography>

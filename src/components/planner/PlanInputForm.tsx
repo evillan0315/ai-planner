@@ -93,7 +93,7 @@ const cardSx = {
 };
 
 const formSectionSx = {
-  padding: 3,
+  padding: 2,
 };
 
 
@@ -249,16 +249,12 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
   ]);
 
   return (
-    <Card sx={cardSx} className="flex-shrink-0">
-      <CardContent sx={formSectionSx} className="flex flex-col p-2">
+    <Card sx={cardSx} className="flex-shrink-0 py-1">
+      <CardContent sx={formSectionSx} className="flex flex-col">
 
-        <Box className="flex items-center justify-between mb-1">
-          <Typography variant="h6" gutterBottom className="text-text-primary mb-0">
-            Generate a New Plan
-          </Typography>
-        </Box>
+        
 
-        <Box className="mb-4">
+        <Box>
 
             <input
                 type="file"
@@ -327,7 +323,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
                 )}
 
                 {/* 3. Hidden AI Config status feedback for UX consistency */}
-                <Box className="mt-0 text-xs text-text-secondary flex gap-4 ml-auto">
+                <Box className="mt-1 text-xs text-text-secondary flex gap-2 ml-auto">
                     <Typography variant="caption">
                         AI Instructions: <span className={`font-mono font-bold ${additionalInstructions.length > 50 ? 'text-primary-main' : 'text-text-secondary'}`}>{additionalInstructions.length > 50 ? 'Custom' : 'Default'}</span>
                     </Typography>
