@@ -28,6 +28,7 @@ For architecture details see docs/OVERVIEW_ARCHITECTURE.md.
 - [Configuration](#configuration)
 - [Backend API (quick reference)](#backend-api-quick-reference)
 - [Project Structure](#project-structure)
+- [Customization & Extensibility](#customization--extensibility)
 - [Contributing](#contributing)
 - [License & Contact](#license--contact)
 
@@ -36,7 +37,11 @@ For architecture details see docs/OVERVIEW_ARCHITECTURE.md.
 ## Features
 
 - Natural-language driven planning and patch suggestion.
-- Structured JSON plan output: Includes detailed metrics such as AI's **Confidence**, **Estimated Effort (minutes)**, **Thought Process**, **Assumptions**, **Build Scripts**, and executable **Git Instructions** (branch name, commit message, commands).
+- **Structured Plan Output:** Generates a single, valid JSON object (`IPlan`) containing:
+    - **Plan Metadata:** Title, Summary, AI Confidence (0.0-1.0), Estimated Effort (minutes).
+    - **Execution Details:** Detailed **Thought Process**, **Assumptions**, **Build Scripts**, and user-reviewable **Documentation**.
+    - **Code Changes:** A list of executable file changes (`ADD`, `MODIFY`, `DELETE`, `REPAIR`) with unified diffs or new content, individual rationale, and effort estimates.
+    - **Tests & Git:** Structured lists of recommended tests to add/modify, plus executable Git instructions (branch name, commit message, commands).
 - LLM Prompt Generator: A dedicated UI for defining complex system prompts, JSON schemas, constraints, and examples for fine-tuning LLM output.
 - Edit plan and individual file changes before applying.
 - Dry-run preview mode and optional apply mode (creates local patches/commits).
@@ -90,10 +95,10 @@ pnpm test:coverage
 
 The AI Planner application is a single-page application focused on providing a structured planning interface.
 
-1. **Set Project Root & Context:** On the Planner page, define the local `Project Root` (an absolute path on the host filesystem) and `Scan Paths` (relevant files/folders to analyze).
+1. **Set Project Root & Context:** On the Planner page, use the integrated File Explorer to define the local `Project Root` (an absolute path on the host filesystem) and configure `Scan Paths` (relevant files/folders to analyze relative to the root).
 2. **Generate Plan:** Provide a detailed natural language request (or define structured prompt components) and click 'Generate Plan'. The UI sends the request, project context, and default instructions/schema to the backend API.
 3. **Review & Edit:** Review the AI-generated structured plan, including the **Thought Process**, **Assumptions**, **Confidence Metrics**, and the detailed list of **File Changes** (patches, additions, deletions). Individual file changes (diffs/new content) and plan metadata can be edited before application.
-4. **Apply Changes:** Click 'Apply Plan' to send the executable changes (patches, additions, deletions) to the backend, which attempts to apply them to your local project directory.
+4. **Apply Changes:** Click 'Apply Plan' to send the executable changes (patches, additions, deletions) to the backend, which attempts to apply them to your local project directory. You can also apply changes individually via the action buttons in the File Changes table.
 
 ---
 
@@ -104,7 +109,7 @@ The AI Planner application is a single-page application focused on providing a s
 ```env
 VITE_API_URL=http://localhost:5000/api
 VITE_FRONTEND_PORT=3003
-VITE_BASE_DIR=/absolute/path/to/ai-planner
+VITE_BASE_DIR=/absolute/path/to/ai-planner # Crucial: Must be an absolute path on host filesystem
 VITE_PREVIEW_APP_URL=http://localhost:3002 # Optional preview URL
 ```
 
@@ -149,8 +154,12 @@ Assumes VITE_API_URL configured to the backend.
 - POST /api/plan/:planId/apply-chunk/:changeIndex
   - Apply a single change within a plan.
 
-File listing:
+File listing and operations:
 - GET /api/file/list?directory=<path>&recursive=false
+- POST /api/file/read (Reads file content)
+- POST /api/file/write (Writes/updates file content)
+- POST /api/file/delete (Deletes file/folder)
+- POST /api/file/stream (Retrieves secured media stream URL)
 
 Request/response shapes align to types in src/components/planner/types.ts (ILlmInput, IGeneratePlanResponse, IApplyPlanResult, etc.).
 
@@ -162,7 +171,10 @@ Key directories:
 - public/ — static assets
 - src/
   - api/ — axios services (auth, planner)
-  - components/ — UI components (planner, editor, drawers)
+  - components/
+    - file-explorer/ — Integrated file system browsing and context setting.
+    - planner/ — Core UI and logic for plan generation, review, and application.
+    - editor/ — Monaco Editor wrapper and multi-tab/floating viewer state management.
   - pages/ — route-level components (PlannerPage, LoginPage)
   - stores/ — nanostores for app state
   - theme/ — MUI theme config
