@@ -84,12 +84,10 @@ const ClockConfigDialog: React.FC<ClockConfigDialogProps> = ({ open, onClose }) 
   };
 
   const dialogContent = useMemo(() => (
-    <Box sx={{ p: 2, minWidth: 900 }}> // Increased minWidth for better layout
+    <Box sx={{ p: 2, minWidth: 900 }}> 
       <Typography variant="h6" gutterBottom>
         Manage Clocks ({configs.length})
       </Typography>
-      
-      {/* List of Existing Clocks */}
       <List dense>
         {configs.map((config) => (
           <ListItem 
@@ -238,7 +236,7 @@ const ClockConfigDialog: React.FC<ClockConfigDialogProps> = ({ open, onClose }) 
       }}
       title="Clock Configuration"
       content={dialogContent}
-      maxWidth="lg"
+      maxWidth="md"
       fullWidth={false}
       showCloseButton={true}
     />

@@ -503,7 +503,7 @@ const planTitleHeader = useMemo(() => {
       {/* 2. Fixed Input Form (Sticky Bottom area) */}
       {/* ADDED WRAPPER with p-2 and theme styling for visual anchor */}
       <Box 
-        className="flex-shrink-0 p-2"
+        className="flex-shrink-0 p-2 mt-2"
         sx={{
             backgroundColor: theme.palette.background.paper,
             borderTop: `1px solid ${theme.palette.divider}`
