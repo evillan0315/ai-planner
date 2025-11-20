@@ -85,7 +85,6 @@ interface PlanInputFormProps {
 }
 
 const cardSx = {
-  marginBottom: 4,
   backgroundColor: 'rgba(255, 255, 255, 0.05)',
   backdropFilter: 'blur(10px)',
   border: '1px solid rgba(255, 255, 255, 0.12)',
@@ -248,9 +247,9 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
   ]);
 
   return (
-    <Card sx={cardSx} className="mb-6 flex-shrink-0">
+    <Card sx={cardSx} className="flex-shrink-0">
       <CardContent sx={formSectionSx} className="flex flex-col p-2">
-        {/* Header Area: Removed BugReportIcon, now managed as a floating action */}
+
         <Box className="flex items-center justify-between mb-1">
           <Typography variant="h6" gutterBottom className="text-text-primary mb-0">
             Generate a New Plan

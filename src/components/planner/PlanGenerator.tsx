@@ -371,41 +371,53 @@ const PlanGenerator: React.FC = () => {
   };
 
   return (
-    <Box className="flex flex-col h-full w-full overflow-auto p-2">
+    <Box className="flex flex-col h-full w-full overflow-hidden">
      
+      {/* 1. Scrollable Plan Status/Display area */}
+      <Box className="flex-grow overflow-y-auto">
+        <PlanGenerationStatus
+          isLoading={isLoading}
+          plan={plan}
+          onEditPlanMetadata={() => setIsPlanMetadataEditorOpen(true)}
+          onEditFileChange={handleEditFileChangeRequest}
+        />
+      </Box>
 
-      <PlanInputForm
-        userPrompt={userPrompt}
-        setUserPrompt={setUserPrompt}
-        projectRoot={projectRoot}
-        scanPathsInput={scanPathsInput}
-        additionalInstructions={additionalInstructions}
-        expectedOutputFormat={expectedOutputFormat}
-        fileData={fileData}
-        fileMimeType={fileMimeType}
-        selectedFile={selectedFile}
-        isLoading={isLoading}
-        error={error}
-        fileInputRef={fileInputRef}
-        handleFileChange={handleFileChange}
-        handleClearFile={handleClearFile}
-        handleGeneratePlan={handleGeneratePlan}
-        handleClearPlan={handleClearPlan}
-        openProjectRootPicker={openProjectRootPicker} // Use local helper
-        openScanPathsDrawer={openScanPathsDrawer}     // Use local helper
-        openPlannerListDrawer={() => setIsPlannerListDrawerOpen(true)}
-        openAiInstructionDrawer={() => setIsAiInstructionDrawerOpen(true)}
-        openExpectedOutputDrawer={() => setIsExpectedOutputDrawerOpen(true)}
-        openErrorDetailsDrawer={() => setIsErrorDetailsDrawerOpen(true)}
-        plan={plan}
-      />
-
-      <PlanGenerationStatus
-        isLoading={isLoading}
-        plan={plan}
-        onEditPlanMetadata={() => setIsPlanMetadataEditorOpen(true)}
-        onEditFileChange={handleEditFileChangeRequest}
-      />
+      {/* 2. Fixed Input Form (Sticky Bottom area) */}
+      {/* ADDED WRAPPER with p-2 and theme styling for visual anchor */}
+      <Box 
+        className="flex-shrink-0 p-2"
+        sx={{
+            backgroundColor: theme.palette.background.paper,
+            borderTop: `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <PlanInputForm
+          userPrompt={userPrompt}
+          setUserPrompt={setUserPrompt}
+          projectRoot={projectRoot}
+          scanPathsInput={scanPathsInput}
+          additionalInstructions={additionalInstructions}
+          expectedOutputFormat={expectedOutputFormat}
+          fileData={fileData}
+          fileMimeType={fileMimeType}
+          selectedFile={selectedFile}
+          isLoading={isLoading}
+          error={error}
+          fileInputRef={fileInputRef}
+          handleFileChange={handleFileChange}
+          handleClearFile={handleClearFile}
+          handleGeneratePlan={handleGeneratePlan}
+          handleClearPlan={handleClearPlan}
+          openProjectRootPicker={openProjectRootPicker} // Use local helper
+          openScanPathsDrawer={openScanPathsDrawer}     // Use local helper
+          openPlannerListDrawer={() => setIsPlannerListDrawerOpen(true)}
+          openAiInstructionDrawer={() => setIsAiInstructionDrawerOpen(true)}
+          openExpectedOutputDrawer={() => setIsExpectedOutputDrawerOpen(true)}
+          openErrorDetailsDrawer={() => setIsErrorDetailsDrawerOpen(true)}
+          plan={plan}
+        />
+      </Box>
 
 
       <CustomDrawer
