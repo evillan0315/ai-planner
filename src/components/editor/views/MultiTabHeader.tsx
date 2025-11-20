@@ -1,3 +1,6 @@
+
+
+
 import React, { SyntheticEvent } from 'react';
 import {
   Box,
@@ -41,7 +44,7 @@ const tabStyles = (theme: ReturnType<typeof useTheme>): SxProps => ({
 
 // Custom styles for the Tabs container and scroll buttons
 const tabsRootSx = (theme: ReturnType<typeof useTheme>): SxProps => ({
-    height: '100%', 
+    height: '48px', 
     alignItems: 'flex-end', 
     borderBottom: 'none', 
     flexGrow: 1,
@@ -50,13 +53,13 @@ const tabsRootSx = (theme: ReturnType<typeof useTheme>): SxProps => ({
     // Fix 1 & 2: Ensure scroll buttons are full height (100%) and centered.
     // scrollButtons="auto" handles visibility based on overflow.
     '& .MuiTabs-scrollButtons': {
-        height: '100%',
+        height: '100% !important',
         display: 'flex',
         alignItems: 'center', 
         
         // Ensure the actual button element respects the centering
         '& button': {
-            height: '100%',
+            height: '100%  !important',
             display: 'flex',
             alignItems: 'center',
             // Default MUI buttons have some padding/margin that might need normalizing, 
@@ -64,6 +67,15 @@ const tabsRootSx = (theme: ReturnType<typeof useTheme>): SxProps => ({
         }
     },
 });
+
+const tabsContainerSx: SxProps = {
+    height: '100%', 
+    //minHeight: '48px', 
+    alignItems: 'flex-end', 
+    borderBottom: 'none', 
+    flexGrow: 1,
+    justifyContent: 'flex-start',
+};
 
 
 /**
