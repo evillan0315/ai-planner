@@ -14,6 +14,7 @@ import {
   updateActiveTabDraft,
   saveActiveTabContent,
   IEditorTab,
+  closeAllTabs,
 } from '@/components/editor/stores/multiTabEditorStore';
 
 import { IWindowContent } from '@/components/editor/stores/floatingWindowsStore';
@@ -30,6 +31,7 @@ import {
   useTheme,
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
+import ClearAllIcon from '@mui/icons-material/ClearAll'; 
 import {
   IMAGE_MIME_TYPES,
   VIDEO_MIME_TYPES,
@@ -116,7 +118,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   let error: string | null;
   let draftContent: string | null;
   let hasUnsavedChanges: boolean;
-
+  
   // Media streaming specific props (only used in Contextual mode)
   let mediaStreamUrl: string | undefined | null = null;
   let mediaUrlLoading: boolean = false;
@@ -193,7 +195,6 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
   const saveAction = isDedicatedRouteMode ? saveActiveTabContent : saveSingletonFileContent;
   const updateAction = isDedicatedRouteMode ? updateActiveTabDraft : updateSingletonDraftContent;
 
-
   // Actions for the dedicated route editor (Save if changes exist)
   // The FileContentRenderer determines if editing is possible
   const dedicatedRouteActions: GlobalAction[] = hasUnsavedChanges ? [
@@ -202,12 +203,36 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
       action: saveActiveTabContent, // Use multi-tab save action
       icon: <SaveIcon />,
       color: 'primary',
-      variant: 'contained',
+      variant: '',
+      disabled: isLoading, 
+      tooltip: 'Save active file content (Ctrl+S)',
+    },
+  ] : [];
+  // Actions for the dedicated route editor (Right side: Save if changes exist)
+  const dedicatedRouteRightActions: GlobalAction[] = hasUnsavedChanges ? [ // <<< RENAMED
+    {
+      label: 'Save',
+      action: saveActiveTabContent, // Use multi-tab save action
+      icon: <SaveIcon />,
+      color: 'primary',
+      variant: '',
       disabled: isLoading, 
       tooltip: 'Save active file content (Ctrl+S)',
     },
   ] : [];
 
+  // Actions for the dedicated route editor (Left side: Close All) // <<< ADDED
+  const dedicatedRouteLeftActions: GlobalAction[] = tabs.length > 0 ? [
+    {
+      label: 'Close All Tabs',
+      action: closeAllTabs,
+      icon: <ClearAllIcon />,
+      color: 'inherit',
+      variant: 'text',
+      disabled: isLoading,
+      tooltip: 'Close all open editor tabs',
+    }
+  ] : [];
 
   // 1. Contextual Mode (Floating Box) - Read-only view, mainly for media
   if (isContextualMode) {
@@ -318,7 +343,8 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
             headerHeight={48} // Tab height
             footerHeight={30} // Footer height
             headerContent={headerContentNode}
-            headerRightActions={dedicatedRouteActions}
+            headerRightActions={dedicatedRouteRightActions}
+            headerLeftActions={dedicatedRouteLeftActions}
             footerContent={footerContentNode}
             contentWrapperSx={{ p: 0 }}
         >

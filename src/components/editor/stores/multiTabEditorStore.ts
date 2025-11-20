@@ -119,9 +119,6 @@ export const openTab = async (filePath: string) => {
   }
 };
 
-/**
- * Closes a tab by ID.
- */
 export const closeTab = (tabId: string) => {
   const current = multiTabEditorStore.get();
   const indexToClose = current.tabs.findIndex(t => t.id === tabId);
@@ -161,6 +158,26 @@ export const closeTab = (tabId: string) => {
   if (newTabs.length === 0) {
       closeEditor(); 
   }
+};
+
+/**
+ * Closes all open tabs, prompting the user if unsaved changes exist.
+ */
+export const closeAllTabs = () => {
+    const current = multiTabEditorStore.get();
+    
+    const unsavedTabs = current.tabs.filter(t => t.hasUnsavedChanges);
+    
+    if (unsavedTabs.length > 0) {
+        const confirmationMessage = `You have unsaved changes in ${unsavedTabs.length} file(s). Are you sure you want to close all tabs?`;
+        if (!window.confirm(confirmationMessage)) {
+            return; // Abort operation
+        }
+    }
+
+    // Reset the multi-tab store and close the singleton editor/drawer (if applicable)
+    multiTabEditorStore.set(INITIAL_STATE);
+    closeEditor(); // Ensures the layout context is cleaned up if tabs were the only thing open
 };
 
 /**
