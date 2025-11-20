@@ -24,7 +24,7 @@ interface MultiTabHeaderProps {
 
 const tabStyles = (theme: ReturnType<typeof useTheme>): SxProps => ({
     minHeight: '48px',
-    height: '48px', // Ensure tabs are explicitly 38px high to match header
+    //height: '48px', // Ensure tabs are explicitly 38px high to match header
     py: 0,
     px: 2,
     textTransform: 'none',
@@ -41,7 +41,7 @@ const tabStyles = (theme: ReturnType<typeof useTheme>): SxProps => ({
 
 const tabsContainerSx: SxProps = {
     height: '100%', 
-    minHeight: '48px', 
+    //minHeight: '48px', 
     alignItems: 'flex-end', 
     borderBottom: 'none', 
     flexGrow: 1,
