@@ -42,8 +42,30 @@ const commonSettings = {
 };
 
 // Function to create theme based on current mode
-export const getMuiTheme = (mode: 'light' | 'dark') =>
-  createTheme({
+export const getMuiTheme = (mode: 'light' | 'dark') => {
+  
+  // Dynamic Tooltip styles based on mode
+  const tooltipBackground = mode === 'dark' ? '#000000' : '#808080'; // Black or Gray
+  const tooltipTextColor = '#FFFFFF'; // Ensure high contrast text
+  
+  const dynamicTooltipOverride = {
+    MuiTooltip: {
+      styleOverrides: {
+        tooltip: {
+          backgroundColor: tooltipBackground,
+          color: tooltipTextColor,
+          fontSize: '0.8rem',
+          padding: '4px 8px',
+          borderRadius: 4, // Match shape radius
+        },
+        arrow: {
+          color: tooltipBackground,
+        },
+      },
+    },
+  };
+  
+  return createTheme({
     palette: {
       mode,
       primary: {
@@ -103,4 +125,9 @@ export const getMuiTheme = (mode: 'light' | 'dark') =>
       },
     },
     ...commonSettings,
+    components: {
+      ...commonSettings.components,
+      ...dynamicTooltipOverride,
+    }
   });
+};
