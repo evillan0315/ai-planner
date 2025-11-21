@@ -5,7 +5,7 @@ import {
   INSTRUCTION_SCHEMA_OUTPUT as PLANNER_EXPECTED_OUTPUT_FORMAT
 } from '@/components/planner/constants/instructions';
 
-import { projectRootDirectoryStore, setProjectRoot as setGlobalProjectRoot } from '@/components/file-explorer/stores/fileTreeStore';
+import { projectRootDirectoryStore, setProjectRoot } from '@/components/file-explorer/stores/fileTreeStore';
 import { plannerService } from '../api/plannerService'; // Import plannerService
 
 // Define a reasonable default project root path if none is set

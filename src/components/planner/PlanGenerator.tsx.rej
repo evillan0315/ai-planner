@@ -1,0 +1,12 @@
+--- src/components/planner/PlanGenerator.tsx
++++ src/components/planner/PlanGenerator.tsx
+@@ -12,7 +12,8 @@
+   setExpectedOutputFormat, 
+   setFileDataAndMimeType,
+   setApplyStatus, // <-- ADDED
++  setPlannerProjectRoot, // <--- NEW IMPORT
+ } from './stores/plannerStore';
+-import { projectRootDirectoryStore, setProjectRoot } from '@/components/file-explorer/stores/fileTreeStore';
++import { projectRootDirectoryStore, setProjectRoot as setGlobalProjectRoot } from '@/components/file-explorer/stores/fileTreeStore';
+ import type { GlobalAction } from '@/components/ui/GlobalActionButton';
+ import type { ILlmInput, IFileChange, IGitInstructions } from './types'; 
