@@ -98,6 +98,11 @@ export const setExpectedOutputFormat = (format: string) => {
   plannerStore.set({ ...plannerStore.get(), expectedOutputFormat: format });
 };
 
+// NEW ACTION: Update projectRoot specific to the planner state
+export const setPlannerProjectRoot = (root: string) => {
+  plannerStore.set({ ...plannerStore.get(), projectRoot: root });
+};
+
 // Action to set file data and MIME type for multimodal input
 export const setFileDataAndMimeType = (data: string | null, mimeType: string | null) => {
   plannerStore.set({ ...plannerStore.get(), fileData: data, fileMimeType: mimeType });
