@@ -230,5 +230,5 @@ See CONTRIBUTING.md for details.
 MIT License — see LICENSE.
 
 Eddie Villanueva — evillan0315@gmail.com
-LinkedIn: https://www.linkedin.com/in/eddie-villalon/
+LinkedIn: https://www.linkedin.com/in/evillanueva/
 GitHub: https://github.com/evillan0315
