@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SendIcon from '@mui/icons-material/Send';
 import * as path from 'path-browserify';
@@ -35,11 +36,8 @@ interface FileExplorerControlsProps {
 // ================================================
 
 const controlsContainerSx: SxProps = {
-  px: 1,
-  py: 0.5,
-  borderBottom: '1px solid',
-  borderColor: 'divider',
-  bgcolor: 'background.paper',
+  px: 0,
+  //bgcolor: 'background.paper',
 };
 
 const FileExplorerControls: React.FC<FileExplorerControlsProps> = ({
@@ -109,14 +107,17 @@ const FileExplorerControls: React.FC<FileExplorerControlsProps> = ({
 
         {/* Action Buttons */}
         <Tooltip title="Go to entered path">
-          <Button
-            variant="contained"
-            onClick={handleGoToPath}
-            disabled={isLoading || !inputPath.trim() || inputPath === currentPath}
-            size="small"
-          >
-            Go
-          </Button>
+          <span>
+            <IconButton
+              onClick={handleGoToPath}
+              disabled={isLoading || !inputPath.trim() || inputPath === currentPath}
+              size="medium"
+              color="primary"
+            >
+              <ArrowForwardIcon fontSize="small" />
+              
+            </IconButton>
+          </span>
         </Tooltip>
 
         <Tooltip title="Go up one level">

@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   Box,
@@ -18,7 +16,6 @@ import {
   refreshTriggerAtom,
   fileTreeSelectionStore,
   setSelectedPath,
-  clearSelections,
 } from '@/components/file-explorer/stores/fileTreeStore';
 
 import { fileExplorerService } from '@/components/file-explorer/api/fileExplorerService';
@@ -39,29 +36,12 @@ import  {
   MARKDOWN_EXTENSIONS,
   HTML_EXTENSIONS,
 } from '@/constants';
+import { ContentLayout } from '@/components/ui/layouts/ContentLayout'; // <-- NEW IMPORT
 
 interface FileExplorerProps {
   initialPath?: string;
   onPathSelectedForUse?: (selectedPath: string) => void;
 }
-
-const explorerContainerSx: SxProps = {
-  display: 'flex',
-  flexDirection: 'column',
-  height: '100%',
-  border: '1px solid',
-  borderColor: 'divider',
-  overflow: 'hidden',
-  backgroundColor: 'background.default',
-
-};
-
-const contentAreaSx: SxProps = {
-  flexGrow: 1,
-  overflowY: 'auto',
-  p: 0,
-   position: 'relative'
-};
 
 // Fixed: correctly escape backslash in regex so string is terminated properly and replacement works
 const normalizeForBrowser = (p: string) => path.normalize(p.replace(/\\/g, '/'));
@@ -325,17 +305,28 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ initialPath, onPathSelected
       openContextMenu(e, entriesToPass, clickedPath);
     }
   }, []);
-  return (
-    <Box sx={explorerContainerSx} className="w-full h-full">
-      <FileExplorerControls
+  
+  // Render the controls component inside a memoized element for ContentLayout
+  const controlsComponent = useMemo(() => (
+    <FileExplorerControls
         currentPath={currentPath}
         isLoading={loadingRoot}
         onNavigate={handleNavigate}
         onRefresh={handleRefresh}
         onGoUp={handleGoUp}
         onUsePath={effectiveUsePathHandler}
-      />
+    />
+  ), [currentPath, loadingRoot, handleNavigate, handleRefresh, handleGoUp, effectiveUsePathHandler]);
 
+
+  return (
+    <ContentLayout
+        headerContent={controlsComponent}
+        // Setting headerHeight to 60px to accommodate the controls component
+        headerHeight={60} 
+        footerHeight={0} // No footer needed here
+        contentWrapperSx={{ p: 0 }} // Ensure content area padding is minimal
+    >
       {loadingRoot && (
         <Box className="flex justify-center items-center h-40">
           <CircularProgress size={30} />
@@ -350,7 +341,10 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ initialPath, onPathSelected
       )}
 
       {!loadingRoot && currentDirectoryContents && currentDirectoryContents.length > 0 && (
-        <Box sx={contentAreaSx}>
+        // Note: ContentLayout children are placed in a scrollable container.
+        // We set h-full w-full here to ensure the internal Box uses all available space, 
+        // though flex-grow/min-h-0 is managed by ContentLayout parent.
+        <Box className="h-full w-full" sx={{ position: 'relative' }}>
           {/* Note: visiblePathsRef is populated during this render cycle */}
           <FileTreeRenderer 
             contents={currentDirectoryContents} 
@@ -384,7 +378,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ initialPath, onPathSelected
       )}
 
       <FileExplorerContextMenu />
-    </Box>
+    </ContentLayout>
   );
 
  }

@@ -6,6 +6,7 @@ import {
   Typography,
   List,
   CircularProgress,
+  Paper
 } from '@mui/material';
 
 import FileTreeItem from '@/components/file-explorer/FileTreeItem';
@@ -74,6 +75,7 @@ const FileTreeRenderer: React.FC<FileTreeRendererProps> = React.memo(({
 }) => {
     
     return (
+    <Paper sx={{backgroundColor: 'background.default'}}>
       <List disablePadding dense>
         {contents.map((entry) => {
           const entryPath = entry.path;
@@ -158,6 +160,7 @@ const FileTreeRenderer: React.FC<FileTreeRendererProps> = React.memo(({
           );
         })}
       </List>
+      </Paper>
     );
 }, (prevProps, nextProps) => {
     // Custom memoization check to optimize tree rendering
