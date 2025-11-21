@@ -43,7 +43,7 @@ export const plannerStore = atom<PlannerState>({
   applyStatus: 'idle',
   applyError: null,
   projectRoot: projectRootDirectoryStore.get() || DEFAULT_PROJECT_ROOT_FROM_ENV, // Fallback to env default
-  scanPathsInput: 'src, public, package.json, README.md, .env', // Provide sensible defaults for scan paths
+  scanPathsInput: 'src, package.json, README.md, .env', // Provide sensible defaults for scan paths
   additionalInstructions: PLANNER_AI_INSTRUCTION, // Default from constants
   expectedOutputFormat: PLANNER_EXPECTED_OUTPUT_FORMAT, // Default from constants
   fileData: null,
