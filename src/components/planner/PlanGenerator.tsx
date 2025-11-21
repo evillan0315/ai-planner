@@ -25,6 +25,7 @@ import {
   setExpectedOutputFormat,
   setFileDataAndMimeType,
   setApplyStatus, // <-- ADDED
+  setPlannerProjectRoot, // <-- ADDED
 } from './stores/plannerStore';
 import { plannerService } from './api/plannerService';
 import type { GlobalAction } from '@/components/ui/GlobalActionButton';
@@ -43,7 +44,7 @@ import InstructionEditorDrawer from '@/components/planner/drawerContent/Instruct
 import PlanMetadataEditorDrawer from '@/components/planner/drawerContent/PlanMetadataEditorDrawer';
 import FileChangeEditorDrawer from '@/components/planner/drawerContent/FileChangeEditorDrawer';
 import PlannerList from '@/components/planner/PlannerList';
-import { projectRootDirectoryStore, setProjectRoot } from '@/components/file-explorer/stores/fileTreeStore';
+import { projectRootDirectoryStore, setProjectRoot as setGlobalProjectRoot } from '@/components/file-explorer/stores/fileTreeStore'; // ALIAS IMPORT FOR CLARITY
 
 // New components
 import { PlanInputForm } from './PlanInputForm';
@@ -126,7 +127,7 @@ const PlanGenerator: React.FC = () => {
   useEffect(() => {
     // Only update if globalProjectRoot is valid and different from current plannerStore.projectRoot
     if (globalProjectRoot && projectRoot !== globalProjectRoot) {
-      setProjectRoot(globalProjectRoot);
+      setPlannerProjectRoot(globalProjectRoot); // <-- FIXED: Use dedicated planner store setter
     }
     // Always update tempDrawerProjectRootInput to reflect the current projectRoot from store
     setTempDrawerProjectRootInput(projectRoot || '');
@@ -140,7 +141,7 @@ const PlanGenerator: React.FC = () => {
     if (plan && currentPlanId === plan.id) {
       setUserPrompt(plan.llmInput?.userPrompt || '');
       // Prioritize plan's projectRoot, then global, then current store value
-      setProjectRoot(plan.llmInput?.projectRoot || globalProjectRoot || projectRoot || '');
+      setPlannerProjectRoot(plan.llmInput?.projectRoot || globalProjectRoot || projectRoot || '');
       setScanPathsInput(plan.llmInput?.scanPaths?.join(', ') || 'src, public, package.json, README.md, .env');
       setAdditionalInstructions(plan.llmInput?.additionalInstructions || '');
       setExpectedOutputFormat(plan.llmInput?.expectedOutputFormat || '');
@@ -220,8 +221,10 @@ const PlanGenerator: React.FC = () => {
         setError('Please provide a project root path.');
         return;
       }
-      setProjectRoot(selectedPath);
-      projectRootDirectoryStore.set(selectedPath);
+      // 1. Update the planner store state immediately
+      setPlannerProjectRoot(selectedPath); 
+      // 2. Update the persistent global store
+      setGlobalProjectRoot(selectedPath);
       setError('');
       setPlan(null, null); // Clear existing plan on new project root selection
     },
