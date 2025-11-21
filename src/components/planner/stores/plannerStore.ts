@@ -1,6 +1,3 @@
-
-
-
 import { atom } from 'nanostores';
 import type { IPlan, IFileChange } from '../types';
 import {
@@ -161,6 +158,8 @@ export const updateCurrentPlanMetadata = (updatedMetadata: {
         ...updatedMetadata,
         updatedAt: new Date(), // Mark as updated
       } as IPlan, // Cast as IPlan to ensure type safety after merging
+      applyStatus: 'idle', // Reset apply status if plan content is modified locally
+      applyError: null,    // Reset apply error
     });
   }
 };
@@ -183,6 +182,8 @@ export const updateFileChange = (planId: string, changeIndex: number, updatedCha
         changes: newChanges,
         updatedAt: new Date(), // Mark the plan as updated
       },
+      applyStatus: 'idle', // Reset apply status if plan content is modified locally
+      applyError: null,    // Reset apply error
     });
   } else {
     console.warn(
@@ -210,4 +211,3 @@ export const resetPlannerState = () => {
 };
 
 export * from  '@/components/file-explorer/stores/fileTreeStore'
-
