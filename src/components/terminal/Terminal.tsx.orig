@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import { useStore } from '@nanostores/react';
 import { Box, Typography, Alert, CircularProgress, useTheme, SxProps } from '@mui/material';
-import { terminalService } from '@/components/terminal/services/terminalService';
-import { terminalStore } from '@/components/terminal/stores/terminalStore';
+import { terminalService } from '@/services/terminalService';
+import { terminalStore } from '@/stores/terminalStore';
 import { isTerminalVisible } from '@/stores/uiStore';
 import * as path from 'path-browserify';
 
@@ -113,4 +113,3 @@ const TerminalComponent: React.FC<TerminalProps> = ({ height }) => {
 };
 
 export default TerminalComponent;
-

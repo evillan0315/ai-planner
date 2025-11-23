@@ -1,5 +1,5 @@
 import type { Socket } from 'socket.io-client';
-import { connectTerminal, disconnectTerminal, sendTerminalInput, sendTerminalResize } from '@/stores/terminalStore';
+import { connectTerminal, disconnectTerminal, sendTerminalInput, sendTerminalResize } from '@/components/terminal/stores/terminalStore';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 
