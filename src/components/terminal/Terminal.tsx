@@ -44,9 +44,10 @@ const terminalContainerSx = (themeMode: 'light' | 'dark', theme: any) => ({
       : theme.palette.background.default,
 });
 
-const xtermBoxSx = (terminalHeight: number) => ({
+// MODIFIED: Use flexGrow: 1 instead of fixed pixel height calculation.
+// Height is now inherited from the parent Box sizing in AppLayout.
+const xtermBoxSx = () => ({
   flexGrow: 1,
-  height: `${terminalHeight}px`,
   overflow: 'hidden',
   '.xterm': { padding: '8px' },
 });
@@ -118,6 +119,8 @@ export const Terminal: React.FC<TerminalProps> = ({
         setTimeout(() => {
           try {
             fitAddon.fit();
+            // Initial resize event to backend
+            terminalSocketService.resize(term.cols, term.rows); 
           } catch (err) {
             console.warn('[Terminal] Fit skipped:', err);
           }
@@ -315,15 +318,23 @@ export const Terminal: React.FC<TerminalProps> = ({
   }, []); // Empty dependency array ensures this effect runs once on mount/unmount
 
   // ──────────────────────────────────────────────
-  // Dynamic height refit for XTerm.js instance
+  // Dynamic height/width refit for XTerm.js instance (Triggered by AppLayout resize)
   // ──────────────────────────────────────────────
   useEffect(() => {
+    const term = xtermRef.current;
+    if (!term) return;
+
     // RequestAnimationFrame ensures refit happens after DOM layout is stable
     requestAnimationFrame(() => {
       try {
         fitAddonRef.current?.fit();
-      } catch {
+        
+        // IMPORTANT: Communicate new dimensions to the backend PTY
+        terminalSocketService.resize(term.cols, term.rows);
+
+      } catch (e) {
         /* Ignore errors if renderer is not yet ready, common during rapid updates */
+        console.error("Terminal refit failed:", e);
       }
     });
   }, [terminalHeight]); // Re-fit whenever the provided terminalHeight changes
@@ -374,7 +385,7 @@ export const Terminal: React.FC<TerminalProps> = ({
       <Box
         ref={terminalContainerRef}
         // onClick={() => terminalContainerRef.current?.focus()} // XTerm handles its own focus logic internally
-        sx={xtermBoxSx(terminalHeight)}
+        sx={xtermBoxSx()} 
       />
 
       <TerminalSettingsDialog open={open} onClose={() => setOpen(false)} />

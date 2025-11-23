@@ -23,7 +23,7 @@ const StreamDemoPage = lazy(() => import('./pages/StreamDemoPage')); // Lazy loa
 const FileExplorerPage = lazy(() => import('./pages/FileExplorerPage')); // ADD File Explorer Page
 const CodejectorLandingPage = lazy(() => import('./pages/CodejectorLandingPage')); // ADDED
 const CodejectorPage = lazy(() => import('./pages/CodejectorPage')); // ADDED
-import '@xterm/xterm/css/xterm.css';
+
 // Initialize authentication store on app start
 initAuth();
 
