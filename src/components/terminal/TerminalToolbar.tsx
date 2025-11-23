@@ -34,7 +34,7 @@ const toolbarPaperSx = (theme: any) => ({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  padding: 0.6,
+  padding: 0,
   backgroundColor: theme.palette.background.paper,
   color: theme.palette.text.primary,
   border: 0,

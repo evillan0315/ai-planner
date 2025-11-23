@@ -25,7 +25,7 @@ import { themeAtom } from '@/stores/themeStore';
 import stripAnsi from 'strip-ansi';
 import { SystemInfo, PromptData } from './types/terminal';
 import { useAuth } from '@/hooks/useAuth';
-
+import { ContentLayout } from '@/components/ui/layouts/ContentLayout';
 interface TerminalProps {
   onLogout: () => void;
   terminalHeight: number;

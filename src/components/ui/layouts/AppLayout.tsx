@@ -380,12 +380,12 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
 
       {/* Sticky footer */}
       <Paper
-        elevation={1}
-        className="sticky bottom-0 z-[300] w-full flex flex-col justify-center items-center border-t radius-0" // Changed to flex-col
+        elevation={5}
+        className="sticky bottom-0 z-[300] w-full flex flex-col justify-center items-center radius-0" // Changed to flex-col
         sx={{
           height: FOOTER_HEIGHT,
-          backgroundColor: theme.palette.background.paper,
-          borderColor: theme.palette.divider,
+          backgroundColor: theme.palette.background.default,
+          borderTop: `1px solid ${theme.palette.divider}`,
         }}
       >
         <Footer />
