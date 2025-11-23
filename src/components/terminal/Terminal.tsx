@@ -42,6 +42,7 @@ const TerminalComponent: React.FC<TerminalProps> = ({ height }) => {
   // --- Effect: Initialize and Destroy Xterm Instance ---
   useEffect(() => {
     if (isVisible && terminalRef.current) {
+      console.log(terminalRef.current, 'terminalRef.current');
         // Initialize Xterm and connect to WS
         terminalService.initializeTerminal(terminalRef.current, initialCwd);
     } 
@@ -51,12 +52,13 @@ const TerminalComponent: React.FC<TerminalProps> = ({ height }) => {
         // Destroy Xterm and disconnect WS
         terminalService.destroyTerminal();
     };
-  }, [isVisible, initialCwd]);
+  }, []);
 
   // --- Effect: Handle Visibility Changes (Focus/Resize) ---
   useEffect(() => {
     // When the drawer opens or height changes, force a fit and focus
     if (isVisible) {
+      console.log('Terminal is Visible');
       // Need a slight delay to ensure container transition is complete before fitting
       const timer = setTimeout(() => {
         terminalService.manualResize();

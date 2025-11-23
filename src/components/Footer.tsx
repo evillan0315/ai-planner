@@ -6,11 +6,14 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import TerminalIcon from '@mui/icons-material/Terminal'; // ADDED ICON
 import {
   isLeftSidebarVisible,
   isRightSidebarVisible,
   toggleLeftSidebar,
   toggleRightSidebar,
+  isTerminalVisible, // ADDED
+  toggleTerminal,   // ADDED
 } from '@/stores/uiStore';
 
 // NEW IMPORT
@@ -22,6 +25,7 @@ const Footer = () => {
   // Read sidebar visibility state
   const leftVisible = useStore(isLeftSidebarVisible);
   const rightVisible = useStore(isRightSidebarVisible);
+  const terminalVisible = useStore(isTerminalVisible); // ADDED
 
   return (
     <>
@@ -70,12 +74,16 @@ const Footer = () => {
                 size="small"
               ></IconButton>
             </Tooltip>
-            <Tooltip title="Open Terminal">
+            {/* NEW: Toggle Terminal */}
+            <Tooltip title={terminalVisible ? 'Hide Terminal' : 'Show Terminal'}>
               <IconButton
-                color="inherit"
-                aria-label="open terminal"
+                onClick={toggleTerminal}
+                color={terminalVisible ? 'primary' : 'inherit'} // Highlight if active
+                aria-label="toggle terminal"
                 size="small"
-              ></IconButton>
+              >
+                <TerminalIcon />
+              </IconButton>
             </Tooltip>
           </Box>
         </Box>

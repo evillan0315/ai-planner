@@ -24,6 +24,7 @@ import { GlobalAction } from '@/types/action';
 import GlobalActionButton from '@/components/ui/GlobalActionButton'; 
 import FileExplorer from '@/components/file-explorer/FileExplorer'; 
 import PlanGenerator from '@/components/planner/PlanGenerator'; 
+import TerminalComponent from '@/components/terminal/Terminal'; // ADDED
 
 import Footer from '@/components/Footer'; 
 import { NavBar } from './NavBar'; // NEW IMPORT
@@ -52,6 +53,9 @@ import {
   isLeftSidebarVisible,
   rightSidebarWidth,
   leftSidebarWidth,
+  isTerminalVisible, // ADDED
+  terminalHeight,    // ADDED
+  setTerminalHeight, // ADDED
 } from '@/stores/uiStore';
 
 interface LayoutProps {
@@ -65,6 +69,7 @@ const FOOTER_HEIGHT = 50;
 const MIN_SIDEBAR_WIDTH = 300;
 const MAX_SIDEBAR_WIDTH = 1000;
 const SIDEBAR_RESIZER_WIDTH = 2;
+const BOTTOM_RESIZER_HEIGHT = 2; // Resizer height for bottom drawer
 
 // Helper function to map mimeType to an Icon component
 const getMediaIcon = (mimeType?: string | null): React.ReactNode => {
@@ -105,25 +110,41 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
   const $isLeftSidebarVisible = useStore(isLeftSidebarVisible);
   const $rightSidebarWidth = useStore(rightSidebarWidth);
   const $leftSidebarWidth = useStore(leftSidebarWidth);
+  
+  // ADDED Terminal State
+  const $isTerminalVisible = useStore(isTerminalVisible);
+  const $terminalHeight = useStore(terminalHeight); // Get height from store
 
-  const [isResizing, setIsResizing] = useState<null | 'left' | 'right'>(null);
+  const [isResizing, setIsResizing] = useState<null | 'left' | 'right' | 'bottom'>(null); // ADDED 'bottom'
   const initialMouseX = useRef(0);
+  const initialMouseY = useRef(0); // ADDED Y tracking
   const initialSidebarWidth = useRef(0);
+  const initialTerminalHeight = useRef(0); // ADDED height tracking
   // --- End Resizable Layout State ---
 
-  // --- Resizing Logic (copied and adapted from Codejector Layout) ---
+  // --- Resizing Logic ---
 
   /** Start resizing a sidebar */
-  const startResizing = useCallback((side: 'left' | 'right') => (e: React.MouseEvent) => {
+  const startResizing = useCallback((side: 'left' | 'right' | 'bottom') => (e: React.MouseEvent) => {
     setIsResizing(side);
     initialMouseX.current = e.clientX;
-    initialSidebarWidth.current =
-      side === 'left' ? $leftSidebarWidth : $rightSidebarWidth;
-    document.body.style.cursor = 'ew-resize';
+    initialMouseY.current = e.clientY; // Store initial Y position
+    
+    if (side === 'left') {
+        initialSidebarWidth.current = $leftSidebarWidth;
+        document.body.style.cursor = 'ew-resize';
+    } else if (side === 'right') {
+        initialSidebarWidth.current = $rightSidebarWidth;
+        document.body.style.cursor = 'ew-resize';
+    } else if (side === 'bottom') {
+        initialTerminalHeight.current = $terminalHeight;
+        document.body.style.cursor = 'ns-resize'; // North-South resize cursor
+    }
+    
     // Disable selection and pointer events globally while resizing for smooth dragging
     document.body.style.userSelect = 'none';
     document.body.style.pointerEvents = 'none';
-  }, [$leftSidebarWidth, $rightSidebarWidth]);
+  }, [$leftSidebarWidth, $rightSidebarWidth, $terminalHeight]);
 
   const stopResizing = useCallback(() => {
     if (isResizing) {
@@ -137,23 +158,41 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
   const resize = useCallback(
     (e: MouseEvent) => {
       if (!isResizing) return;
-      const deltaX = e.clientX - initialMouseX.current;
       
-      if (isResizing === 'left') {
-        let newWidth = initialSidebarWidth.current + deltaX;
-        newWidth = Math.max(
-          MIN_SIDEBAR_WIDTH,
-          Math.min(MAX_SIDEBAR_WIDTH, newWidth),
+      // Horizontal resize (Left/Right Sidebars)
+      if (isResizing === 'left' || isResizing === 'right') {
+          const deltaX = e.clientX - initialMouseX.current;
+          let newWidth = initialSidebarWidth.current;
+          
+          if (isResizing === 'left') {
+            newWidth += deltaX;
+          } else { 
+            // Right sidebar moves width inverse of deltaX
+            newWidth -= deltaX;
+          }
+          
+          newWidth = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, newWidth));
+          
+          if (isResizing === 'left') {
+              leftSidebarWidth.set(newWidth);
+          } else {
+              rightSidebarWidth.set(newWidth);
+          }
+          
+      } else if (isResizing === 'bottom') {
+        // Vertical resize (Bottom Terminal Drawer)
+        const deltaY = initialMouseY.current - e.clientY; // Dragging UP increases height
+        let newHeight = initialTerminalHeight.current + deltaY;
+        
+        // Define min/max height for terminal (e.g., 100px min, 90% of viewport max)
+        const MAX_TERMINAL_HEIGHT = window.innerHeight * 0.9;
+        
+        newHeight = Math.max(
+          100, // Minimum height
+          Math.min(MAX_TERMINAL_HEIGHT, newHeight)
         );
-        leftSidebarWidth.set(newWidth);
-      } else { 
-        // Right sidebar moves width inverse of deltaX
-        let newWidth = initialSidebarWidth.current - deltaX;
-        newWidth = Math.max(
-          MIN_SIDEBAR_WIDTH,
-          Math.min(MAX_SIDEBAR_WIDTH, newWidth),
-        );
-        rightSidebarWidth.set(newWidth);
+        
+        setTerminalHeight(newHeight); // Use the dedicated action
       }
     },
     [isResizing]
@@ -209,6 +248,10 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
 
   // If we are on the Codejector page, suppress the drawer even if the store says a file is open.
   const shouldOpenDrawer = isEditorOpen && !isCodejectorPage;
+  
+  // Calculate the effective content height considering the terminal drawer presence
+  const terminalOffsetHeight = $isTerminalVisible ? $terminalHeight + BOTTOM_RESIZER_HEIGHT : 0; // The total height reduction ABOVE the footer.
+
 
   return (
     <Box
@@ -221,8 +264,9 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
       <Box 
         className="main-layout flex-grow w-full flex flex-row overflow-hidden"
         sx={{
-          height: `calc(100vh - ${NAVBAR_HEIGHT}px - ${FOOTER_HEIGHT}px)`,
-          minHeight: `calc(100vh - ${NAVBAR_HEIGHT}px - ${FOOTER_HEIGHT}px)`, 
+          // Calculate remaining space: 100vh - Navbar - Footer - TerminalOffset
+          height: `calc(100vh - ${NAVBAR_HEIGHT}px - ${FOOTER_HEIGHT}px - ${terminalOffsetHeight}px)`,
+          minHeight: `calc(100vh - ${NAVBAR_HEIGHT}px - ${FOOTER_HEIGHT}px - ${terminalOffsetHeight}px)`,
         }}
       >
         {/* Left sidebar */}
@@ -300,6 +344,39 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
         )}
       </Box>
       
+      {/* 3. Bottom Terminal Drawer (NEW: Sits between main content and footer) */}
+      {isLoggedIn && $isTerminalVisible && (
+          <Box
+              className="terminal-area flex-shrink-0 relative"
+              sx={{
+                  height: $terminalHeight + BOTTOM_RESIZER_HEIGHT, // Height + Resizer
+                  backgroundColor: theme.palette.background.paper,
+                  borderTop: `1px solid ${theme.palette.divider}`, // Border applied implicitly by the resizer bar position
+              }}
+          >
+              {/* Resizer Handle (Positioned at the TOP of the terminal area) */}
+              <Box
+                  onMouseDown={startResizing('bottom')}
+                  className="terminal-resizer absolute top-0 left-0 right-0 z-20 cursor-ns-resize"
+                  sx={{
+                      height: BOTTOM_RESIZER_HEIGHT,
+                      backgroundColor: theme.palette.divider,
+                      transition: 'background-color 0.2s ease',
+                      bgcolor: theme.palette.background.dark,
+                      '&:hover': {
+                          backgroundColor: theme.palette.primary.main,
+                      },
+                  }}
+                  title="Resize terminal"
+              />
+              {/* Terminal Content (adjust position for the resizer bar) */}
+              <Box sx={{ height: `calc(100% - ${BOTTOM_RESIZER_HEIGHT}px)`, pt: BOTTOM_RESIZER_HEIGHT }}>
+                  <TerminalComponent height={$terminalHeight} />
+              </Box>
+          </Box>
+      )}
+
+
       {/* Sticky footer */}
       <Paper
         elevation={1}
@@ -312,6 +389,7 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
       >
         <Footer />
       </Paper>
+      
       {/* 1. Global File Editor/Viewer Drawer (for code/text, singleton) */}
       <CustomDrawer
         open={shouldOpenDrawer} // Conditional opening based on route

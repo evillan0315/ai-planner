@@ -49,7 +49,7 @@ export class TerminalService {
     // 3. Connect to the Socket
     const socket = connectTerminal(initialCwd);
     this.xtermWrapper = { terminal, fitAddon, socket };
-    
+    console.log(socket, 'socket');
     // 4. Set up socket output handler
     socket.on('output', (data: string) => {
         // Raw output from pty/shell

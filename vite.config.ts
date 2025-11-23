@@ -34,6 +34,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/gemini/, ''),
         },
+        '/socket.io': {
+          target: env.VITE_WS_URL,
+          changeOrigin: true,
+          ws: true,
+        },
       },
       cors: {
         origin: ['*'],
@@ -54,6 +59,9 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_GEMINI_API_URL': JSON.stringify(env.VITE_GEMINI_API_URL),
       'import.meta.env.VITE_GEMINI_API_MODEL': JSON.stringify(env.VITE_GEMINI_API_MODEL),
       'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(env.VITE_GEMINI_API_KEY),
+      'import.meta.env.VITE_TERMINAL_WS_URL': JSON.stringify(env.VITE_TERMINAL_WS_URL),
+      'import.meta.env.VITE_WS_URL': JSON.stringify(env.VITE_WS_URL),
+      
     },
     test: {
       environment: 'jsdom', // Use JSDOM for browser-like environment
