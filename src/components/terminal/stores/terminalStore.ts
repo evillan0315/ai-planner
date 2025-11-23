@@ -1,133 +1,181 @@
-import { atom } from 'nanostores';
-import { io, Socket } from 'socket.io-client';
-import { getAuthToken } from '@/stores/authStore';
+import { map } from 'nanostores';
+import { persistentAtom } from '@/utils/persistentAtom';
+import { SystemInfo, PromptData } from '../types/terminal';
+import stripAnsi from 'strip-ansi';
+import { projectRootDirectoryStore } from '@/stores';
+// import { getToken } from '@/stores/authStore'; // Removed direct import, handled by service
+import { terminalSocketService } from '@/components/terminal/services/terminalSocketService';
 
-// Define the namespace path where the terminal server is listening
-const TERMINAL_NAMESPACE = '/terminal';
-const WS_URL_BASE = import.meta.env.VITE_TERMINAL_WS_URL?.replace(TERMINAL_NAMESPACE, '') || 'ws://localhost:3000';
+// ──────────────────────────────────────────────
+// State Definition
+// ──────────────────────────────────────────────
 
-interface TerminalState {
-  socket: Socket | null;
+export interface TerminalState {
+  currentPath: string;
+  systemInfo: string | null;
   isConnected: boolean;
-  cwd: string | null;
-  error: string | null;
-  initialCwd: string | null; // Passed during connection handshake
+  commandHistory: string[];
+  historyIndex: number;
+  output: string[]; // This stores plain text output for history/display
 }
 
-const INITIAL_STATE: TerminalState = {
-  socket: null,
+export const isTerminalVisible = persistentAtom<boolean>('showTerminal', false);
+export const setShowTerminal = (show: boolean) => isTerminalVisible.set(show);
+
+export const terminalStore = map<TerminalState>({
+  currentPath: '~',
+  systemInfo: null,
   isConnected: false,
-  cwd: null,
-  error: null,
-  initialCwd: null,
+  commandHistory: [],
+  historyIndex: -1,
+  output: [],
+});
+
+// ──────────────────────────────────────────────
+// Basic Mutations
+// ──────────────────────────────────────────────
+
+export const setCurrentPath = (path: string) => {
+  projectRootDirectoryStore.set(path); // Update global project root store
+  terminalStore.setKey('currentPath', path); // Also update local terminal store
 };
 
-export const terminalStore = atom<TerminalState>(INITIAL_STATE);
+export const setSystemInfo = (info: string) => {
+  terminalStore.setKey('systemInfo', info);
+};
 
-// --- Actions ---
+export const setConnected = (isConnected: boolean) => {
+  terminalStore.setKey('isConnected', isConnected);
+};
 
 /**
- * Initializes and connects the Socket.IO client to the terminal namespace.
- * Ensures only one socket instance is active.
- * @param initialCwd - Optional working directory to request on connection.
+ * Adds a command to the client-side history. Note: Terminal no longer directly uses this
+ * for interactive input, but it can be used for other UI elements (e.g., a command palette).
  */
-export const connectTerminal = (initialCwd?: string) => {
-  const current = terminalStore.get();
-  if (current.socket && current.isConnected) return current.socket;
-  
-  if (current.socket) {
-    current.socket.disconnect();
-  }
-
-  // 1. Determine extra headers/query parameters (e.g., Auth token, CWD)
-  const token = getAuthToken();
-  
-  const socket = io(`${WS_URL_BASE}${TERMINAL_NAMESPACE}`, {
-    // The websocket backend provided doesn't seem to use JWT token authentication
-    // but relies on anonymous or external session management. 
-    
-    // Pass CWD as query parameter if supported by server
-    query: {
-      initialCwd: initialCwd || '', // Send the absolute path
-    },
-    transports: ['websocket', 'polling'], // Prefer websocket
-    reconnection: true,
-  });
-  
-  // 2. Set socket reference and loading state
+export const addCommandToHistory = (command: string) => {
+  const state = terminalStore.get();
+  const updatedHistory = [...state.commandHistory, command];
   terminalStore.set({
-    ...INITIAL_STATE,
-    socket,
-    initialCwd: initialCwd || null,
+    ...state,
+    commandHistory: updatedHistory,
+    historyIndex: updatedHistory.length,
   });
-  
-  // 3. Setup Listeners
-  socket.on('connect', () => {
-    terminalStore.set({ ...terminalStore.get(), isConnected: true, error: null });
-    console.log('Terminal connected via Socket.IO');
-  });
+};
 
-  socket.on('disconnect', (reason) => {
-    // Only clear if the disconnect was not due to explicit call
-    if (reason !== 'io client disconnect') {
-       terminalStore.set({ ...terminalStore.get(), isConnected: false, error: `Disconnected: ${reason}` });
+/**
+ * Navigates client-side command history. Note: Terminal no longer directly uses this.
+ */
+export const browseHistory = (direction: 'up' | 'down') => {
+  const state = terminalStore.get();
+  let newIndex = state.historyIndex;
+
+  newIndex =
+    direction === 'up'
+      ? Math.max(0, newIndex - 1)
+      : Math.min(state.commandHistory.length - 1, newIndex + 1);
+
+  terminalStore.setKey('historyIndex', newIndex);
+};
+
+export const resetHistoryIndex = () => terminalStore.setKey('historyIndex', -1);
+
+// ──────────────────────────────────────────────
+// Output Deduplication (Spinner-Aware)
+// ──────────────────────────────────────────────
+
+export const appendOutput = (text: string) => {
+  const plainText = stripAnsi(text).replace(/\r/g, '');
+  const trimmed = plainText.trim();
+  if (!trimmed) return;
+
+  const state = terminalStore.get();
+  const output = [...state.output];
+  const lastLine = output[output.length - 1]?.trim() ?? '';
+
+  // Spinner frames common in terminal loading animations
+  const spinnerFrames = [
+    '⠙',
+    '⠹',
+    '⠸',
+    '⠼',
+    '⠴',
+    '⠦',
+    '⠧',
+    '⠇',
+    '⠏',
+    '⠋',
+  ];
+
+  // Handle spinner animation to avoid duplicating frames in history
+  if (spinnerFrames.includes(trimmed)) {
+    if (spinnerFrames.includes(lastLine)) {
+      output[output.length - 1] = plainText; // Replace last spinner frame
+    } else {
+      output.push(plainText); // Add new spinner frame
     }
-  });
+  }
+  // Handle new, distinct output: append if not a duplicate or partial match
+  else if (
+    trimmed !== lastLine &&
+    !lastLine.endsWith(trimmed) &&
+    !trimmed.endsWith(lastLine)
+  ) {
+    output.push(plainText);
+  }
 
-  socket.on('connect_error', (error) => {
-    terminalStore.set({ ...terminalStore.get(), isConnected: false, error: `Connection error: ${error.message}` });
-    console.error('Terminal connection error:', error);
-  });
-  
-  socket.on('error', (message: string) => {
-    terminalStore.set({ ...terminalStore.get(), error: message });
-    console.error('Terminal server error:', message);
-  });
+  // Keep terminal output history bounded to prevent excessive memory usage
+  if (output.length > 5000) output.splice(0, output.length - 5000);
 
-  // Listener for CWD updates from the server
-  socket.on('outputPath', (newCwd: string) => {
-    terminalStore.set({ ...terminalStore.get(), cwd: newCwd });
-  });
-
-  // Listener for server prompt signal (e.g., 'user@host:~/dir $')
-  socket.on('prompt', (data: { cwd: string; command: string }) => {
-    // The CWD update often comes bundled with the prompt event from the server
-    terminalStore.set({ ...terminalStore.get(), cwd: data.cwd });
-  });
-  
-  return socket;
+  terminalStore.set({ ...state, output });
 };
 
-/**
- * Disconnects the Socket.IO client.
- */
+// ──────────────────────────────────────────────
+// Socket Lifecycle Orchestration
+// ──────────────────────────────────────────────
+
+export const clearOutput = () => terminalStore.setKey('output', []);
+
+export const connectTerminal = async () => {
+  try {
+    // Orchestrate the connection using the dedicated terminal socket service
+    await terminalSocketService.connect();
+    // Update global store state upon successful connection
+    setConnected(true);
+    clearOutput(); // Clear historical output for a fresh session
+    appendOutput('\x1b[36mProject Terminal Ready\x1b[0m');
+    appendOutput('---------------------------------------');
+    appendOutput('\x1b[32mConnected to terminal server.\x1b[0m\n');
+  } catch (error) {
+    // Handle connection error: update store state and append an error message
+    console.error('Terminal connection failed:', error);
+    setConnected(false);
+    appendOutput(`\x1b[31mConnection error:\x1b[0m ${error instanceof Error ? error.message : String(error)}\n`);
+    throw error; // Re-throw the error for upstream components (e.g., Terminal) to handle if needed
+  }
+};
+
 export const disconnectTerminal = () => {
-  const current = terminalStore.get();
-  if (current.socket) {
-    current.socket.emit('close'); // Send close signal to server first
-    current.socket.disconnect();
-  }
-  terminalStore.set(INITIAL_STATE);
+  // Orchestrate the disconnection using the dedicated terminal socket service
+  terminalSocketService.disconnect();
+  // Update global store state upon disconnection
+  setConnected(false);
+  appendOutput('\x1b[33mDisconnected from terminal server.\x1b[0m\n');
 };
 
 /**
- * Sends data input to the terminal session.
+ * Sends a command to the terminal backend for semantic execution.
+ * Note: Terminal now primarily sends raw input. This function can be used
+ * by other UI elements (e.g., a command input box or script runner) if a
+ * higher-level command submission is needed that bypasses raw PTY input.
  */
-export const sendTerminalInput = (input: string) => {
-  const current = terminalStore.get();
-  if (current.socket && current.isConnected) {
-    // Server expects { input: string } for 'input' event
-    current.socket.emit('input', { input }); 
-  }
+export const executeCommand = (command: string) => {
+  if (!command.trim()) return;
+  addCommandToHistory(command); // Still adds to client-side history for programmatic use
+  terminalSocketService.execCommand(command); // Use new service for command execution
 };
 
-/**
- * Sends a resize signal to the terminal session.
- */
-export const sendTerminalResize = (cols: number, rows: number) => {
-  const current = terminalStore.get();
-  if (current.socket && current.isConnected) {
-    // Server expects { cols: number, rows: number } for 'resize' event
-    current.socket.emit('resize', { cols, rows });
+export const resizeTerminal = (cols: number, rows: number) => {
+  if (terminalStore.get().isConnected) {
+    terminalSocketService.resize(cols, rows); // Use new service for resizing
   }
 };

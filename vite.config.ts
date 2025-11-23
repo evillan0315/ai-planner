@@ -34,11 +34,7 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/gemini/, ''),
         },
-        '/socket.io': {
-          target: env.VITE_WS_URL,
-          changeOrigin: true,
-          ws: true,
-        },
+    
       },
       cors: {
         origin: ['*'],

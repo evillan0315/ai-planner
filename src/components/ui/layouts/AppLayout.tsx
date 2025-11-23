@@ -24,7 +24,7 @@ import { GlobalAction } from '@/types/action';
 import GlobalActionButton from '@/components/ui/GlobalActionButton'; 
 import FileExplorer from '@/components/file-explorer/FileExplorer'; 
 import PlanGenerator from '@/components/planner/PlanGenerator'; 
-import TerminalComponent from '@/components/terminal/Terminal'; // ADDED
+import  {Terminal } from '@/components/terminal/Terminal'; // ADDED
 
 import Footer from '@/components/Footer'; 
 import { NavBar } from './NavBar'; // NEW IMPORT
@@ -371,7 +371,7 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
               />
               {/* Terminal Content (adjust position for the resizer bar) */}
               <Box sx={{ height: `calc(100% - ${BOTTOM_RESIZER_HEIGHT}px)`, pt: BOTTOM_RESIZER_HEIGHT }}>
-                  <TerminalComponent height={$terminalHeight} />
+                  <Terminal height={$terminalHeight} />
               </Box>
           </Box>
       )}
