@@ -31,7 +31,8 @@ import {
   useTheme,
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
-import ClearAllIcon from '@mui/icons-material/ClearAll'; 
+
+import { CarbonRowDelete } from '@/components/icons/CarbonRowDelete';
 import {
   IMAGE_MIME_TYPES,
   VIDEO_MIME_TYPES,
@@ -213,7 +214,7 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
     {
       label: 'Close All Tabs',
       action: closeAllTabs,
-      icon: <ClearAllIcon />,
+      icon: <CarbonRowDelete />,
       color: 'inherit',
       variant: 'text',
       disabled: isLoading,

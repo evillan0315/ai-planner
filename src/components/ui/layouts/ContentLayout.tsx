@@ -26,9 +26,10 @@ const DEFAULT_FOOTER_HEIGHT = 30;
 
 const headerBarSx = (theme: Theme): SxProps => ({
   backgroundColor: theme.palette.background.default,
-  borderBottom: `1px solid ${theme.palette.divider}`,
-  color: theme.palette.text.primary,
+  //borderBottom: `1px solid ${theme.palette.divider}`,
+  color: theme.palette.primary.main,
   minHeight: `${DEFAULT_HEADER_HEIGHT}px`,
+  //boxShadow: 0,
   // Tailwind handles sticky positioning and Z-index
 });
 
@@ -80,7 +81,7 @@ export const ContentLayout: React.FC<ContentLayoutProps> = ({
   return (
     <Box className="flex flex-col h-full w-full">
 
-      <AppBar position="static" className="sticky top-0 z-[400] shadow-sm" sx={headerBarSx(theme)}>
+      <AppBar position="static" className="sticky top-0 z-[400]" sx={headerBarSx(theme)}>
         <Toolbar sx={{ ...toolbarSx, minHeight: `${DEFAULT_HEADER_HEIGHT}px !important`}}>
           {renderedHeaderActionsLeft && (
             <Box className="flex items-center flex-shrink-0 min-w-10 pl-2">

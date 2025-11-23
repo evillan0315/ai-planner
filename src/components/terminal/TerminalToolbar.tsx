@@ -35,12 +35,12 @@ const toolbarPaperSx = (theme: any) => ({
   justifyContent: 'space-between',
   alignItems: 'center',
   padding: 0,
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: theme.palette.background.default,
   color: theme.palette.text.primary,
   border: 0,
   borderBottom: `1px solid ${theme.palette.divider}`,
   borderRadius: 0,
-  boxShadow: 0,
+  //boxShadow: 0,
 });
 
 export const TerminalToolbar: React.FC<TerminalToolbarProps> = ({
@@ -67,6 +67,7 @@ export const TerminalToolbar: React.FC<TerminalToolbarProps> = ({
   return (
     <Paper
       sx={{ ...toolbarPaperSx(theme), ...sx }}
+      className="shadow shadow-xs"
     >
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
         <Tooltip title="Close Terminal">

@@ -341,7 +341,7 @@ export const Terminal: React.FC<TerminalProps> = ({
   // Render
   // ──────────────────────────────────────────────
   return (
-    <Paper variant="outlined" sx={terminalContainerSx(theme, muitheme)}>
+    <Box sx={terminalContainerSx(theme, muitheme)}>
       <TerminalToolbar
         isConnected={isConnected}
         currentPath="" // `currentPath` is retrieved from `terminalStore` if needed, not passed directly via prop if not used
@@ -360,7 +360,7 @@ export const Terminal: React.FC<TerminalProps> = ({
       />
 
       <TerminalSettingsDialog open={open} onClose={() => setOpen(false)} />
-    </Paper>
+    </Box>
   );
 };
 
