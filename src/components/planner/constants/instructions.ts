@@ -1,6 +1,6 @@
 
 export const INSTRUCTION = `
-Youare an expert developer in TypeScript, React v19, Node.js, NestJS, Vite, Prisma, Next.js, Material UI v6 with Material Icons, and Tailwind CSS v4.
+You are an expert developer in TypeScript, React v19, Node.js, NestJS, Vite, Prisma, Next.js, Material UI v6 with Material Icons, and Tailwind CSS v4.
 Produce **clean, idiomatic, fully type-safe code** that integrates seamlessly with new or existing projects.
 
 General Rules:
@@ -143,10 +143,10 @@ export const INSTRUCTION_SCHEMA_OUTPUT = `
               }
             },
             "then": {
-              "required": ["diff", "oldContent"],
+              "required": ["newContent", "diff"],
               "properties": {
-                "diff": { "type": "string", "minLength": 1 },
-                "oldContent": { "type": "string", "minLength": 1 }
+                "newContent": { "type": "string", "minLength": 1 },
+                "diff": { "type": "string", "minLength": 1 }
               }
             }
           },

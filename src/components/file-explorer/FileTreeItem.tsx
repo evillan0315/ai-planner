@@ -7,13 +7,18 @@ import {
   useTheme,
   SxProps,
   CircularProgress,
+  
 } from '@mui/material';
 import FolderIcon from '@mui/icons-material/Folder';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'; // Added for expanded state
-
+import { getFileTypeIcon } from '@/constants/fileIcons'; 
 import type { IFileSystemEntry } from './types';
+import MarkdownRenderer from '@/components/markdown/MarkdownRenderer';
+import { format } from 'date-fns';
+
+
 
 /**
  * Props for the FileTreeItem component.
@@ -53,7 +58,7 @@ const baseItemSx: (theme: ReturnType<typeof useTheme>, depth: number, isActive: 
   display: 'flex',
   alignItems: 'center',
   paddingY: 0.75,
-  paddingLeft: `${depth * 16}px`, // Indentation based on depth (16px per level)
+  paddingLeft: `${depth * 10}px`, // Indentation based on depth (16px per level)
   cursor: 'pointer',
   transition: 'background-color 0.15s ease-in-out, border 0.15s ease-in-out',
   minHeight: '36px',
@@ -76,7 +81,12 @@ const baseItemSx: (theme: ReturnType<typeof useTheme>, depth: number, isActive: 
     backgroundColor: theme.palette.action.hover,
   },
 });
-
+const markdownRendererSx: SxProps = {
+  px: 2,
+  py: 1,
+  '& p, & ul, & ol': { m: 0, p: 0 }, // Remove margins/padding from paragraphs and lists
+  '& ul, & ol': { pl: 2 }, // Add back padding for list items
+};
 const getIconColor = (entry: IFileSystemEntry) => {
   if (entry.isDirectory) {
     return 'info.main';
@@ -164,6 +174,16 @@ const FileTreeItem: React.FC<FileTreeItemProps> = ({
   const IconComponent = entry.isDirectory ? FolderIcon : InsertDriveFileIcon;
   const iconColor = getIconColor(entry);
 
+  const FILE_INFO_TOOLTIP = `
+- **Path:** \`${entry.path}\` 
+${ entry.type ==='file' ? `- **Size:** ${formatSize(entry.size)}` : `- **Files:** ${entry.children.length} files` }  
+- **Type:** ${entry.type}     
+${ entry.type ==='file' ? `- **Created:** ${format(new Date(entry.createdAt), 'yyyy-MM-dd hh:mm a')}` : `` }  
+${ entry.type ==='file' ? `- **Updated:** ${format(new Date(entry.updatedAt), 'yyyy-MM-dd hh:mm a')}` : `` }  
+
+
+`;
+
   return (
  
       <Box 
@@ -183,8 +203,9 @@ const FileTreeItem: React.FC<FileTreeItemProps> = ({
         sx={baseItemSx(theme, depth, isActive, isSelected, isDragTarget)}
         className="flex justify-between w-full"
       >
-        <Box className="flex items-center flex-grow min-w-0 pr-4">
-
+      
+        <Box className="flex items-center   flex-grow min-w-0 pr-4">
+         
           {entry.isDirectory && onToggleExpand ? (
             <IconButton size="small" sx={{ p: 0, mr: 0.5 }} onClick={handleIconClick} disabled={isLoadingChildren}>
               {isLoadingChildren ? (
@@ -198,22 +219,44 @@ const FileTreeItem: React.FC<FileTreeItemProps> = ({
           ) : (
             <Box sx={{ width: '24px', mr: 0.5 }} /> 
           )}
-
-          <IconComponent sx={{ mr: 1, color: iconColor, fontSize: 18 }} />
+          
+     
+          <Box sx={{ mr: 0.5 }}> 
+          {getFileTypeIcon(entry.name, entry.type, isExpanded, 'small')}
+         
+          </Box> 
+          <Tooltip title={
+          <>
+          <Box className="flex items-center gap-3 p-2" sx={{borderBottom: `1px solid ${theme.palette.divider}`}}>
+          {getFileTypeIcon(entry.name, entry.type, isExpanded, 'large')}
+          <Typography 
+            variant="h5" 
+            className="truncate"
+          >
+          {entry.name} 
+          </Typography>
+          </Box>
+          <MarkdownRenderer content={FILE_INFO_TOOLTIP} sx={markdownRendererSx}/>
+          </>
+          } arrow placement="right">
+          <span>
           <Typography 
             variant="body2" 
             sx={{ 
-                whiteSpace: 'nowrap', 
-                overflow: 'hidden', 
-                textOverflow: 'ellipsis',
+                //whiteSpace: 'nowrap', 
                 fontWeight: entry.isDirectory ? 500 : 400,
             }}
+            className="truncate w-full max-w-[160px]"
           >
             {entry.name}
           </Typography>
+           </span>
+      </Tooltip>
+        
+          
         </Box>
         
-        <Box className="flex items-center space-x-2 text-right flex-shrink-0 pr-2">
+        <Box className="flex items-center  min-w-20 space-x-2 text-right  pr-2">
             {!entry.isDirectory && entry.size !== undefined && (
                 <Typography variant="caption" color="text.secondary">
                     {formatSize(entry.size)}

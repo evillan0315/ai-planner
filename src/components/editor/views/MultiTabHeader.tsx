@@ -15,7 +15,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import type { IEditorTab } from '@/components/editor/stores/multiTabEditorStore';
 import { setActiveTab, closeTab } from '@/components/editor/stores/multiTabEditorStore';
-
+import { getFileTypeIcon } from '@/constants/fileIcons'; 
 // --- Types ---
 
 interface MultiTabHeaderProps {
@@ -104,14 +104,17 @@ export const MultiTabHeader: React.FC<MultiTabHeaderProps> = ({ tabs, activeTabI
                         component="div"
                         value={index} // Use the array index as the tab value
                         label={
-                            <Box className="flex items-center">
+                            <Box className="flex items-center gap-2">
+                                
+                                {getFileTypeIcon(tab.name, 'file', false)}
+                              
                                 <Typography variant="body2" component="span" sx={{ mr: 1, fontStyle: tab.hasUnsavedChanges ? 'italic' : 'normal' }}>
                                     {tab.name}
                                     {tab.hasUnsavedChanges && ' *'}
                                 </Typography>
                                 <IconButton 
                                     size="small" 
-                                    sx={{ p: 0, ml: 1, color: 'text.secondary' }}
+                                    sx={{ p: 0, color: 'text.secondary' }}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         closeTab(tab.id);

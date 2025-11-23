@@ -29,7 +29,7 @@ import  { PROJECT_ROOT_TOOLTIP_DOCS } from './constants/documentation';
 import FloatingIconTextField from '@/components/ui/FloatingIconTextField'; 
 import type { GlobalAction } from '@/components/ui/GlobalActionButton'; 
 import type { GlobalActionGroup } from '@/components/ui/GlobalActioButtonGroup'; 
-
+import MarkdownRenderer from '@/components/markdown/MarkdownRenderer';
 /**
  * Truncates a file path to show start/end segments for display.
  * @param filePath The full file path.
@@ -264,18 +264,9 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
                 disabled={isLoading}
             />
             <Box className="flex items-center gap-1 flex-shrink-0 min-w-0 mb-1">
-                    <Tooltip 
-                        title={
-                            <Box sx={{ whiteSpace: 'pre-wrap', p: 1, maxWidth: 350 }}>
-                                <Typography variant="caption" fontWeight="bold">Project Root Documentation</Typography>
-                                <Typography variant="body2" sx={{ mt: 1, fontSize: '0.75rem' }}>
-                                    {PROJECT_ROOT_TOOLTIP_DOCS}
-                                </Typography>
-                            </Box>
-                        }
-                        arrow
-                        placement="right"
-                    >
+                    
+                    <Tooltip title={<MarkdownRenderer content={PROJECT_ROOT_TOOLTIP_DOCS}  />} arrow
+                        placement="right">
                         <IconButton size="small" color="info" aria-label="project root documentation">
                             <DescriptionIcon sx={{ fontSize: 16 }} />
                         </IconButton>
