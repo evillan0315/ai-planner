@@ -19,6 +19,17 @@
     "@mui/icons-material": "^5.15.20",
     "@mui/material": "^5.15.20",
     "@nanostores/react": "^1.0.0",
+    "@xterm/addon-attach": "^0.11.0",
+    "@xterm/addon-canvas": "^0.7.0",
+    "@xterm/addon-clipboard": "^0.1.0",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-image": "^0.8.0",
+    "@xterm/addon-ligatures": "^0.9.0",
+    "@xterm/addon-search": "^0.15.0",
+    "@xterm/addon-unicode11": "^0.8.0",
+    "@xterm/addon-web-links": "^0.11.0",
+    "@xterm/addon-webgl": "^0.18.0",
+    "@xterm/xterm": "^5.5.0",
     "axios": "^1.13.2",
     "clx": "^1.0.0",
     "date-fns": "^4.1.0",
@@ -31,7 +42,8 @@
     "react-markdown": "^10.1.0",
     "react-router-dom": "^6.24.0",
     "rehype-raw": "^7.0.0",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "strip-ansi": "^7.1.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

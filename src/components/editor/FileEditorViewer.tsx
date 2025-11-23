@@ -195,19 +195,6 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
   const saveAction = isDedicatedRouteMode ? saveActiveTabContent : saveSingletonFileContent;
   const updateAction = isDedicatedRouteMode ? updateActiveTabDraft : updateSingletonDraftContent;
 
-  // Actions for the dedicated route editor (Save if changes exist)
-  // The FileContentRenderer determines if editing is possible
-  const dedicatedRouteActions: GlobalAction[] = hasUnsavedChanges ? [
-    {
-      label: 'Save',
-      action: saveActiveTabContent, // Use multi-tab save action
-      icon: <SaveIcon />,
-      color: 'primary',
-      variant: '',
-      disabled: isLoading, 
-      tooltip: 'Save active file content (Ctrl+S)',
-    },
-  ] : [];
   // Actions for the dedicated route editor (Right side: Save if changes exist)
   const dedicatedRouteRightActions: GlobalAction[] = hasUnsavedChanges ? [ // <<< RENAMED
     {
