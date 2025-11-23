@@ -7,7 +7,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import { WebglAddon } from '@xterm/addon-webgl';
 import { ClipboardAddon } from '@xterm/addon-clipboard';
 import '@xterm/xterm/css/xterm.css';
-import { getAuthToken  } from '@/stores/authStore';
+import { getAuthToken } from '@/stores/authStore';
 import { TerminalToolbar } from './TerminalToolbar';
 import TerminalSettingsDialog from './TerminalSettingsDialog';
 import {
@@ -21,7 +21,7 @@ import {
 } from '@/components/terminal/stores/terminalStore';
 import { terminalSocketService } from '@/components/terminal/services/terminalSocketService';
 
-import { themeAtom  } from '@/stores/themeStore';
+import { themeAtom } from '@/stores/themeStore';
 import stripAnsi from 'strip-ansi';
 import { SystemInfo, PromptData } from './types/terminal';
 import { useAuth } from '@/hooks/useAuth';
@@ -44,7 +44,6 @@ const terminalContainerSx = (themeMode: 'light' | 'dark', theme: any) => ({
       : theme.palette.background.default,
 });
 
-// MODIFIED: Use flexGrow: 1 instead of fixed pixel height calculation.
 // Height is now inherited from the parent Box sizing in AppLayout.
 const xtermBoxSx = () => ({
   flexGrow: 1,
@@ -60,12 +59,19 @@ export const Terminal: React.FC<TerminalProps> = ({
   const { isConnected } = useStore(terminalStore);
   const navigate = useNavigate();
 
+  // FIX: Stabilize logout function reference to prevent infinite loop
+  const logoutRef = useRef(logout);
+  useEffect(() => {
+    logoutRef.current = logout;
+  }, [logout]);
+  // END FIX
+
   const muitheme = useTheme();
-  const { theme  } = useStore(themeAtom);
+  const { theme } = useStore(themeAtom);
   const terminalContainerRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XtermTerminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
-  const clipboardAddonRef = useRef<ClipboardAddon | null>(null); // Keep a ref to ClipboardAddon
+  const clipboardAddonRef = useRef<ClipboardAddon | null>(null);
   const [open, setOpen] = useState(false);
 
   // ──────────────────────────────────────────────
@@ -109,6 +115,7 @@ export const Terminal: React.FC<TerminalProps> = ({
         term.open(container);
 
         try {
+          // Attempt to load WebGL Addon for accelerated rendering
           const webglAddon = new WebglAddon();
           term.loadAddon(webglAddon);
           console.log('[Terminal] WebGL renderer enabled.');
@@ -137,36 +144,30 @@ export const Terminal: React.FC<TerminalProps> = ({
 
         // ──────────────────────────────────────────────
         // Input Handling (onKey for specific DOM events/control sequences)
-        // The PTY/shell on the backend will handle line editing, history, and interactive prompts.
         // ──────────────────────────────────────────────
         term.onKey(({ domEvent }) => {
           const { key: pressedKey, ctrlKey } = domEvent;
-          const currentClipboardAddon = clipboardAddonRef.current;
+          // Note: ClipboardAddon handles copy/paste typically via browser shortcuts (Ctrl/Cmd + C/V) 
 
-          // Ctrl+C: Copy if selection, otherwise send interrupt to PTY
+          // Ctrl+C: Send interrupt to PTY only if no text is selected for copying
           if (ctrlKey && pressedKey.toLowerCase() === 'c') {
-            if (term.hasSelection()) {
-              //currentClipboardAddon?.copySelection(); // Use addon's copy function
-            } else {
+            if (!term.hasSelection()) {
               // No selection, send Ctrl+C to terminal (interrupt)
               terminalSocketService.sendInput('\x03'); // ASCII for Ctrl+C (ETX)
             }
+            // If selection exists, ClipboardAddon or browser default handles copy.
             return; // Prevent further processing by other handlers
           }
 
-          // Ctrl+V: No explicit handling here. ClipboardAddon, in combination with onData,
-          // should handle pasting automatically by emitting the pasted characters via onData.
-
-          // The following cases are for specific key presses that need explicit PTY sequences
-          // sent to the backend, if they are not naturally emitted via onData or require
-          // special handling. This pattern is often used when the backend PTY is in raw mode.
+          // Case handling for explicit PTY sequences (like arrows, which often don't fire onData consistently)
           switch (pressedKey) {
             case 'Enter':
               terminalSocketService.sendInput('\r'); // Send Carriage Return to PTY
               break;
 
             case 'Backspace':
-              //terminalSocketService.sendInput('\x7F'); // Send ASCII DELETE to PTY
+              // Handled by the shell/PTY, typically sent via onData. If PTY is in raw mode, might need \x7F here.
+              // We rely on onData here for standard key presses that aren't control sequences.
               break;
 
             case 'Tab':
@@ -190,8 +191,7 @@ export const Terminal: React.FC<TerminalProps> = ({
               break;
 
             default:
-              // For all other keys (including regular characters), they should be caught by `onData`.
-              // No action needed here, as `onData` will forward character input.
+              // All other characters should be captured by `onData`.
               break;
           }
         });
@@ -216,8 +216,6 @@ export const Terminal: React.FC<TerminalProps> = ({
 
   // ──────────────────────────────────────────────
   // Socket Event Handling (via terminalSocketService)
-  // This useEffect attaches listeners to the terminalSocketService
-  // and updates both the XTerm.js instance and the nanostore.
   // ──────────────────────────────────────────────
   useEffect(() => {
     const term = xtermRef.current;
@@ -288,25 +286,26 @@ export const Terminal: React.FC<TerminalProps> = ({
 
   // ──────────────────────────────────────────────
   // Auto-connect on mount and handle disconnect on unmount
-  // Uses the orchestrating actions from terminalStore.
   // ──────────────────────────────────────────────
   useEffect(() => {
     const token = getAuthToken();
     if (!token) {
-        // If no token, ensure disconnected state and prevent connection attempt
-        setConnected(false);
-        console.warn('No authentication token available for terminal. Skipping auto-connect.');
-        // Optionally, redirect to login if auth is strictly required
-        // navigate('/login');
-        return;
+      // If no token, ensure disconnected state and prevent connection attempt
+      setConnected(false);
+      console.warn(
+        'No authentication token available for terminal. Skipping auto-connect.',
+      );
+      return;
     }
 
-    // Attempt to connect using the terminalStore action, which handles connection logic
     connectTerminal().catch(async (error) => {
       console.error('Initial terminal connection failed:', error);
       // Specific error message check for authentication token issues
-      if (error instanceof Error && error.message === 'No authentication token.') {
-        await logout();
+      if (
+        error instanceof Error &&
+        error.message === 'No authentication token.'
+      ) {
+        await logoutRef.current();
         navigate('/login');
       }
     });
@@ -315,7 +314,7 @@ export const Terminal: React.FC<TerminalProps> = ({
     return () => {
       disconnectTerminal();
     };
-  }, []); // Empty dependency array ensures this effect runs once on mount/unmount
+  }, [navigate]); // Depend on logout and navigate
 
   // ──────────────────────────────────────────────
   // Dynamic height/width refit for XTerm.js instance (Triggered by AppLayout resize)
@@ -328,50 +327,21 @@ export const Terminal: React.FC<TerminalProps> = ({
     requestAnimationFrame(() => {
       try {
         fitAddonRef.current?.fit();
-        
+
         // IMPORTANT: Communicate new dimensions to the backend PTY
         terminalSocketService.resize(term.cols, term.rows);
-
       } catch (e) {
         /* Ignore errors if renderer is not yet ready, common during rapid updates */
-        console.error("Terminal refit failed:", e);
+        console.error('Terminal refit failed:', e);
       }
     });
   }, [terminalHeight]); // Re-fit whenever the provided terminalHeight changes
 
   // ──────────────────────────────────────────────
-  // Context menu for copy/paste functionality
-  // ──────────────────────────────────────────────
-  useEffect(() => {
-  const container = terminalContainerRef.current;
-  const term = xtermRef.current;
-  const currentClipboardAddon = clipboardAddonRef.current; // Access the ref here
-
-  if (!container || !term || !currentClipboardAddon) return;
-
-  const handleContextMenu = (event: MouseEvent) => {
-    event.preventDefault(); // Prevent default browser context menu
-    if (term.hasSelection()) {
-      // If text is selected, copy it to clipboard using addon's copySelection()
-      //currentClipboardAddon.copySelection();
-      term.clearSelection(); // Clear selection after copying
-    } else {
-      // If no text selected, paste from clipboard using addon's paste()
-      //currentClipboardAddon.paste();
-    }
-  };
-
-  container.addEventListener('contextmenu', handleContextMenu);
-  return () => container.removeEventListener('contextmenu', handleContextMenu);
-}, []); // Empty dependency array ensures this runs once on mount/unmount
-  // ──────────────────────────────────────────────
   // Render
   // ──────────────────────────────────────────────
   return (
-    <Paper
-      variant="outlined"
-      sx={terminalContainerSx(theme, muitheme)}
-    >
+    <Paper variant="outlined" sx={terminalContainerSx(theme, muitheme)}>
       <TerminalToolbar
         isConnected={isConnected}
         currentPath="" // `currentPath` is retrieved from `terminalStore` if needed, not passed directly via prop if not used
@@ -384,11 +354,13 @@ export const Terminal: React.FC<TerminalProps> = ({
 
       <Box
         ref={terminalContainerRef}
-        // onClick={() => terminalContainerRef.current?.focus()} // XTerm handles its own focus logic internally
-        sx={xtermBoxSx()} 
+        // Use a click handler here to force focus on the terminal container
+        onClick={() => xtermRef.current?.focus()} 
+        sx={xtermBoxSx()}
       />
 
       <TerminalSettingsDialog open={open} onClose={() => setOpen(false)} />
     </Paper>
   );
 };
+

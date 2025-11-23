@@ -13,7 +13,7 @@ import {
   toggleLeftSidebar,
   toggleRightSidebar,
   isTerminalVisible, // ADDED
-  toggleTerminal,   // ADDED
+  toggleTerminal, // ADDED
 } from '@/stores/uiStore';
 
 // NEW IMPORT
@@ -75,7 +75,9 @@ const Footer = () => {
               ></IconButton>
             </Tooltip>
             {/* NEW: Toggle Terminal */}
-            <Tooltip title={terminalVisible ? 'Hide Terminal' : 'Show Terminal'}>
+            <Tooltip
+              title={terminalVisible ? 'Hide Terminal' : 'Show Terminal'}
+            >
               <IconButton
                 onClick={toggleTerminal}
                 color={terminalVisible ? 'primary' : 'inherit'} // Highlight if active

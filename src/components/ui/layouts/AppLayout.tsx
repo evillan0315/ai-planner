@@ -91,7 +91,8 @@ const getMediaIcon = (mimeType?: string | null): React.ReactNode => {
 
 export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
   const theme = useTheme();
-  const { isLoggedIn } = useAuth(); // Need isLoggedIn to conditionally render sidebars
+  // MODIFIED: Retrieve isLoggedIn AND logout function from useAuth
+  const { isLoggedIn, logout } = useAuth(); 
   const location = useLocation(); // Use location hook
   
   // 1. Code Editor Drawer State (Singleton)
@@ -371,7 +372,7 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
               />
               {/* Terminal Content (adjust position for the resizer bar) */}
               <Box sx={{ height: `calc(100% - ${BOTTOM_RESIZER_HEIGHT}px)`, pt: BOTTOM_RESIZER_HEIGHT }}>
-                  <Terminal height={$terminalHeight} />
+                  <Terminal onLogout={logout} terminalHeight={$terminalHeight} />
               </Box>
           </Box>
       )}
@@ -438,3 +439,4 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
     </Box>
   );
 };
+

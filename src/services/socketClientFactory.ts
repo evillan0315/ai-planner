@@ -12,7 +12,8 @@ export interface ISocketClient {
 }
 
 // Default WebSocket server URL from environment variables
-const DEFAULT_WS_SERVER_URL = import.meta.env.VITE_TERMINAL_WS_URL || 'http://localhost:3003';
+const DEFAULT_WS_SERVER_URL =
+  import.meta.env.VITE_TERMINAL_WS_URL || 'http://localhost:3003';
 
 /**
  * Factory function to create and manage Socket.IO client instances.
@@ -43,7 +44,10 @@ export const createSocketClient = (namespace: string = '/'): ISocketClient => {
       });
 
       socket.on('connect_error', (error) => {
-        console.error(`Socket connection error for ${namespace}:`, error.message);
+        console.error(
+          `Socket connection error for ${namespace}:`,
+          error.message,
+        );
       });
     }
     return socket;
@@ -67,7 +71,7 @@ export const createSocketClient = (namespace: string = '/'): ISocketClient => {
           connectionPromise = null; // Reset promise
           return reject(error);
         }
-        
+
         // Update auth payload just before connecting if token changed
         // Using type assertion because s.io.opts is typed as Partial<ManagerOptions>
         // but at runtime, for setting auth, it behaves like ManagerOptions.
@@ -75,9 +79,9 @@ export const createSocketClient = (namespace: string = '/'): ISocketClient => {
 
         // Append initialCwd to handshake query if provided
         if (initialCwd) {
-            s.io.opts.query = { initialCwd };
+          s.io.opts.query = { initialCwd };
         } else {
-            delete s.io.opts.query; // Clear if not needed
+          delete s.io.opts.query; // Clear if not needed
         }
 
         s.once('connect', () => {
@@ -105,7 +109,9 @@ export const createSocketClient = (namespace: string = '/'): ISocketClient => {
       if (socket && socket.connected) {
         socket.emit(event, ...args);
       } else {
-        console.warn(`Attempted to emit '${event}' but socket ${namespace} is not connected.`);
+        console.warn(
+          `Attempted to emit '${event}' but socket ${namespace} is not connected.`,
+        );
       }
     },
 

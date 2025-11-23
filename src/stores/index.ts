@@ -1,1 +1,1 @@
-export * from '@/components/file-explorer/stores/fileTreeStore'
+export * from '@/components/file-explorer/stores/fileTreeStore';
