@@ -351,7 +351,7 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
               className="terminal-area flex-shrink-0 relative"
               sx={{
                   height: $terminalHeight + BOTTOM_RESIZER_HEIGHT, // Height + Resizer
-                  backgroundColor: theme.palette.background.paper,
+                  backgroundColor: theme.palette.background.default,
                   borderTop: `1px solid ${theme.palette.divider}`, // Border applied implicitly by the resizer bar position
               }}
           >
@@ -363,7 +363,7 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
                       height: BOTTOM_RESIZER_HEIGHT,
                       backgroundColor: theme.palette.divider,
                       transition: 'background-color 0.2s ease',
-                      bgcolor: theme.palette.background.dark,
+  
                       '&:hover': {
                           backgroundColor: theme.palette.primary.main,
                       },
@@ -371,7 +371,7 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
                   title="Resize terminal"
               />
               {/* Terminal Content (adjust position for the resizer bar) */}
-              <Box sx={{ height: `calc(100% - ${BOTTOM_RESIZER_HEIGHT}px)`, pt: BOTTOM_RESIZER_HEIGHT }}>
+              <Box sx={{ height: `calc(100% - 0px)`, backgroundColor: theme.palette.background.default, }}>
                   <Terminal onLogout={logout} terminalHeight={$terminalHeight} />
               </Box>
           </Box>

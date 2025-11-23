@@ -40,15 +40,15 @@ const terminalContainerSx = (themeMode: 'light' | 'dark', theme: any) => ({
   position: 'relative',
   backgroundColor:
     themeMode === 'dark'
-      ? theme.palette.background.paper
-      : theme.palette.background.default,
+      ? theme.palette.background.default
+      : theme.palette.background.paper,
 });
 
 // Height is now inherited from the parent Box sizing in AppLayout.
 const xtermBoxSx = () => ({
   flexGrow: 1,
   overflow: 'hidden',
-  '.xterm': { padding: '8px' },
+  '.xterm': { padding: '2px' },
 });
 
 export const Terminal: React.FC<TerminalProps> = ({
