@@ -1,4 +1,4 @@
-```typescript
+
 import type { ReactNode } from 'react';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
