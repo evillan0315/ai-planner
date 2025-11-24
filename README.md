@@ -18,7 +18,7 @@ AI Planner UI provides three main tools:
 Watch a short demo: https://youtu.be/Lcls1s0MJV0
 
 
-## \U0001f5bc️ Screenshots
+## Screenshots
 
 ![Planner 01](https://github.com/evillan0315/ai-planner/blob/main/screens/planner03.png)
 ![Planner 02](https://github.com/evillan0315/ai-planner/blob/main/screens/planner02.png)

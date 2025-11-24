@@ -45,6 +45,8 @@ interface FileContentRendererProps {
     mediaUrlError?: string | null;
     // Prop for media players (if they become available) - This is the handler passed from FloatingResizableDraggableBox -> FileEditorViewer
     onRegisterPlayerAction?: (fn: (() => void) | null) => void;
+    /** Optional setting to force the rendering mode. */
+    forceRendererType?: RendererType; // NEW PROP
 }
 
 type RendererType = 'code' | 'markdown' | 'image' | 'video' | 'audio' | 'iframe' | 'plaintext' | 'unsupported';
@@ -116,11 +118,14 @@ export const FileContentRenderer: React.FC<FileContentRendererProps> = ({
     mediaUrlLoading,
     mediaUrlError,
     onRegisterPlayerAction, // Note: This is actually the handleRegisterFullscreen from FileEditorViewer
+    forceRendererType, // NEW DESTRUCTURING
 }) => {
     
-    const rendererType: RendererType = useMemo(() => determineRendererType(content), [content]);
+    // MODIFIED: Use forced type if provided, otherwise determine dynamically
+    const determinedRendererType: RendererType = useMemo(() => determineRendererType(content), [content]);
+    const rendererType: RendererType = forceRendererType ?? determinedRendererType; // Use forceRendererType if set
 
-    // Editable if NOT contextual AND content is code/plaintext
+    // Editable if NOT contextual AND content is code/plaintext OR if we explicitly force 'code' view
     const isCodeEditable = !isContextualMode && (rendererType === 'code' || rendererType === 'plaintext');
     
     // Determine content to display: draft first, then original
@@ -284,3 +289,4 @@ export const FileContentRenderer: React.FC<FileContentRendererProps> = ({
         </Alert>
     );
 };
+

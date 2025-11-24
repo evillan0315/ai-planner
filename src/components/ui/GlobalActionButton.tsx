@@ -16,6 +16,7 @@ export interface GlobalAction {
   variant?: ButtonVariant;
   disabled?: boolean;
   component?: React.ReactNode;
+  iconOnly?: boolean | true; 
 }
 
 export interface GlobalActionButtonProps {
@@ -36,7 +37,7 @@ function GlobalActionButton({ globalActions, iconOnly = false }: GlobalActionBut
         globalActions.map((action, index) =>
           action.component ? (
             <React.Fragment key={index}>{action.component}</React.Fragment>
-          ) : iconOnly ? (
+          ) : action.iconOnly ? (
             <Tooltip key={index} title={action.label} arrow>
               <IconButton
                 onClick={action.action}

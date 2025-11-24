@@ -134,6 +134,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
         icon: <BugReportIcon fontSize="small" />,
         color: 'error',
         disabled: isLoading,
+        iconOnly: true,
     }] : [];
       
     // 1. Primary Actions (Bottom Right)
@@ -148,6 +149,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           icon: <NoteAddIcon fontSize="small" color="inherit" />,
           color: 'secondary',
           disabled: isLoading && !plan,
+          iconOnly: true,
         },
         {          
           label: "Generate Plan",
@@ -155,6 +157,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           icon: isLoading ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon fontSize="small" />,
           color: 'success',
           disabled: isLoading || !userPrompt.trim() || !projectRoot.trim(),
+          iconOnly: true,
         },
     ];
     
@@ -166,6 +169,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           icon: <SettingsIcon fontSize="small" />,
           color: additionalInstructions.length > 50 ? 'primary' : 'secondary', // Highlight if custom instructions exist
           disabled: isLoading,
+          iconOnly: true,
         },
         {          
           label: `Edit Expected Output Format / JSON Schema`,
@@ -173,6 +177,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           icon: <SchemaIcon fontSize="small" />,
           color: expectedOutputFormat.length > 50 ? 'primary' : 'secondary', // Highlight if custom schema exists
           disabled: isLoading,
+          iconOnly: true,
         },
     ];
 
@@ -185,6 +190,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           icon: <ListAltIcon fontSize="small" />,
           color: 'primary',
           disabled: isLoading,
+          iconOnly: true,
         },
         {          
           label: `Set Project Root Directory (${truncatePathDisplay(projectRoot)})`,
@@ -192,6 +198,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           icon: <FolderOpenIcon fontSize="small" />,
           color: 'secondary',
           disabled: isLoading,
+          iconOnly: true,
         },
         {          
           label: `Manage AI Scan Paths (${scanPathsInput.split(',').filter(Boolean).length} included)`,
@@ -199,6 +206,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           icon: <AddRoadIcon fontSize="small" />,
           color: 'secondary',
           disabled: isLoading,
+          iconOnly: true,
         },
         {          
           label: "Upload Context File (Image/Text)",
@@ -206,6 +214,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           icon: <UploadFileIcon fontSize="small" />,
           color: 'secondary',
           disabled: isLoading || !!selectedFile,
+          iconOnly: true,
         },
     ];
     

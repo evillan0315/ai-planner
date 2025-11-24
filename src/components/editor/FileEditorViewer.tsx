@@ -31,12 +31,16 @@ import {
   useTheme,
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
+import CodeIcon from '@mui/icons-material/Code'; // ADDED
+import DescriptionIcon from '@mui/icons-material/Description'; // ADDED
 
 import { CarbonRowDelete } from '@/components/icons/CarbonRowDelete';
 import {
   IMAGE_MIME_TYPES,
   VIDEO_MIME_TYPES,
   AUDIO_MIME_TYPES,
+  MARKDOWN_EXTENSIONS, // ADDED
+  HTML_EXTENSIONS, // ADDED
 } from '@/constants';
 
 // NEW IMPORTS FOR REFACTORED COMPONENTS
@@ -74,6 +78,9 @@ const contentContainerSx: SxProps = {
 };
 
 
+// Helper to get the extension
+const getExtension = (filePath: string) => path.extname(filePath).toLowerCase();
+
 /**
  * Renders the file content using the appropriate viewer (Monaco, Markdown, Image, Video, IFrame).
  * It acts as an orchestrator selecting between Contextual, Dedicated Route, or Singleton Drawer modes.
@@ -92,6 +99,9 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   // NEW STATE: Cursor position and Placeholder for issues
   const [cursorPosition, setCursorPosition] = useState<{ line: number; column: number }>({ line: 1, column: 1 });
   const [eslintIssuesCount, setEslintIssuesCount] = useState<number>(0); // Placeholder for future integration
+  
+  // NEW STATE: View mode for toggleable files (Markdown, HTML)
+  const [viewMode, setViewMode] = useState<'code' | 'preview'>('code'); // Default to code view for robustness
 
   // Update handler for Monaco
   const handleCursorChange = useCallback((line: number, column: number) => {
@@ -164,6 +174,25 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   const content = currentTabOrContent;
   const fileEntry = currentFileEntry;
 
+// --- Active File Type Determination and View Mode Reset ---
+
+// Determine if the current file is Markdown or HTML.
+const extWithDot = fileEntry ? getExtension(fileEntry.path) : '';
+const extension = extWithDot.startsWith('.') ? extWithDot.slice(1) : extWithDot;
+const isMarkdown = MARKDOWN_EXTENSIONS.has(extension);
+const isHtml = HTML_EXTENSIONS.has(extension);
+const isToggleableFile = isMarkdown || isHtml;
+
+// Use Effect to reset viewMode when active file changes
+useEffect(() => {
+    console.log(isToggleableFile, extension)
+    if (fileEntry?.path) {
+        // If MD/HTML, default to preview, otherwise default to code (irrelevant for non-toggleable files)
+        setViewMode(isToggleableFile ? 'preview' : 'code');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [fileEntry?.path, isToggleableFile]); 
+
 // --- New Handler for Fullscreen Registration ---
 // Handler definition for VideoPlayer to pass its action upward to FloatingResizableDraggableBox
 const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
@@ -196,18 +225,41 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
   const saveAction = isDedicatedRouteMode ? saveActiveTabContent : saveSingletonFileContent;
   const updateAction = isDedicatedRouteMode ? updateActiveTabDraft : updateSingletonDraftContent;
 
-  // Actions for the dedicated route editor (Right side: Save if changes exist)
-  const dedicatedRouteRightActions: GlobalAction[] = hasUnsavedChanges ? [ // <<< RENAMED
-    {
-      label: 'Save',
-      action: saveActiveTabContent, // Use multi-tab save action
-      icon: <SaveIcon />,
-      color: 'primary',
-      variant: '',
-      disabled: isLoading, 
-      tooltip: 'Save active file content (Ctrl+S)',
-    },
-  ] : [];
+  // Actions for the dedicated route editor (Right side: Save if changes exist + Toggle View)
+  const dedicatedRouteRightActions: GlobalAction[] = useMemo(() => { // <<< MODIFIED
+    const actions: GlobalAction[] = [];
+    
+    // 1. View Toggle for MD/HTML
+    if (isDedicatedRouteMode && isToggleableFile) {
+        const isCode = viewMode === 'code';
+        actions.push({
+            label: isCode ? 'View Preview' : 'View Source Code',
+            action: () => setViewMode(isCode ? 'preview' : 'code'),
+            icon: isCode ? <DescriptionIcon /> : <CodeIcon />, 
+            color: 'secondary',
+            variant: '',
+            disabled: isLoading, 
+            tooltip: `Toggle to ${isCode ? 'Preview' : 'Code'} view`,
+            iconOnly: true,
+        });
+    }
+
+    // 2. Save Button (only if changes exist)
+    if (hasUnsavedChanges) { 
+        actions.push({
+            label: 'Save',
+            action: saveActiveTabContent, // Use multi-tab save action
+            icon: <SaveIcon />,
+            color: 'primary',
+            variant: '',
+            disabled: isLoading, 
+            tooltip: 'Save active file content (Ctrl+S)',
+            
+        });
+    }
+    
+    return actions;
+  }, [isDedicatedRouteMode, isToggleableFile, viewMode, hasUnsavedChanges, isLoading]);
 
   // Actions for the dedicated route editor (Left side: Close All) // <<< ADDED
   const dedicatedRouteLeftActions: GlobalAction[] = tabs.length > 0 ? [
@@ -219,6 +271,7 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
       variant: 'text',
       disabled: isLoading,
       tooltip: 'Close all open editor tabs',
+      iconOnly: true,
     }
   ] : [];
 
@@ -292,6 +345,11 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
         // Content is ready for active tab
         headerContentNode = <MultiTabHeader tabs={tabs} activeTabIndex={activeTabIndex} />;
 
+        // Determine the forced renderer type
+        const forcedType = (isToggleableFile && viewMode === 'code') 
+            ? 'code' 
+            : undefined; // Let FileContentRenderer determine 'markdown' or 'iframe'
+
         contentNode = (
             <FileContentRenderer
                 content={activeTab}
@@ -303,6 +361,7 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
                 onSaveShortcut={saveActiveTabContent}
                 onContentChange={updateActiveTabDraft}
                 onCursorChange={handleCursorChange} // PASS CURSOR HANDLER HERE
+                forceRendererType={forcedType} // PASS NEW PROP
             />
         );
         
