@@ -2,9 +2,10 @@ import React, { useMemo, useCallback } from 'react';
 import {
   Box,
   Typography,
-  // CircularProgress, // REMOVED
   Alert,
   SxProps,
+  CircularProgress, // ADDED
+  // Skeleton, // Optional: Removed Skeleton import for simplicity
 } from '@mui/material';
 import MonacoEditor from '@/components/editor/monaco/MonacoEditor';
 import MarkdownRenderer from '@/components/markdown/MarkdownRenderer';
@@ -24,8 +25,7 @@ import type { IFileSystemEntry } from '@/components/file-explorer/types';
 import AudioPlayer from '@/components/ui/player/AudioPlayer';
 import VideoPlayer from '@/components/ui/player/VideoPlayer';
 
-// ADDED LOADING COMPONENT
-import Loading from '@/components/ui/loader/Loading'; 
+// REMOVED: import Loading from '@/components/ui/loader/Loading'; 
 
 // --- Types ---
 
@@ -145,12 +145,10 @@ export const FileContentRenderer: React.FC<FileContentRendererProps> = ({
     if (isLoading) {
          return (
              <Box className="flex flex-col items-center justify-center h-full">
-                 {/* REPLACED: CircularProgress with Loading type="linear" */}
-                 <Loading 
-                    type="linear" 
-                    message={`Loading ${fileEntry?.name || 'Content'}...`}
-                    className="w-full"
-                 />
+                 <CircularProgress size={40} />
+                 <Typography variant="h6" sx={{ mt: 2 }} color="text.secondary">
+                    Loading {fileEntry?.name || 'Content'}...
+                 </Typography>
              </Box>
          );
     }
@@ -183,13 +181,10 @@ export const FileContentRenderer: React.FC<FileContentRendererProps> = ({
         if (mediaUrlLoading) {
             return (
                 <Box className="flex justify-center items-center h-full">
-                    {/* REPLACED: CircularProgress with Loading type="linear" */}
-                    <Loading 
-                        type="linear" 
-                        message="Generating secured media stream URL..." 
-                        barHeight={8}
-                        skeletonWidth="200px"
-                    />
+                    <CircularProgress size={40} />
+                    <Typography variant="body1" sx={{ mt: 2 }} color="text.secondary">
+                        Generating secured media stream URL...
+                    </Typography>
                 </Box>
             );
         }

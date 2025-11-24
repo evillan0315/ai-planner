@@ -25,10 +25,10 @@ import type { GlobalAction } from '@/components/ui/GlobalActionButton';
 import {
   Box,
   Typography,
-  // CircularProgress, // REMOVED
   Alert,
   SxProps,
   useTheme,
+  CircularProgress, // ADDED
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import CodeIcon from '@mui/icons-material/Code'; // ADDED
@@ -43,8 +43,7 @@ import {
   HTML_EXTENSIONS, // ADDED
 } from '@/constants';
 
-// NEW IMPORTS
-import Loading from '@/components/ui/loader/Loading'; // <--- MODIFIED IMPORT PATH
+// REMOVED: import Loading from '@/components/ui/loader/Loading'; 
 import { FileContentRenderer } from './views/FileContentRenderer';
 import { MultiTabHeader } from './views/MultiTabHeader';
 import { EditorStatusFooter } from './views/EditorStatusFooter';
@@ -260,7 +259,7 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
     }
     
     return actions;
-  }, [isDedicatedRouteMode, isToggleableFile, viewMode, hasUnsavedChanges, isLoading]);
+  }, [isDedicatedRouteMode, isToggleableFile, viewMode, hasUnsavedChanges, isLoading, isGlobalLoading]);
 
   // Actions for the dedicated route editor (Left side: Close All) // <<< ADDED
   const dedicatedRouteLeftActions: GlobalAction[] = tabs.length > 0 ? [
@@ -299,13 +298,14 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
          )}
          {!content && (
              <Box className="flex flex-col items-center justify-center h-full">
-                {/* REPLACED: CircularProgress with Loading type="linear" */}
+                {/* Use local CircularProgress for Contextual mode since GlobalLoading is not triggered here. */}
                 {isLoading ? (
-                    <Loading 
-                        type="skeleton" 
-                        message={`Loading ${contextEntry?.name || 'file'}...`} 
-                        className="w-full"
-                    />
+                    <Box className="flex flex-col items-center p-4">
+                        <CircularProgress size={30} />
+                        <Typography variant="body2" sx={{ mt: 2 }} color="text.secondary">
+                            Loading {contextEntry?.name || 'file'}...
+                        </Typography>
+                    </Box>
                 ) : (
                     <Alert severity='info' className='m-4'>Select a file to preview.</Alert>
                 )}
@@ -327,16 +327,11 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
 
     if (isLoading && activePath && !activeTab) {
         // Initial load state for the dedicated path
+        // Relying on GlobalLoadingOverlay for visual feedback during file fetch.
         contentNode = (
-            <Box className="flex flex-col items-center justify-center h-full">
-                {/* REPLACED: CircularProgress with Loading type="linear" */}
-                <Loading 
-                    type="linear" 
-                    message={`Loading ${path.basename(activePath)}...`}
-                    className="w-full"
-                />
-                <Typography variant="h6" sx={{ mt: 2 }} className="mt-2">
-                    Loading {path.basename(activePath)}...
+            <Box sx={{ p: 4, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Typography variant="body1" color="text.secondary">
+                    Initializing editor for {path.basename(activePath)}... (A global loading screen is active.)
                 </Typography>
             </Box>
         );
@@ -423,14 +418,8 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
       // If no file loaded in drawer mode
       return (
         <Box sx={getContainerSx(false)} className="flex justify-center items-center h-full">
-          {/* REPLACED: CircularProgress with Loading type="linear" */}
-          {isLoading && (
-              <Loading 
-                  type="linear" 
-                  message={fileEntry?.name ? `Loading ${fileEntry.name}` : "Loading file..."} 
-                  className="w-full"
-              />
-          )}
+          {/* Rely on GlobalLoadingOverlay for file loading visibility in this mode. */}
+          {isLoading && <Typography color="text.secondary">Loading file...</Typography>}
           {error && <Alert severity="error">Failed to load file: {error}</Alert>}
           {!isLoading && !error && <Typography color="text.secondary">No file selected.</Typography>}
         </Box>
