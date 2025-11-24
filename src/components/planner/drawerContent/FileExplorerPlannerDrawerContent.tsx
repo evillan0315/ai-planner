@@ -107,10 +107,8 @@ const FileExplorerPlannerDrawerContent: React.FC<FileExplorerPlannerDrawerConten
       action: handleAddManualPath,
       icon: <AddIcon fontSize="small" />,
       color: 'primary',
-      variant: 'contained',
       disabled: !manualPathInput.trim(),
-      size: 'small',
-      iconOnly: false, // Ensure it renders as a button with text
+      iconOnly: true, // Ensure it renders as a button with text
     }
   ]), [handleAddManualPath, manualPathInput]);
 
