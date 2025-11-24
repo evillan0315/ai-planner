@@ -7,7 +7,7 @@ import { themeAtom } from './stores/themeStore';
 import { useStore } from '@nanostores/react';
 import { useMemo, Suspense, lazy } from 'react';
 import { initAuth } from './stores/authStore';
-import Loading from './components/Loading';
+import Loading from './components/ui/loader/Loading';
 import ErrorBoundary from './components/ErrorBoundary'; // Import the new ErrorBoundary
 import GlobalDialogManager from '@/components/ui/dialogs/GlobalDialogManager'; // ADD IMPORT
 import GlobalSnackbarManager from '@/components/ui/snackbar/GlobalSnackbarManager'; 
@@ -37,8 +37,8 @@ function App() {
   return (
     <ThemeProvider theme={muiTheme}>
       <CssBaseline />
-      <ErrorBoundary> {/* Wrap the entire layout with the ErrorBoundary */}
-        <AppLayout> {/* RENAMED Component */}
+      <ErrorBoundary> {/\* Wrap the entire layout with the ErrorBoundary *\}
+        <AppLayout> {/\* RENAMED Component *\}
           <Routes>
             <Route path="/" element={
               <Suspense fallback={<Loading />}>
@@ -76,7 +76,7 @@ function App() {
               </Suspense>
             } />
             
-            {/* CODEJECTOR ROUTES (NEW) */}
+            {/\* CODEJECTOR ROUTES (NEW) *\}
             <Route path="/codejector" element={
               <Suspense fallback={<Loading />}>
                 <CodejectorLandingPage />
@@ -109,7 +109,7 @@ function App() {
           </Routes>
         </AppLayout>
       </ErrorBoundary>
-      {/* Global Dialog Manager for Alert/Confirm/Prompt functionality */}
+      {/\* Global Dialog Manager for Alert/Confirm/Prompt functionality *\}
       <GlobalDialogManager /> 
       <GlobalSnackbarManager /> 
       
