@@ -1,0 +1,453 @@
+import React, { useMemo, useEffect, useCallback, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import * as path from 'path-browserify';
+import { useStore } from '@nanostores/react';
+import {
+  editorStore,
+  updateDraftContent as updateSingletonDraftContent,
+  saveFileContent as saveSingletonFileContent,
+  IEditorContent,
+} from '@/components/editor/stores/editorStore';
+import {
+  multiTabEditorStore,
+  openTab,
+  updateActiveTabDraft,
+  saveActiveTabContent,
+  IEditorTab,
+  closeAllTabs,
+} from '@/components/editor/stores/multiTabEditorStore';
+
+import { IWindowContent } from '@/components/editor/stores/floatingWindowsStore';
+import type { IFileSystemEntry } from '@/components/file-explorer/types';
+import { ContentLayout } from '@/components/ui/layouts/ContentLayout';
+import type { GlobalAction } from '@/components/ui/GlobalActionButton';
+
+import {
+  Box,
+  Typography,
+  CircularProgress,
+  Alert,
+  SxProps,
+  useTheme,
+} from '@mui/material';
+import SaveIcon from '@mui/icons-material/Save';
+import CodeIcon from '@mui/icons-material/Code'; // ADDED
+import DescriptionIcon from '@mui/icons-material/Description'; // ADDED
+
+import { CarbonRowDelete } from '@/components/icons/CarbonRowDelete';
+import {
+  IMAGE_MIME_TYPES,
+  VIDEO_MIME_TYPES,
+  AUDIO_MIME_TYPES,
+  MARKDOWN_EXTENSIONS, // ADDED
+  HTML_EXTENSIONS, // ADDED
+} from '@/constants';
+
+// NEW IMPORTS FOR REFACTORED COMPONENTS
+import { FileContentRenderer } from './views/FileContentRenderer';
+import { MultiTabHeader } from './views/MultiTabHeader';
+import { EditorStatusFooter } from './views/EditorStatusFooter';
+import AudioPlayer from '@/components/ui/player/AudioPlayer';
+import VideoPlayer from '@/components/ui/player/VideoPlayer';
+
+interface FileEditorViewerProps {
+    onClose: () => void;
+    // Context props passed when used inside a Floating Window
+    contextEntry?: IFileSystemEntry | null;
+    contextContent?: IWindowContent | null;
+    contextIsLoading?: boolean;
+    contextError?: string | null;
+    // Function to register player actions back to the wrapper (FRDB)
+    onRegisterPlayerAction?: (actions: Record<string, () => void>) => void;
+}
+
+// Define conditional styles based on whether it is media or code/text
+const getContainerSx = (isMedia: boolean): SxProps => ({
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100%',
+  // Remove padding if it's media
+  p: 0,
+});
+
+const contentContainerSx: SxProps = {
+  flexGrow: 1,
+  overflow: 'auto',
+  position: 'relative',
+  height: '100%', // Crucial for embedding viewers
+};
+
+
+// Helper to get the extension
+const getExtension = (filePath: string) => path.extname(filePath).toLowerCase();
+
+/**
+ * Renders the file content using the appropriate viewer (Monaco, Markdown, Image, Video, IFrame).
+ * It acts as an orchestrator selecting between Contextual, Dedicated Route, or Singleton Drawer modes.
+ */
+const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
+    onClose,
+    contextEntry,
+    contextContent,
+    contextIsLoading,
+    contextError,
+    onRegisterPlayerAction,
+}) => {
+  const theme = useTheme();
+  const [searchParams] = useSearchParams();
+  
+  // NEW STATE: Cursor position and Placeholder for issues
+  const [cursorPosition, setCursorPosition] = useState<{ line: number; column: number }>({ line: 1, column: 1 });
+  const [eslintIssuesCount, setEslintIssuesCount] = useState<number>(0); // Placeholder for future integration
+  
+  // NEW STATE: View mode for toggleable files (Markdown, HTML)
+  const [viewMode, setViewMode] = useState<'code' | 'preview'>('code'); // Default to code view for robustness
+
+  // Update handler for Monaco
+  const handleCursorChange = useCallback((line: number, column: number) => {
+    setCursorPosition({ line, column });
+  }, []);
+
+  // Determine if we are running in Contextual (Floating Box) Mode
+  const isContextualMode = !!contextEntry;
+  
+  const urlPath = searchParams.get('path');
+  const decodedUrlPath = urlPath ? decodeURIComponent(urlPath) : null;
+
+  // Dedicated route mode: Not contextual and has a path parameter
+  const isDedicatedRouteMode = !isContextualMode && !!decodedUrlPath;
+  
+  // --- State Management Selection ---
+  
+  const globalState = useStore(editorStore);
+  // NOTE: activeTabId is now activeTabIndex (number index)
+  const { tabs, activeTabIndex } = useStore(multiTabEditorStore);
+  
+  let currentTabOrContent: (IEditorContent | IEditorTab | IWindowContent) | null;
+  let currentFileEntry: IFileSystemEntry | null;
+  let isLoading: boolean;
+  let error: string | null;
+  let draftContent: string | null;
+  let hasUnsavedChanges: boolean;
+  
+  // Media streaming specific props (only used in Contextual mode)
+  let mediaStreamUrl: string | undefined | null = null;
+  let mediaUrlLoading: boolean = false;
+  let mediaUrlError: string | null = null;
+
+  if (isContextualMode) {
+      currentTabOrContent = contextContent;
+      currentFileEntry = contextEntry;
+      isLoading = !!contextIsLoading;
+      error = contextError;
+      draftContent = null;
+      hasUnsavedChanges = false;
+      
+      // Contextual media data:
+      mediaStreamUrl = (contextContent as IWindowContent)?.mediaStreamUrl;
+      mediaUrlLoading = (contextContent as IWindowContent)?.mediaUrlLoading || false;
+      mediaUrlError = (contextContent as IWindowContent)?.mediaUrlError || null;
+
+  } else if (isDedicatedRouteMode) {
+      // Dedicated Multi-Tab Mode
+      const activeTab = activeTabIndex !== null && activeTabIndex >= 0 && activeTabIndex < tabs.length 
+          ? tabs[activeTabIndex] 
+          : null; // Look up by index
+          
+      currentTabOrContent = activeTab;
+      currentFileEntry = activeTab ? { path: activeTab.filePath, name: activeTab.name, isDirectory: false, type: 'file' } : null; // Synthesize minimal entry
+      isLoading = activeTab?.isLoading ?? false;
+      error = activeTab?.error ?? null;
+      draftContent = activeTab?.draftContent ?? null;
+      hasUnsavedChanges = activeTab?.hasUnsavedChanges ?? false;
+      
+  } else {
+      // Singleton Drawer Mode
+      currentTabOrContent = globalState.content;
+      currentFileEntry = globalState.fileEntry;
+      isLoading = globalState.isLoading;
+      error = globalState.error;
+      draftContent = globalState.draftContent;
+      hasUnsavedChanges = globalState.hasUnsavedChanges;
+  }
+  
+  const content = currentTabOrContent;
+  const fileEntry = currentFileEntry;
+
+// --- Active File Type Determination and View Mode Reset ---
+
+// Determine if the current file is Markdown or HTML.
+const extension = fileEntry ? getExtension(fileEntry.path) : '';
+const isMarkdown = MARKDOWN_EXTENSIONS.has(extension);
+const isHtml = HTML_EXTENSIONS.has(extension);
+const isToggleableFile = isMarkdown || isHtml;
+
+// Use Effect to reset viewMode when active file changes
+useEffect(() => {
+    if (fileEntry?.path) {
+        // If MD/HTML, default to preview, otherwise default to code (irrelevant for non-toggleable files)
+        setViewMode(isToggleableFile ? 'preview' : 'code');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [fileEntry?.path, isToggleableFile]); 
+
+// --- New Handler for Fullscreen Registration ---
+// Handler definition for VideoPlayer to pass its action upward to FloatingResizableDraggableBox
+const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
+    if (onRegisterPlayerAction) {
+        // Register action map: { requestFullscreen: fn } or empty map if fn is null
+        onRegisterPlayerAction(fn ? { requestFullscreen: fn } : {});
+    }
+}, [onRegisterPlayerAction]);
+
+
+  // Check if content implies media based on mimeType for container styling
+  const mimeType = fileEntry?.mimeType || content?.mimeType || '';
+  const isMedia = IMAGE_MIME_TYPES.has(mimeType) || 
+                  VIDEO_MIME_TYPES.has(mimeType) || 
+                  AUDIO_MIME_TYPES.has(mimeType);
+
+  
+  // --- Dedicated Route Initialization Effect ---
+  // If we are in dedicated route mode, open/activate the file specified by the URL path.
+ useEffect(() => {
+    if (isDedicatedRouteMode && decodedUrlPath) {
+        // Load/activate the requested path in the multi-tab store
+        openTab(decodedUrlPath);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [decodedUrlPath, isDedicatedRouteMode]); 
+
+  // --- Actions ---
+
+  const saveAction = isDedicatedRouteMode ? saveActiveTabContent : saveSingletonFileContent;
+  const updateAction = isDedicatedRouteMode ? updateActiveTabDraft : updateSingletonDraftContent;
+
+  // Actions for the dedicated route editor (Right side: Save if changes exist + Toggle View)
+  const dedicatedRouteRightActions: GlobalAction[] = useMemo(() => { // <<< MODIFIED
+    const actions: GlobalAction[] = [];
+    
+    // 1. View Toggle for MD/HTML
+    if (isDedicatedRouteMode && isToggleableFile) {
+        const isCode = viewMode === 'code';
+        actions.push({
+            label: isCode ? 'View Preview' : 'View Source Code',
+            action: () => setViewMode(isCode ? 'preview' : 'code'),
+            icon: isCode ? <DescriptionIcon /> : <CodeIcon />, 
+            color: 'secondary',
+            variant: '',
+            disabled: isLoading, 
+            tooltip: `Toggle to ${isCode ? 'Preview' : 'Code'} view`,
+        });
+    }
+
+    // 2. Save Button (only if changes exist)
+    if (hasUnsavedChanges) { 
+        actions.push({
+            label: 'Save',
+            action: saveActiveTabContent, // Use multi-tab save action
+            icon: <SaveIcon />,
+            color: 'primary',
+            variant: '',
+            disabled: isLoading, 
+            tooltip: 'Save active file content (Ctrl+S)',
+        });
+    }
+    
+    return actions;
+  }, [isDedicatedRouteMode, isToggleableFile, viewMode, hasUnsavedChanges, isLoading]);
+
+  // Actions for the dedicated route editor (Left side: Close All) // <<< ADDED
+  const dedicatedRouteLeftActions: GlobalAction[] = tabs.length > 0 ? [
+    {
+      label: 'Close All Tabs',
+      action: closeAllTabs,
+      icon: <CarbonRowDelete />,
+      color: 'inherit',
+      variant: 'text',
+      disabled: isLoading,
+      tooltip: 'Close all open editor tabs',
+    }
+  ] : [];
+
+  // 1. Contextual Mode (Floating Box) - Read-only view, mainly for media
+  if (isContextualMode) {
+    // Note: Loading/Error handling for media is centralized in FileContentRenderer
+    return (
+      <Box sx={getContainerSx(isMedia)} className="w-full h-full"> 
+         {content && (
+            <Box sx={contentContainerSx}>
+                <FileContentRenderer
+                    content={content}
+                    fileEntry={fileEntry}
+                    isLoading={isLoading}
+                    error={error}
+                    draftContent={draftContent}
+                    isContextualMode={true}
+                    mediaStreamUrl={mediaStreamUrl}
+                    mediaUrlLoading={mediaUrlLoading}
+                    mediaUrlError={mediaUrlError}
+                    onRegisterPlayerAction={handleRegisterFullscreen} // Pass action registration
+                />
+            </Box>
+         )}
+         {!content && (
+             <Box className="flex flex-col items-center justify-center h-full">
+                {isLoading ? <CircularProgress /> : <Alert severity='info' className='m-4'>Select a file to preview.</Alert>}
+                {error && <Alert severity="error" className='m-4'>Failed to load: {error}</Alert>}
+             </Box>
+         )}
+      </Box>
+    );
+  }
+
+  // 2. Dedicated Route Mode (Uses ContentLayout) - Multi-tab editor
+  if (isDedicatedRouteMode) {
+    let contentNode: React.ReactNode;
+    let headerContentNode: React.ReactNode | null = null;
+    let footerContentNode: React.ReactNode | null = null;
+    
+    const activeTab = content && 'id' in content ? content as IEditorTab : null;
+    const activePath = activeTab?.filePath || decodedUrlPath;
+
+    if (isLoading && activePath && !activeTab) {
+        // Initial load state for the dedicated path
+        contentNode = (
+            <Box className="flex flex-col items-center justify-center h-full">
+                <CircularProgress />
+                <Typography variant="h6" sx={{ mt: 2 }}>
+                    Loading {path.basename(activePath)}...
+                </Typography>
+            </Box>
+        );
+    } else if (activeTab && activeTab.error) {
+        contentNode = (
+            <Box sx={{ p: 4, height: '100%' }}>
+                <Alert severity="error">
+                    Failed to load file: {activeTab.error}
+                </Alert>
+            </Box>
+        );
+    } else if (!activeTab || activeTabIndex === null) {
+        contentNode = (
+            <Box sx={{ p: 4, height: '100%' }}>
+                <Alert severity="info">
+                    No file content loaded or specified. Please open a file from the explorer.
+                </Alert>
+            </Box>
+        );
+    } else {
+        // Content is ready for active tab
+        headerContentNode = <MultiTabHeader tabs={tabs} activeTabIndex={activeTabIndex} />;
+
+        // Determine the forced renderer type
+        const forcedType = (isToggleableFile && viewMode === 'code') 
+            ? 'code' 
+            : undefined; // Let FileContentRenderer determine 'markdown' or 'iframe'
+
+        contentNode = (
+            <FileContentRenderer
+                content={activeTab}
+                fileEntry={fileEntry}
+                isLoading={isLoading} 
+                error={error} 
+                draftContent={draftContent}
+                isContextualMode={false}
+                onSaveShortcut={saveActiveTabContent}
+                onContentChange={updateActiveTabDraft}
+                onCursorChange={handleCursorChange} // PASS CURSOR HANDLER HERE
+                forceRendererType={forcedType} // PASS NEW PROP
+            />
+        );
+        
+        // Define footer content 
+        if (!isMedia) {
+             footerContentNode = (
+                <EditorStatusFooter
+                    filePath={activeTab.filePath} 
+                    hasUnsavedChanges={activeTab.hasUnsavedChanges}
+                    line={cursorPosition.line} // PASS LINE/COL
+                    column={cursorPosition.column} // PASS LINE/COL
+                    eslintIssuesCount={eslintIssuesCount} // PASS ISSUES
+                    // Custom style for ContentLayout footer area
+                    sx={(theme) => ({
+                        height: '30px', 
+                        backgroundColor: theme.palette.background.default,
+                        borderTop: `1px solid ${theme.palette.divider}`,
+                    })}
+                />
+             );
+        }
+    }
+
+    return (
+        <ContentLayout
+            headerHeight={48} // Tab height
+            footerHeight={30} // Footer height
+            headerContent={headerContentNode}
+            headerRightActions={dedicatedRouteRightActions}
+            headerLeftActions={dedicatedRouteLeftActions}
+            footerContent={footerContentNode}
+            contentWrapperSx={{ p: 0 }}
+        >
+            <Box sx={contentContainerSx}>
+               {contentNode}
+            </Box>
+        </ContentLayout>
+    );
+  }
+
+  // 3. Default: Singleton Drawer Mode
+  
+  if (!content) {
+      // If no file loaded in drawer mode
+      return (
+        <Box sx={getContainerSx(false)} className="flex justify-center items-center h-full">
+          {isLoading && <CircularProgress />}
+          {error && <Alert severity="error">Failed to load file: {error}</Alert>}
+          {!isLoading && !error && <Typography color="text.secondary">No file selected.</Typography>}
+        </Box>
+      )
+  }
+
+  // Normal drawer view
+  return (
+    <Box sx={getContainerSx(isMedia)}> 
+      {/* Status Bar Header (Removed header status bar for simplicity/VSCode consistency) */}
+      
+      <Box sx={contentContainerSx}>
+        <FileContentRenderer
+            content={content}
+            fileEntry={fileEntry}
+            isLoading={isLoading} // Should be false here if content is loaded
+            error={error}
+            draftContent={draftContent}
+            isContextualMode={false}
+            onSaveShortcut={saveSingletonFileContent}
+            onContentChange={updateSingletonDraftContent}
+            onCursorChange={handleCursorChange} // PASS CURSOR HANDLER
+        />
+      </Box>
+      
+      {/* Status Bar Footer (only if not media) */}
+      {!isMedia && fileEntry && (
+        <EditorStatusFooter
+            filePath={fileEntry.path}
+            hasUnsavedChanges={hasUnsavedChanges}
+            line={cursorPosition.line} // PASS LINE/COL
+            column={cursorPosition.column} // PASS LINE/COL
+            eslintIssuesCount={eslintIssuesCount} // PASS ISSUES
+             // Use default footer styling (border top)
+            sx={(theme) => ({
+                height: '30px',
+                px: 4,
+                backgroundColor: theme.palette.background.default,
+                borderTop: `1px solid ${theme.palette.divider}`,
+            })}
+        />
+       )}
+    </Box>
+  );
+};
+
+export default FileEditorViewer;
