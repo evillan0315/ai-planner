@@ -1,5 +1,5 @@
---- a/src/components/file-explorer/FileExplorerContextMenu.tsx
-+++ b/src/components/file-explorer/FileExplorerContextMenu.tsx
+--- a/media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/file-explorer/FileExplorerContextMenu.tsx
++++ b/media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/file-explorer/FileExplorerContextMenu.tsx
 @@ -34,6 +34,8 @@
  
  import { openFileInEditor } from '@/components/editor/stores/editorStore';
