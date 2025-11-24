@@ -16,7 +16,7 @@ import {
   IEditorTab,
   closeAllTabs,
 } from '@/components/editor/stores/multiTabEditorStore';
-
+import { loadingStore } from '@/components/ui/loader/stores/loadingStore'; 
 import { IWindowContent } from '@/components/editor/stores/floatingWindowsStore';
 import type { IFileSystemEntry } from '@/components/file-explorer/types';
 import { ContentLayout } from '@/components/ui/layouts/ContentLayout';
@@ -103,7 +103,7 @@ const FileEditorViewer: React.FC<FileEditorViewerProps> = ({
   
   // NEW STATE: View mode for toggleable files (Markdown, HTML)
   const [viewMode, setViewMode] = useState<'code' | 'preview'>('code'); // Default to code view for robustness
-
+  const { isGlobalLoading } = useStore(loadingStore);
   // Update handler for Monaco
   const handleCursorChange = useCallback((line: number, column: number) => {
     setCursorPosition({ line, column });
@@ -239,7 +239,7 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
             icon: isCode ? <DescriptionIcon /> : <CodeIcon />,
             color: 'secondary',
             variant: '',
-            disabled: isLoading, 
+            disabled: isLoading || isGlobalLoading, 
             tooltip: `Toggle to ${isCode ? 'Preview' : 'Code'} view`,
             iconOnly: true,
         });

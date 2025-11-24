@@ -21,6 +21,7 @@ import FloatingResizableDraggableBox from '@/components/ui/FloatingResizableDrag
 import { editorStore, closeEditor, saveFileContent } from '@/components/editor/stores/editorStore'; 
 import FileEditorViewer from '@/components/editor/FileEditorViewer'; 
 import GlobalActionButton, { GlobalAction } from '@/components/ui/GlobalActionButton'; 
+import GlobalLoadingOverlay from '@/components/ui/loader/GlobalLoadingOverlay'; 
 import FileExplorer from '@/components/file-explorer/FileExplorer'; 
 import PlanGenerator from '@/components/planner/PlanGenerator'; 
 import  {Terminal } from '@/components/terminal/Terminal'; // ADDED
@@ -435,6 +436,7 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
           />
         </FloatingResizableDraggableBox>
       ))}
+      <GlobalLoadingOverlay />
     </Box>
   );
 };

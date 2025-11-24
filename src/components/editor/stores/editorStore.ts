@@ -4,7 +4,7 @@ import type { IFileSystemEntry } from '@/components/file-explorer/types';
 import { IMAGE_MIME_TYPES, VIDEO_MIME_TYPES, AUDIO_MIME_TYPES } from '@/constants'; // Import constants
 import { openFloatingWindow } from './floatingWindowsStore'; // IMPORT NEW STORE ACTION
 import * as path from 'path-browserify'; // ADDED: path utility for base name extraction
-
+import { startGlobalLoading, stopGlobalLoading } from '@/components/ui/loader/stores/loadingStore';
 /**
  * Represents the content and state of the currently open file in the editor/viewer.
  */
@@ -64,7 +64,7 @@ export const loadFileContentFromPath = async (filePath: string) => {
         isLoading: true,
         isOpen: false, // Dedicated routes don't use the drawer, so ensure the flag is false
     });
-    
+    startGlobalLoading(`Loading ${entry.name}...`); 
     try {
         const language = entry.path.match(/\.[^.]+$/)?.[1] || 'plaintext';
         const mimeType = entry.mimeType || '';
@@ -89,6 +89,7 @@ export const loadFileContentFromPath = async (filePath: string) => {
             draftContent: response.content, // Initialize draft content
             error: null,
         });
+        stopGlobalLoading();
     } catch (err: unknown) {
         const errorMessage = (err as Error).message || `Failed to load file content for ${filePath}.`;
         editorStore.set({
@@ -96,6 +97,7 @@ export const loadFileContentFromPath = async (filePath: string) => {
             isLoading: false,
            error: errorMessage,
         });
+        stopGlobalLoading();
     }
 };
 
@@ -126,7 +128,7 @@ export const openFileInEditor = async (entry: IFileSystemEntry) => {
     isLoading: true,
     // isMediaFile: isMedia, // REMOVED
   });
-
+  startGlobalLoading(`Loading ${entry.name}...`);
   try {
     
     const language = entry.path.match(/\.[^.]+$/)?.[1] || 'plaintext';
@@ -153,6 +155,7 @@ export const openFileInEditor = async (entry: IFileSystemEntry) => {
       draftContent: response.content, // Initialize draft content with fetched content
       error: null,
     });
+    stopGlobalLoading();
   } catch (err: unknown) {
     const errorMessage = (err as Error).message || 'Failed to load file content.';
     editorStore.set({
@@ -160,6 +163,7 @@ export const openFileInEditor = async (entry: IFileSystemEntry) => {
       isLoading: false,
       error: errorMessage,
     });
+    stopGlobalLoading();
   }
 };
 
@@ -192,7 +196,7 @@ export const saveFileContent = async () => {
     }
 
     editorStore.set({ ...current, isLoading: true, error: null });
-
+    startGlobalLoading(`Saving ${fileEntry.name}...`);
     try {
         const result = await fileExplorerService.writeFileContent(fileEntry.path, draftContent);
         
@@ -208,6 +212,7 @@ export const saveFileContent = async () => {
                 content: newContentState,
                 hasUnsavedChanges: false,
             });
+            stopGlobalLoading();
             return { success: true, message: result.message };
         } else {
             throw new Error(result.message || 'Save operation failed.');
@@ -220,6 +225,7 @@ export const saveFileContent = async () => {
             isLoading: false,
             error: errorMessage,
         });
+        stopGlobalLoading();
         return { success: false, message: errorMessage };
     }
 }

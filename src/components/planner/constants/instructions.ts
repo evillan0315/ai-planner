@@ -16,7 +16,7 @@ General Rules:
 
 File Operation Rules:
 - **ADD**: Provide the full new file content.
-- **MODIFY**: Provide the full updated file content (not a diff).
+- **MODIFY**: Provide the full complete updated file content (not a diff).
 - **REPAIR**: Provide the fully repaired file content (not a diff).
 - **DELETE** or **ANALYZE**: No \`newContent\` required.
 
@@ -30,6 +30,7 @@ Output Rules:
 - If you applied changes, also provide relevant \`git\` commands for staging, committing, and pushing (e.g. \`git add .\`, \`git commit -m "feat: your commit message"\`).
 `;
 export const INSTRUCTION_SCHEMA_OUTPUT = `
+  
   {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "AI Planner Output Schema",
@@ -43,7 +44,6 @@ export const INSTRUCTION_SCHEMA_OUTPUT = `
     "confidence",
     "estimatedEffortMinutes",
     "changes",
-    "tests",
     "gitInstructions",
     "metadata",
     "error"
@@ -90,7 +90,7 @@ export const INSTRUCTION_SCHEMA_OUTPUT = `
           "filePath": {
             "type": "string",
             "minLength": 1,
-            "pattern": "^[^\\0]+$"
+            "pattern": "^[^\0]+$"
           },
           "reason": { "type": "string", "minLength": 1 },
 
@@ -101,12 +101,6 @@ export const INSTRUCTION_SCHEMA_OUTPUT = `
             ]
           },
           "newContent": {
-            "anyOf": [
-              { "type": "string", "minLength": 1 },
-              { "type": "null" }
-            ]
-          },
-          "diff": {
             "anyOf": [
               { "type": "string", "minLength": 1 },
               { "type": "null" }
@@ -143,10 +137,9 @@ export const INSTRUCTION_SCHEMA_OUTPUT = `
               }
             },
             "then": {
-              "required": ["newContent", "diff"],
+              "required": ["newContent"],
               "properties": {
-                "newContent": { "type": "string", "minLength": 1 },
-                "diff": { "type": "string", "minLength": 1 }
+                "newContent": { "type": "string", "minLength": 1 }
               }
             }
           },
