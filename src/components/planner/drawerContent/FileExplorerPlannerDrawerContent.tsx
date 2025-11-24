@@ -2,13 +2,13 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Alert,
+  Alert, 
   Chip,
   Tooltip,
   useTheme,
   Stack,
   TextField,
-} from '@mui/material'; // Removed Button
+} from '@mui/material'; 
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import SendIcon from '@mui/icons-material/Send';
@@ -34,10 +34,10 @@ interface FileExplorerPlannerDrawerContentProps {
 // Truncates a file path for display purposes.
 const truncate = (filePath: string): string => {
   if (!filePath) return '';
-  const parts = filePath.split(/[\/]/);
-  const fileName = parts[parts.length - 1];
-  
-  if (filePath.length > 40) {
+  // Increased max length slightly for better context in drawer
+  if (filePath.length > 60) {
+    const parts = filePath.split(/[/]/);
+    const fileName = parts[parts.length - 1];
     const parent = parts.slice(0, -1).pop() || '';
     if (parent) return `.../${parent}/${fileName}`;
     return `.../${fileName}`;
@@ -103,12 +103,14 @@ const FileExplorerPlannerDrawerContent: React.FC<FileExplorerPlannerDrawerConten
   // Define the action for adding a manual path
   const addManualPathActions: GlobalAction[] = useMemo(() => ([
     {
-      label: 'Add',
+      label: 'Add Path',
       action: handleAddManualPath,
       icon: <AddIcon fontSize="small" />,
       color: 'primary',
+      variant: 'contained', // Ensure it stands out
       disabled: !manualPathInput.trim(),
-      iconOnly: true, // Ensure it renders as a button with text
+      iconOnly: false, // Ensure button displays text
+      size: 'small',
     }
   ]), [handleAddManualPath, manualPathInput]);
 
@@ -120,20 +122,22 @@ const FileExplorerPlannerDrawerContent: React.FC<FileExplorerPlannerDrawerConten
     return mode === 'root' ? currentPath : globalProjectRoot || '/';
   }, [mode, currentPath, globalProjectRoot]);
 
-  // If in root mode, we allow the path input field in FileExplorerControls to navigate 
-  // and set the current path, which is captured by onPathSelectedForUse -> onPathChange.
-  
   return (
     <Box className="h-full w-full flex flex-col">
       <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
         
         {mode === 'root' ? (
-            <Alert severity="info" className="text-sm" icon={<SendIcon fontSize="inherit" />}>
-                Current Selection: <span className="font-mono font-bold text-text-primary">{truncate(currentPath)}</span>
-                <Typography variant="caption" display="block" color="text.secondary">
-                    Use the 'Go' button or click 'Use Path' in the explorer controls to set the directory.
+            <Box>
+                <Typography variant="subtitle2" className="font-semibold mb-1" color="primary.main">
+                    Current Project Root Candidate:
                 </Typography>
-            </Alert>
+                 <Typography variant="body1" className="font-mono font-bold text-text-primary break-words">
+                    {currentPath}
+                </Typography>
+                <Typography variant="caption" display="block" color="text.secondary" className="mt-1">
+                    Use the explorer below to navigate. Click 'Use Path' in the address bar to select a new directory.
+                </Typography>
+            </Box>
         ) : (
              <Box>
                 <Typography variant="subtitle2" className="font-semibold mb-1">
@@ -163,7 +167,7 @@ const FileExplorerPlannerDrawerContent: React.FC<FileExplorerPlannerDrawerConten
                     <TextField
                       fullWidth
                       size="small"
-                      placeholder="Add manual path/glob (e.g., **/*.ts)"
+                      placeholder="Add manual path/glob (e.g., src/**/*.ts, package.json)"
                       value={manualPathInput}
                       onChange={(e) => setManualPathInput(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleAddManualPath()}
