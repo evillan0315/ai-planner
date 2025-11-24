@@ -25,7 +25,7 @@ import AudioPlayer from '@/components/ui/player/AudioPlayer';
 import VideoPlayer from '@/components/ui/player/VideoPlayer';
 
 // ADDED LOADING COMPONENT
-import Loading from '@/components/Loading'; 
+import Loading from '@/components/ui/loader/Loading'; 
 
 // --- Types ---
 

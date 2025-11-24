@@ -44,7 +44,7 @@ import {
 } from '@/constants';
 
 // NEW IMPORTS
-import Loading from '@/components/Loading'; // <--- ADDED LOADING COMPONENT
+import Loading from '@/components/ui/loader/Loading'; // <--- MODIFIED IMPORT PATH
 import { FileContentRenderer } from './views/FileContentRenderer';
 import { MultiTabHeader } from './views/MultiTabHeader';
 import { EditorStatusFooter } from './views/EditorStatusFooter';
