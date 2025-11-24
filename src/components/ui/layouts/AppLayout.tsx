@@ -1,4 +1,3 @@
-
 import type { ReactNode } from 'react';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
@@ -26,7 +25,7 @@ import FileExplorer from '@/components/file-explorer/FileExplorer';
 import PlanGenerator from '@/components/planner/PlanGenerator'; 
 import  {Terminal } from '@/components/terminal/Terminal'; // ADDED
 
-import Footer from '@/components/Footer'; 
+import Footer from '@/components/ui/layouts/Footer'; // MODIFIED IMPORT PATH
 import { NavBar } from './NavBar'; // NEW IMPORT
 
 // NEW IMPORTS FOR MULTI-WINDOW SUPPORT
@@ -64,7 +63,7 @@ interface LayoutProps {
 
 
 const NAVBAR_HEIGHT = 50; // MODIFIED: Changed from 64 to 50
-const FOOTER_HEIGHT = 50; 
+const FOOTER_HEIGHT = 38; // MODIFIED TO 38px
 
 const MIN_SIDEBAR_WIDTH = 300;
 const MAX_SIDEBAR_WIDTH = 1000;

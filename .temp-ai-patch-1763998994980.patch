@@ -1,0 +1,20 @@
+--- a/src/components/ui/layouts/AppLayout.tsx
++++ b/src/components/ui/layouts/AppLayout.tsx
+@@ -21,14 +21,14 @@
+ import PlanGenerator from '@/components/planner/PlanGenerator'; 
+ import  {Terminal } from '@/components/terminal/Terminal'; // ADDED
+ 
+-import Footer from '@/components/Footer'; 
++import Footer from '@/components/ui/layouts/Footer'; // MODIFIED IMPORT PATH
+ import { NavBar } from './NavBar'; // NEW IMPORT
+ 
+ // NEW IMPORTS FOR MULTI-WINDOW SUPPORT
+@@ -51,7 +51,7 @@
+ 
+ 
+ const NAVBAR_HEIGHT = 50; // MODIFIED: Changed from 64 to 50
+-const FOOTER_HEIGHT = 50; 
++const FOOTER_HEIGHT = 38; // MODIFIED TO 38px
+ 
+ const MIN_SIDEBAR_WIDTH = 300;
+ const MAX_SIDEBAR_WIDTH = 1000;
