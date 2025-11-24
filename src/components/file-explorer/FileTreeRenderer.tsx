@@ -75,7 +75,7 @@ const FileTreeRenderer: React.FC<FileTreeRendererProps> = React.memo(({
 }) => {
     
     return (
-    <Paper sx={{backgroundColor: 'background.default'}}>
+    <Paper className="h-full" sx={{backgroundColor: 'background.default'}}>
       <List disablePadding dense>
         {contents.map((entry) => {
           const entryPath = entry.path;

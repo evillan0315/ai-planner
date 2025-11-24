@@ -56,7 +56,7 @@ export const Terminal: React.FC<TerminalProps> = ({
   terminalHeight,
 }) => {
   const { isLoggedIn, logout, user } = useAuth();
-  const { isConnected } = useStore(terminalStore);
+  const { isConnected, currentPath } = useStore(terminalStore);
   const navigate = useNavigate();
 
   // FIX: Stabilize logout function reference to prevent infinite loop
