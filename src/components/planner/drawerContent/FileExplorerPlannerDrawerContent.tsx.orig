@@ -8,14 +8,14 @@ import {
   useTheme,
   Stack,
   TextField,
-} from '@mui/material'; // Removed Button
+  Button,
+} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import SendIcon from '@mui/icons-material/Send';
 import FileExplorer from '@/components/file-explorer/FileExplorer';
 import { useStore } from '@nanostores/react';
 import { projectRootDirectoryStore, setProjectRoot } from '@/components/file-explorer/stores/fileTreeStore';
-import GlobalActionButton, { GlobalAction } from '@/components/ui/GlobalActionButton';
 
 
 interface FileExplorerPlannerDrawerContentProps {
@@ -34,7 +34,7 @@ interface FileExplorerPlannerDrawerContentProps {
 // Truncates a file path for display purposes.
 const truncate = (filePath: string): string => {
   if (!filePath) return '';
-  const parts = filePath.split(/[\/]/);
+  const parts = filePath.split(/[\\/]/);
   const fileName = parts[parts.length - 1];
   
   if (filePath.length > 40) {
@@ -100,21 +100,6 @@ const FileExplorerPlannerDrawerContent: React.FC<FileExplorerPlannerDrawerConten
     onScanPathsChange((prevPaths) => prevPaths.filter((p) => p !== pathToRemove));
   }, [onScanPathsChange]);
   
-  // Define the action for adding a manual path
-  const addManualPathActions: GlobalAction[] = useMemo(() => ([
-    {
-      label: 'Add',
-      action: handleAddManualPath,
-      icon: <AddIcon fontSize="small" />,
-      color: 'primary',
-      variant: 'contained',
-      disabled: !manualPathInput.trim(),
-      size: 'small',
-      iconOnly: false, // Ensure it renders as a button with text
-    }
-  ]), [handleAddManualPath, manualPathInput]);
-
-  
   // Determine the current path to feed into FileExplorer
   const explorerInitialPath = useMemo(() => {
     // In root mode, we use `currentPath` (which is tempDrawerProjectRootInput in PlanGenerator).
@@ -171,10 +156,11 @@ const FileExplorerPlannerDrawerContent: React.FC<FileExplorerPlannerDrawerConten
                       onKeyPress={(e) => e.key === 'Enter' && handleAddManualPath()}
                       sx={{ bgcolor: 'background.default' }}
                     />
-                    <GlobalActionButton 
-                        globalActions={addManualPathActions} 
-                        iconOnly={false} 
-                    />
+                    <Tooltip title="Add Manual Path">
+                        <Button onClick={handleAddManualPath} disabled={!manualPathInput.trim()} size="small" variant="contained" endIcon={<AddIcon />}>
+                          Add
+                        </Button>
+                    </Tooltip>
                 </Stack>
               </Box>
         )}
