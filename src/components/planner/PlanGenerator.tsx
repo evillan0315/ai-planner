@@ -44,6 +44,7 @@ import InstructionEditorDrawer from '@/components/planner/drawerContent/Instruct
 import PlanMetadataEditorDrawer from '@/components/planner/drawerContent/PlanMetadataEditorDrawer';
 import FileChangeEditorDrawer from '@/components/planner/drawerContent/FileChangeEditorDrawer';
 import PlannerList from '@/components/planner/PlannerList';
+import ErrorDetailsDrawerContent from '@/components/planner/drawerContent/ErrorDetailsDrawerContent'; 
 import { projectRootDirectoryStore, setProjectRoot as setGlobalProjectRoot } from '@/components/file-explorer/stores/fileTreeStore'; // ALIAS IMPORT FOR CLARITY
 
 // New components
@@ -641,11 +642,10 @@ const planTitleHeader = useMemo(() => {
         hasBackdrop={true}
         footerActionButton={errorDrawerActions}
       >
-        <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            Detailed information about the last error encountered during plan generation.
-          </Typography>
-        </Box>
+        <ErrorDetailsDrawerContent 
+            plan={plan} 
+            error={error} 
+        />
       </CustomDrawer>
 
       {/* Snackbar for General Errors (generation failure) OR Apply Status */}
@@ -661,6 +661,3 @@ const planTitleHeader = useMemo(() => {
 };
 
 export default PlanGenerator;
-
-
-
