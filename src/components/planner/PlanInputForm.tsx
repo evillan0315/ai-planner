@@ -12,6 +12,7 @@ import {
   Chip,
   useTheme,
   Stack,
+  Paper,
 } from '@mui/material';
 import AddRoadIcon from '@mui/icons-material/AddRoad';
 import DescriptionIcon from '@mui/icons-material/Description'; // Icon for documentation/help
@@ -84,16 +85,10 @@ interface PlanInputFormProps {
   plan: IPlan | null;
 }
 
-const cardSx = {
-  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  backdropFilter: 'blur(10px)',
-  border: '1px solid rgba(255, 255, 255, 0.12)',
-  boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-  borderRadius: '12px',
-};
+
 
 const formSectionSx = {
-  padding: 2,
+  
 };
 
 
@@ -123,7 +118,10 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
   plan
 }) => {
   const theme = useTheme();
-
+  const cardSx = {
+    backgroundColor: theme.palette.background.paper,
+    border: `1px solid ${theme.palette.divider}`
+  }
   // Split actions into logical groups and map them to corners
   const floatingActionGroupsByCorner: Partial<Record<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right', GlobalActionGroup[]>> = useMemo(() => {
       
@@ -258,7 +256,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
   ]);
 
   return (
-    <Card sx={cardSx} className="flex-shrink-0 py-1">
+    <Card sx={cardSx} className="flex-shrink-0 py-1 rounded-xl shadow-lg border border-solid border-gray-700/20  backdrop-blur-md">
       <CardContent sx={formSectionSx} className="flex flex-col">
 
         

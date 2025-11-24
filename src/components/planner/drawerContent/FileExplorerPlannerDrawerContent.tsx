@@ -109,7 +109,7 @@ const FileExplorerPlannerDrawerContent: React.FC<FileExplorerPlannerDrawerConten
       color: 'primary',
       variant: 'contained', // Ensure it stands out
       disabled: !manualPathInput.trim(),
-      iconOnly: false, // Ensure button displays text
+      iconOnly: true, // Ensure button displays text
       size: 'small',
     }
   ]), [handleAddManualPath, manualPathInput]);

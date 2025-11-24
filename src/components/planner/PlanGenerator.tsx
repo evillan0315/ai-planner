@@ -480,7 +480,7 @@ const planTitleHeader = useMemo(() => {
     <Box className="flex flex-col h-full w-full overflow-hidden">
      
       {/* 1. Scrollable Plan Status/Display area */}
-      <Box className="flex-grow min-h-0 overflow-hidden">
+      <Box className="flex-grow min-h-0 h-full">
         <ContentLayout 
             headerContent={planTitleHeader}
             headerRightActions={headerRightActions}
@@ -491,14 +491,14 @@ const planTitleHeader = useMemo(() => {
                 p: 0, 
             }}
         >
-            <Paper elevation={3} sx={{backgroundColor:theme.palette.background.default}} className="h-full">
+            
             <PlanGenerationStatus
                 isLoading={isLoading}
                 plan={plan}
                 onEditPlanMetadata={() => setIsPlanMetadataEditorOpen(true)}
                 onEditFileChange={handleEditFileChangeRequest}
             />
-            </Paper>
+           
         </ContentLayout>
       </Box>
 
@@ -514,7 +514,7 @@ const planTitleHeader = useMemo(() => {
         className="flex-shrink-0 p-2 mt-2"
         sx={{
             backgroundColor: theme.palette.background.paper,
-            borderTop: `1px solid ${theme.palette.divider}`
+            borderTop: `2px solid ${theme.palette.divider}`
         }}
       >
         <PlanInputForm
@@ -654,7 +654,7 @@ const planTitleHeader = useMemo(() => {
         autoHideDuration={6000} // Added autoHideDuration for consistency
         onClose={handleSnackbarClose}
         severity={snackbarSeverity}
-        message={snackbarMessage || error || 'An unknown error occurred.'} // Use message state, fallback to generation error
+        message={snackbarMessage || 'An unknown error occurred.'} // Use message state, fallback to generation error
       />
     </Box>
   );

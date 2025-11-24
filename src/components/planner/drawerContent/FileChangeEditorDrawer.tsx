@@ -204,7 +204,7 @@ const FileChangeEditorDrawer: React.FC<FileChangeEditorDrawerProps> = ({
     <CustomDrawer
       open={open}
       onClose={handleCancel}
-      position="right"
+      position="left"
       size="medium"
       title={`Edit Change Index ${initialFileChange.index ?? initialFileChange.filePath} (${initialFileChange.action})`}
       hasBackdrop={true}
