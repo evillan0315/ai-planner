@@ -1,0 +1,74 @@
+--- a/src/components/editor/FileEditorViewer.tsx
++++ b/src/components/editor/FileEditorViewer.tsx
+@@ -21,7 +21,7 @@
+ import {
+   Box,
+   Typography,
+-  CircularProgress,
++  // CircularProgress, // REMOVED
+   Alert,
+   SxProps,
+   useTheme,
+@@ -39,6 +39,7 @@
+ import { FileContentRenderer } from './views/FileContentRenderer';
+ import { MultiTabHeader } from './views/MultiTabHeader';
+ import { EditorStatusFooter } from './views/EditorStatusFooter';
++import Loading from '@/components/Loading'; // <--- ADDED LOADING COMPONENT
+ import AudioPlayer from '@/components/ui/player/AudioPlayer';
+ import VideoPlayer from '@/components/ui/player/VideoPlayer';
+ 
+@@ -176,8 +177,13 @@
+       <Box sx={getContainerSx(isMedia)} className="w-full h-full"> 
+          {content && (
+             <Box sx={contentContainerSx}>
+                 <FileContentRenderer
+@@ -193,7 +199,12 @@
+          )}
+          {!content && (
+              <Box className="flex flex-col items-center justify-center h-full">
+-                {isLoading ? <CircularProgress /> : <Alert severity='info' className='m-4'>Select a file to preview.</Alert>}
++                {/* REPLACED: CircularProgress with Loading type="linear" */}
++                {isLoading ? (
++                    <Loading 
++                        type="linear" 
++                        message={`Loading ${contextEntry?.name || 'file'}...`} 
++                        className="w-full"
++                    />
++                ) : (
++                    <Alert severity='info' className='m-4'>Select a file to preview.</Alert>
++                )}
+                 {error && <Alert severity="error" className='m-4'>Failed to load: {error}</Alert>}
+              </Box>
+          )}
+@@ -210,8 +221,11 @@
+         // Initial load state for the dedicated path
+         contentNode = (
+             <Box className="flex flex-col items-center justify-center h-full">
+-                <CircularProgress />
+-                <Typography variant="h6" sx={{ mt: 2 }}>
++                {/* REPLACED: CircularProgress with Loading type="linear" */}
++                <Loading 
++                    type="linear" 
++                    message={`Loading ${path.basename(activePath)}...`}
++                    className="w-full"
++                />
++                <Typography variant="h6" sx={{ mt: 2 }} className="mt-2">
+                     Loading {path.basename(activePath)}...
+                 </Typography>
+             </Box>
+@@ -291,7 +305,13 @@
+       // If no file loaded in drawer mode
+       return (
+         <Box sx={getContainerSx(false)} className="flex justify-center items-center h-full">
+-          {isLoading && <CircularProgress />}
++          {/* REPLACED: CircularProgress with Loading type="linear" */}
++          {isLoading && (
++              <Loading 
++                  type="linear" 
++                  message={fileEntry?.name ? `Loading ${fileEntry.name}` : "Loading file..."} 
++                  className="w-full"
++              />
++          )}
+           {error && <Alert severity="error">Failed to load file: {error}</Alert>}
+           {!isLoading && !error && <Typography color="text.secondary">No file selected.</Typography>}
+         </Box>

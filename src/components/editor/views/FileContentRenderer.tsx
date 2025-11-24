@@ -2,7 +2,7 @@ import React, { useMemo, useCallback } from 'react';
 import {
   Box,
   Typography,
-  CircularProgress,
+  // CircularProgress, // REMOVED
   Alert,
   SxProps,
 } from '@mui/material';
@@ -23,6 +23,9 @@ import type { IWindowContent } from '@/components/editor/stores/floatingWindowsS
 import type { IFileSystemEntry } from '@/components/file-explorer/types';
 import AudioPlayer from '@/components/ui/player/AudioPlayer';
 import VideoPlayer from '@/components/ui/player/VideoPlayer';
+
+// ADDED LOADING COMPONENT
+import Loading from '@/components/Loading'; 
 
 // --- Types ---
 
@@ -142,10 +145,12 @@ export const FileContentRenderer: React.FC<FileContentRendererProps> = ({
     if (isLoading) {
          return (
              <Box className="flex flex-col items-center justify-center h-full">
-                 <CircularProgress />
-                <Typography variant="h6" sx={{ mt: 2 }} color="text.secondary">
-                    Loading {fileEntry?.name || 'Content'}...
-                </Typography>
+                 {/* REPLACED: CircularProgress with Loading type="linear" */}
+                 <Loading 
+                    type="linear" 
+                    message={`Loading ${fileEntry?.name || 'Content'}...`}
+                    className="w-full"
+                 />
              </Box>
          );
     }
@@ -178,8 +183,13 @@ export const FileContentRenderer: React.FC<FileContentRendererProps> = ({
         if (mediaUrlLoading) {
             return (
                 <Box className="flex justify-center items-center h-full">
-                    <CircularProgress />
-                    <Typography sx={{ml: 2}} color="text.secondary">Generating secured media stream URL...</Typography>
+                    {/* REPLACED: CircularProgress with Loading type="linear" */}
+                    <Loading 
+                        type="linear" 
+                        message="Generating secured media stream URL..." 
+                        barHeight={8}
+                        skeletonWidth="200px"
+                    />
                 </Box>
             );
         }
@@ -289,4 +299,3 @@ export const FileContentRenderer: React.FC<FileContentRendererProps> = ({
         </Alert>
     );
 };
-

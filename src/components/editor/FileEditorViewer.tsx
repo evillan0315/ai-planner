@@ -25,7 +25,7 @@ import type { GlobalAction } from '@/components/ui/GlobalActionButton';
 import {
   Box,
   Typography,
-  CircularProgress,
+  // CircularProgress, // REMOVED
   Alert,
   SxProps,
   useTheme,
@@ -43,7 +43,8 @@ import {
   HTML_EXTENSIONS, // ADDED
 } from '@/constants';
 
-// NEW IMPORTS FOR REFACTORED COMPONENTS
+// NEW IMPORTS
+import Loading from '@/components/Loading'; // <--- ADDED LOADING COMPONENT
 import { FileContentRenderer } from './views/FileContentRenderer';
 import { MultiTabHeader } from './views/MultiTabHeader';
 import { EditorStatusFooter } from './views/EditorStatusFooter';
@@ -235,7 +236,7 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
         actions.push({
             label: isCode ? 'View Preview' : 'View Source Code',
             action: () => setViewMode(isCode ? 'preview' : 'code'),
-            icon: isCode ? <DescriptionIcon /> : <CodeIcon />, 
+            icon: isCode ? <DescriptionIcon /> : <CodeIcon />,
             color: 'secondary',
             variant: '',
             disabled: isLoading, 
@@ -298,7 +299,16 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
          )}
          {!content && (
              <Box className="flex flex-col items-center justify-center h-full">
-                {isLoading ? <CircularProgress /> : <Alert severity='info' className='m-4'>Select a file to preview.</Alert>}
+                {/* REPLACED: CircularProgress with Loading type="linear" */}
+                {isLoading ? (
+                    <Loading 
+                        type="linear" 
+                        message={`Loading ${contextEntry?.name || 'file'}...`} 
+                        className="w-full"
+                    />
+                ) : (
+                    <Alert severity='info' className='m-4'>Select a file to preview.</Alert>
+                )}
                 {error && <Alert severity="error" className='m-4'>Failed to load: {error}</Alert>}
              </Box>
          )}
@@ -319,8 +329,13 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
         // Initial load state for the dedicated path
         contentNode = (
             <Box className="flex flex-col items-center justify-center h-full">
-                <CircularProgress />
-                <Typography variant="h6" sx={{ mt: 2 }}>
+                {/* REPLACED: CircularProgress with Loading type="linear" */}
+                <Loading 
+                    type="linear" 
+                    message={`Loading ${path.basename(activePath)}...`}
+                    className="w-full"
+                />
+                <Typography variant="h6" sx={{ mt: 2 }} className="mt-2">
                     Loading {path.basename(activePath)}...
                 </Typography>
             </Box>
@@ -408,7 +423,14 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
       // If no file loaded in drawer mode
       return (
         <Box sx={getContainerSx(false)} className="flex justify-center items-center h-full">
-          {isLoading && <CircularProgress />}
+          {/* REPLACED: CircularProgress with Loading type="linear" */}
+          {isLoading && (
+              <Loading 
+                  type="linear" 
+                  message={fileEntry?.name ? `Loading ${fileEntry.name}` : "Loading file..."} 
+                  className="w-full"
+              />
+          )}
           {error && <Alert severity="error">Failed to load file: {error}</Alert>}
           {!isLoading && !error && <Typography color="text.secondary">No file selected.</Typography>}
         </Box>
