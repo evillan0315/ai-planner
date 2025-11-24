@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import Loading from '@/components/Loading';
+import Loading from '@/components/ui/loader/Loading';
 import PlanDisplay from './PlanDisplay';
 import type { IFileChange, IPlan } from './types';
 

@@ -37,8 +37,8 @@ function App() {
   return (
     <ThemeProvider theme={muiTheme}>
       <CssBaseline />
-      <ErrorBoundary> {/\* Wrap the entire layout with the ErrorBoundary *\}
-        <AppLayout> {/\* RENAMED Component *\}
+      <ErrorBoundary> 
+        <AppLayout> 
           <Routes>
             <Route path="/" element={
               <Suspense fallback={<Loading />}>
@@ -76,7 +76,7 @@ function App() {
               </Suspense>
             } />
             
-            {/\* CODEJECTOR ROUTES (NEW) *\}
+   
             <Route path="/codejector" element={
               <Suspense fallback={<Loading />}>
                 <CodejectorLandingPage />
@@ -109,7 +109,7 @@ function App() {
           </Routes>
         </AppLayout>
       </ErrorBoundary>
-      {/\* Global Dialog Manager for Alert/Confirm/Prompt functionality *\}
+   
       <GlobalDialogManager /> 
       <GlobalSnackbarManager /> 
       
