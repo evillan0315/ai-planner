@@ -1,6 +1,6 @@
 # AI Planner: Structured Code Generation and Prompt Engineering UI
 
-The AI Planner provides a powerful web interface to turn natural-language developer requests into structured, executable code plans. It also features a dedicated LLM Prompt Generator to assist in creating highly constrained system prompts for custom AI tasks, alongside **integrated file management** and a **dedicated code workspace (Codejector)** for reviewing and modifying files locally. Built with TypeScript, a React + Vite frontend, and a Node/NestJS backend, it streamlines the process of generating, reviewing, and applying code changes safely.
+The AI Planner provides a powerful web interface to turn natural-language developer requests into structured, executable code plans. It also features a dedicated LLM Prompt Generator to assist in creating highly constrained system prompts for custom AI tasks. It integrates a **secure, remote File Explorer** and **dedicated Codejector workspace** for reviewing and modifying files locally, along with a **real-time Integrated Terminal** for command execution. Built with TypeScript, a React + Vite frontend, and a Node/NestJS backend, it streamlines the process of generating, reviewing, and applying code changes safely.
 
 - Repository: evillan0315/ai-planner
 - Primary language: TypeScript
@@ -9,11 +9,13 @@ The AI Planner provides a powerful web interface to turn natural-language develo
 
 ## Quick Overview
 
-AI Planner UI provides three main tools:
+AI Planner UI provides three main, integrated workspaces:
 
 1. **AI Code Planner:** Accepts developer instructions, analyzes project context, and generates structured, executable code plans (unified diffs, new file content, build scripts, git commands).
-2. **Codejector Workspace:** A dedicated split-view IDE for file management (CRUD), code editing (Monaco), and multi-tab viewing, linked directly to the project root.
+2. **Codejector Workspace:** A dedicated, multi-tab IDE environment for browsing the file system (File Explorer), editing code (Monaco), and reviewing media files via floating viewers.
 3. **LLM Prompt Generator:** A dedicated tool for composing and validating complex, schema-enforced system prompts used for planning and custom generation tasks.
+
+*The **Integrated Project Terminal** is accessible as a persistent bottom drawer across all workspaces for direct shell access and executing plan commands.*
 
 Watch a short demo: https://youtu.be/Lcls1s0MJV0
 
@@ -47,7 +49,8 @@ For architecture details see docs/OVERVIEW_ARCHITECTURE.md.
 
 - Natural-language driven planning and patch suggestion.
 - **Integrated File Management:** Full CRUD operations (Create, Read, Update, Delete) for files and folders, along with Drag-and-Drop Move/Copy functionality, all executed on the host filesystem via the secure backend API.
-- **Codejector Workspace:** Dedicated multi-tab Monaco editor integrated with the File Explorer for deep context review and file modification. Supports standard code editing features, including line/column tracking and save shortcuts.
+- **Codejector Workspace:** Dedicated multi-tab Monaco editor integrated with the File Explorer for deep context review and file modification. Supports standard code editing features, including line/column tracking, unsaved change indicators, and save shortcuts (Ctrl/Cmd+S).
+- **Integrated Project Terminal:** A persistent, resizable bottom pane utilizing XTerm.js over WebSockets to provide secure, real-time shell access to the host machine's filesystem, typically anchored at the `Project Root`. Essential for running build scripts or manually executing plan commands.
 - **Media Viewer:** Floating, resizable, and draggable window viewers for common image, video (e.g., MP4), and audio formats, utilizing secure stream URLs from the backend.
 - **Structured Plan Output:** Generates a single, valid JSON object (`IPlan`) containing:
     - **Plan Metadata:** Title, Summary, AI Confidence (0.0-1.0), Estimated Effort (minutes).
@@ -111,7 +114,7 @@ The AI Planner application is a single-page application focused on providing a s
 2. **Set Project Root & Context:** On the Planner page, use the integrated File Explorer to define the local `Project Root` (an absolute path on the host filesystem) and configure `Scan Paths` (relevant files/folders to analyze relative to the root).
 3. **Generate Plan:** Provide a detailed natural language request (or define structured prompt components) and click 'Generate Plan'. The UI sends the request, project context, and default instructions/schema to the backend API.
 4. **Review & Edit:** Review the AI-generated structured plan, including the **Thought Process**, **Assumptions**, **Confidence Metrics**, and the detailed list of **File Changes** (patches, additions, deletions). Individual file changes (diffs/new content) and plan metadata can be edited before application.
-5. **Apply Changes:** Click 'Apply Plan' to send the executable changes (patches, additions, deletions) to the backend, which attempts to apply them to your local project directory. You can also apply changes individually via the action buttons in the File Changes table.
+5. **Apply Changes:** Click 'Apply Plan' to send the executable changes (patches, additions, deletions) to the backend, which attempts to apply them to your local project directory. You can also apply changes individually via the action buttons in the File Changes table. The **Integrated Terminal** can be used to manually execute post-application commands, such as running tests or build scripts suggested in the plan.
 
 ---
 
@@ -124,6 +127,7 @@ VITE_API_URL=http://localhost:5000/api
 VITE_FRONTEND_PORT=3003
 VITE_BASE_DIR=/absolute/path/to/ai-planner # Crucial: Must be an absolute path on host filesystem
 VITE_PREVIEW_APP_URL=http://localhost:3002 # Optional preview URL
+VITE_TERMINAL_WS_URL=http://localhost:3000 # WebSocket URL for the terminal server
 ```
 
 Important: `VITE_BASE_DIR` must be the absolute path to the project root on your filesystem where the planner will execute file operations. The frontend uses this as the default project root when creating planner requests. If incorrect, the planner cannot scan or apply changes properly.
@@ -178,6 +182,11 @@ File listing and operations:
 - POST /api/file/move (Moves file/folder)
 - GET /api/file/stream (Retrieves secured media stream URL for viewers)
 
+Terminal interaction (WebSockets):
+- WS /terminal
+  - Executes shell commands securely on the host system within the `Project Root`.
+  - Commands include: `exec_terminal`, `input`, `resize`, `set_cwd`.
+
 Request/response shapes align to types in src/components/planner/types.ts (ILlmInput, IGeneratePlanResponse, IApplyPlanResult, etc.).
 
 ---
@@ -192,6 +201,7 @@ Key directories:
     - file-explorer/ — Integrated file system browsing and context setting.
     - planner/ — Core UI and logic for plan generation, review, and application.
     - editor/ — Monaco Editor wrapper and multi-tab/floating viewer state management.
+    - terminal/ — XTerm.js client integration and WebSocket service.
     - ui/ — Reusable components (e.g., context menus, dialogs, media players).
   - pages/ — route-level components (PlannerPage, LoginPage, CodejectorPage)
   - stores/ — nanostores for app state
