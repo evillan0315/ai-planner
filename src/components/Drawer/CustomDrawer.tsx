@@ -97,15 +97,7 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({
     
     // Wrap the actions in DialogActions for standardized button padding/layout within the footer area.
     return (
-      <DialogActions
-        sx={{
-          width: '100%',
-          p: 2, // Maintain standard MUI DialogActions padding (which contains GlobalActionButton)
-          justifyContent: 'flex-end',
-        }}
-      >
         <GlobalActionButton globalActions={footerActionButton} />
-      </DialogActions>
     );
   }, [footerActionButton]);
 

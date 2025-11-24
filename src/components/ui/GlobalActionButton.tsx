@@ -14,6 +14,7 @@ export interface GlobalAction {
   disabled?: boolean;
   component?: React.ReactNode;
   iconOnly?: boolean | true; 
+  size?: ButtonProps['size'];
 }
 
 export interface GlobalActionButtonProps {
@@ -39,7 +40,7 @@ function GlobalActionButton({ globalActions, iconOnly = false }: GlobalActionBut
               <IconButton
                 onClick={action.action}
                 color={action.color || 'primary'}
-                size="small"
+                size={action.size || 'small'}
                 disabled={action.disabled}
               >
                 {action.icon ? action.icon : null}
@@ -53,6 +54,7 @@ function GlobalActionButton({ globalActions, iconOnly = false }: GlobalActionBut
               variant={action.variant || ''}
               startIcon={action.icon || null}
               disabled={action.disabled}
+              size={action.size || 'small'}
             >
               {action.label}
             </Button>

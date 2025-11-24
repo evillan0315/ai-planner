@@ -179,6 +179,7 @@ const FileChangeEditorDrawer: React.FC<FileChangeEditorDrawerProps> = ({
       icon: <SaveIcon />,
       color: 'primary',
       variant: 'contained',
+      size: 'sm',
       disabled:
         !filePath.trim() ||
         ((action === 'ADD' || action === 'MODIFY' || action === 'REPAIR') && !newContent.trim()),

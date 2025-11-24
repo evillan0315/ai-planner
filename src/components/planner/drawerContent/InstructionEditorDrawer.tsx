@@ -80,15 +80,15 @@ const InstructionEditorDrawer: React.FC<InstructionEditorDrawerProps> = ({
       action: handleCancel,
       icon: <ClearIcon />,
       color: 'inherit',
-      variant: 'outlined',
+      variant: '',
     },
     {
       label: 'Save',
       action: handleSave,
       icon: <SaveIcon />,
       color: 'primary',
-      variant: 'contained',
-      
+      variant: '',
+      size: 'small'
     },
   ];
 
