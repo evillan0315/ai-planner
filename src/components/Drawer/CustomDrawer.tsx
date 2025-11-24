@@ -1,18 +1,17 @@
 import type { ReactNode } from 'react';
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Drawer,
   Box,
   IconButton,
   Typography,
   useTheme,
-  AppBar,
-  Toolbar,
   DialogActions,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { type GlobalAction } from '@/types/action';
 import GlobalActionButton from '@/components/ui/GlobalActionButton';
+import { ContentLayout } from '@/components/ui/layouts/ContentLayout'; // NEW IMPORT
 
 interface CustomDrawerProps {
   open: boolean;
@@ -33,6 +32,10 @@ const drawerWidthPercentage: Record<CustomDrawerProps['size'], number> = {
   large: 3 / 4,
   fullscreen: 1,
 };
+
+// Define constants for header/footer heights matching ContentLayout defaults or estimates
+const DEFAULT_HEADER_HEIGHT = 48; 
+const DEFAULT_FOOTER_HEIGHT_WITH_ACTIONS = 50; 
 
 const CustomDrawer: React.FC<CustomDrawerProps> = ({
   open,
@@ -65,103 +68,108 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({
     borderColor: theme.palette.divider,
   };
 
+  // --- Header Content and Actions ---
+  
+  const headerRightActions: GlobalAction[] = useMemo(() => ([
+    { 
+      label: 'Close Drawer', 
+      action: onClose, 
+      icon: <CloseIcon />, 
+      color: 'inherit',
+      iconOnly: true,
+    },
+  ]), [onClose]);
+  
+  const headerContent = useMemo(() => {
+    if (stickyHeader) return stickyHeader;
+    if (title) return (
+      <Typography variant="h6" component="div" className="truncate" sx={{flexGrow: 1}}>
+        {title}
+      </Typography>
+    );
+    return null;
+  }, [stickyHeader, title]);
+
+  // --- Footer Content ---
+  
+  const footerContent = useMemo(() => {
+    if (!footerActionButton) return undefined;
+    
+    // Wrap the actions in DialogActions for standardized button padding/layout within the footer area.
+    return (
+      <DialogActions
+        sx={{
+          width: '100%',
+          p: 2, // Maintain standard MUI DialogActions padding (which contains GlobalActionButton)
+          justifyContent: 'flex-end',
+        }}
+      >
+        <GlobalActionButton globalActions={footerActionButton} />
+      </DialogActions>
+    );
+  }, [footerActionButton]);
+
+  // Determine height properties for ContentLayout
+  const effectiveFooterHeight = footerActionButton ? DEFAULT_FOOTER_HEIGHT_WITH_ACTIONS : 0;
+  
+  
+  // --- Standard Drawer Content (Non-Fullscreen) ---
+  const standardContent = (
+    // The Box wrapper ensures the ContentLayout takes up the full 100% height/width allowed by the Drawer paper
+    <Box
+        sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+        }}
+    >
+        <ContentLayout
+            headerContent={headerContent}
+            headerRightActions={headerRightActions}
+            
+            children={children}
+
+            footerContent={footerContent}
+            headerHeight={DEFAULT_HEADER_HEIGHT}
+            footerHeight={effectiveFooterHeight}
+            // Ensure main content area starts without internal padding, allowing children to control layout
+            contentWrapperSx={{p: 0}} 
+        />
+    </Box>
+  );
+
+  // --- Fullscreen Drawer Content ---
+  const fullScreenContent = (
+    <Box
+        sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100vh',
+            width: '100vw',
+        }}
+    >
+        <ContentLayout
+            headerContent={headerContent}
+            headerRightActions={headerRightActions}
+            children={children}
+            footerContent={footerContent}
+            headerHeight={DEFAULT_HEADER_HEIGHT}
+            footerHeight={effectiveFooterHeight}
+            contentWrapperSx={{p: 2}} // Apply general padding to the scrolling content area
+        />
+    </Box>
+  );
+
   return (
     <Drawer
       anchor={position}
       open={open}
       onClose={onClose}
-      hideBackdrop={!hasBackdrop} // hideBackdrop is true if no backdrop, so negate hasBackdrop
+      hideBackdrop={!hasBackdrop}
       PaperProps={{ sx: drawerPaperStyle }}
-      disableEscapeKeyDown={!closeOnEscape} // Control escape key behavior
+      disableEscapeKeyDown={!closeOnEscape}
     >
-      {isFullScreen ? (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100vh',
-            width: '100vw',
-          }}
-        >
-          <AppBar position="static" className="shadow-md"> { /* Added shadow-md for consistency */}
-            <Toolbar>
-              <IconButton edge="start" color="inherit" onClick={onClose} aria-label="close">
-                <CloseIcon />
-              </IconButton>
-              <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div" color="inherit"> { /* Ensure text color inherits */}
-                {title}
-              </Typography>
-            </Toolbar>
-          </AppBar>
-          <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 2 }}>{children}</Box> { /* Added p:2 for consistent padding */}
-        </Box>
-      ) : (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
-          }}
-        >
-          {stickyHeader && (
-            <Box
-              sx={{
-                p: 2,
-                bgcolor: theme.palette.background.default,
-                borderBottom: `1px solid ${theme.palette.divider}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              {stickyHeader}
-              <IconButton edge="end" color="inherit" onClick={onClose} aria-label="close">
-                <CloseIcon />
-              </IconButton>
-            </Box>
-          )}
-          {!stickyHeader && title && (
-            <Box
-              sx={{
-                p: 2,
-                bgcolor: theme.palette.background.default,
-                borderBottom: `1px solid ${theme.palette.divider}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                maxHeight: '48px',
-              }}
-            >
-              <Typography variant="h6" component="div">
-                {title}
-              </Typography>
-              <IconButton edge="end" color="inherit" onClick={onClose} aria-label="close">
-                <CloseIcon />
-              </IconButton>
-            </Box>
-          )}
-          <Box
-            sx={{
-              flexGrow: 1,
-              overflowY: 'auto',
-            }}
-          >
-            {children}
-          </Box>
-          {footerActionButton && (
-            <DialogActions
-              sx={{
-                p: 2,
-                bgcolor: theme.palette.background.default,
-                borderTop: `1px solid ${theme.palette.divider}`,
-                justifyContent: `${position === 'left' || position === 'bottom' ? 'flex-end' : 'flex-start'}`, // Double quotes escaped
-              }}
-            >
-              <GlobalActionButton globalActions={footerActionButton} />
-            </DialogActions>
-          )}
-        </Box>
-      )}
+        {isFullScreen ? fullScreenContent : standardContent}
     </Drawer>
   );
 };
