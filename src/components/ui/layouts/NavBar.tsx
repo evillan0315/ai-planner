@@ -1,3 +1,4 @@
+```typescript
 import React, { useState } from 'react';
 import {
   AppBar,
@@ -42,7 +43,18 @@ export const NavBar: React.FC = () => {
 
   return (
     <AppBar position="sticky" className="shadow-md">
-      <Toolbar elevation={2} sx={{ justifyContent: 'space-between', backgroundColor: 'background.paper', color: 'text.primary' }}>
+      <Toolbar 
+        elevation={2} 
+        sx={{ 
+          justifyContent: 'space-between', 
+          backgroundColor: 'background.paper', 
+          color: 'text.primary',
+          minHeight: '50px', // Enforce 50px height
+          '@media (min-width: 0px)': {
+            minHeight: '50px',
+          },
+        }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <RouterLink
             to="/"

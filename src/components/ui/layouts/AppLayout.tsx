@@ -1,3 +1,4 @@
+```typescript
 import type { ReactNode } from 'react';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
@@ -62,7 +63,7 @@ interface LayoutProps {
 }
 
 
-const NAVBAR_HEIGHT = 64;
+const NAVBAR_HEIGHT = 50; // MODIFIED: Changed from 64 to 50
 const FOOTER_HEIGHT = 50; 
 
 const MIN_SIDEBAR_WIDTH = 300;
@@ -243,7 +244,7 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
     },
   ];
   
-  // NEW: Check if the user is on the Codejector page, where the editor is persistent.
+  // NEW: Check if the user is on the Codejector page, where the editor is persistent. 
   const isCodejectorPage = location.pathname.startsWith('/codejector/editor'); 
 
   // If we are on the Codejector page, suppress the drawer even if the store says a file is open.
@@ -438,4 +439,3 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
     </Box>
   );
 };
-
