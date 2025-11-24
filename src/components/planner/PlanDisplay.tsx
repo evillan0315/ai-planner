@@ -20,7 +20,7 @@ import MarkdownRenderer from '@/components/markdown/MarkdownRenderer';
 import PlanSectionAccordion from './PlanSectionAccordion';
 import PlanMetricsDisplay from './PlanMetricsDisplay';
 import PlanFileChangesTable from './PlanFileChangesTable';
-import { CustomSnackbar } from '@/components/ui/CustomSnackbar'; 
+import { CustomSnackbar } from '@/components/ui/snackbar/CustomSnackbar'; 
 
 interface PlanDisplayProps {
   plan: IPlan;

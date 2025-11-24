@@ -1,5 +1,5 @@
-import type { AlertColor } from '@mui/material';
-import { showSnackbar, closeSnackbar } from '@/stores/snackbarStore';
+ import type { AlertColor } from '@mui/material';
+import { showSnackbar, closeSnackbar } from '../stores/snackbarStore';
 
 /**
  * Service layer for dispatching global, non-blocking notification messages

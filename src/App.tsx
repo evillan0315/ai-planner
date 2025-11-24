@@ -10,7 +10,7 @@ import { initAuth } from './stores/authStore';
 import Loading from './components/Loading';
 import ErrorBoundary from './components/ErrorBoundary'; // Import the new ErrorBoundary
 import GlobalDialogManager from '@/components/ui/dialogs/GlobalDialogManager'; // ADD IMPORT
-import GlobalSnackbarManager from '@/components/ui/GlobalSnackbarManager'; 
+import GlobalSnackbarManager from '@/components/ui/snackbar/GlobalSnackbarManager'; 
 
 // Lazy load page components
 const HomePage = lazy(() => import('./pages/HomePage'));

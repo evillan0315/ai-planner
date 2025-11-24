@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { useStore } from '@nanostores/react';
-import { snackbarStore, closeSnackbar } from '@/stores/snackbarStore';
-import { CustomSnackbar } from '@/components/ui/CustomSnackbar';
+import { snackbarStore, closeSnackbar } from './stores/snackbarStore';
+import { CustomSnackbar } from './CustomSnackbar';
 import type { SnackbarProps } from '@mui/material/Snackbar';
 
 /**

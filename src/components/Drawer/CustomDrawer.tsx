@@ -7,6 +7,7 @@ import {
   Typography,
   useTheme,
   DialogActions,
+  Paper
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { type GlobalAction } from '@/types/action';
@@ -58,7 +59,7 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({
     ...(position === 'left' || position === 'right'
       ? { width: isFullScreen ? '100%' : drawerWidth }
       : { height: isFullScreen ? '100%' : drawerWidth }),
-    bgcolor: theme.palette.background.default,
+    //bgcolor: theme.palette.background.paper,
     color: theme.palette.text.primary,
     overflow: 'auto',
     borderLeft: `${position === 'right' ? '1px solid' : ''}`,
@@ -132,7 +133,7 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({
 
   // --- Fullscreen Drawer Content ---
   const fullScreenContent = (
-    <Box
+    <Paper
         sx={{
             display: 'flex',
             flexDirection: 'column',
@@ -149,7 +150,7 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({
             footerHeight={effectiveFooterHeight}
             contentWrapperSx={{p: 2}} // Apply general padding to the scrolling content area
         />
-    </Box>
+    </Paper>
   );
 
   return (
@@ -158,7 +159,6 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({
       open={open}
       onClose={onClose}
       hideBackdrop={!hasBackdrop}
-      PaperProps={{ sx: drawerPaperStyle }}
       disableEscapeKeyDown={!closeOnEscape}
     >
         {isFullScreen ? fullScreenContent : standardContent}

@@ -25,7 +25,7 @@ import FolderSharedIcon from '@mui/icons-material/FolderShared'; // NEW - Using 
 import InfoIcon from '@mui/icons-material/Info'; // NEW
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'; // NEW
 import * as path from 'path-browserify';
-import { showSnackbar } from '@/stores/snackbarStore';
+import { showSnackbar } from '@/components/ui/snackbar/stores/snackbarStore';
 
 import { useStore } from '@nanostores/react';
 

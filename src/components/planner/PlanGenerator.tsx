@@ -50,7 +50,7 @@ import { projectRootDirectoryStore, setProjectRoot as setGlobalProjectRoot } fro
 // New components
 import { PlanInputForm } from './PlanInputForm';
 import { PlanGenerationStatus } from './PlanGenerationStatus';
-import { CustomSnackbar } from '@/components/ui/CustomSnackbar'; 
+import { CustomSnackbar } from '@/components/ui/snackbar/CustomSnackbar'; 
 import { ContentLayout } from '@/components/ui/layouts/ContentLayout'; // <-- ADDED
 import { extractJsonFromMarkdown } from '@/utils/fileUtils';
 // Interface reflecting the normalized data structure passed from PlanMetadataEditorDrawer.
@@ -549,7 +549,7 @@ const planTitleHeader = useMemo(() => {
         open={isProjectRootPickerDialogOpen}
         onClose={() => setIsProjectRootPickerDialogOpen(false)}
         position="left"
-        size="medium" // Increased size for better file viewing
+        size="small" // Increased size for better file viewing
         title="Select Project Root Folder"
         hasBackdrop={true}
         footerActionButton={directoryPickerDrawerActions}
@@ -569,7 +569,7 @@ const planTitleHeader = useMemo(() => {
         open={isScanPathsDialogOpen}
         onClose={() => setIsScanPathsDialogOpen(false)}
         position="left"
-        size="medium"
+        size="normal"
         title="Manage AI Scan Paths"
         hasBackdrop={true}
         footerActionButton={scanPathsDrawerActions}
@@ -625,7 +625,7 @@ const planTitleHeader = useMemo(() => {
         open={isPlannerListDrawerOpen}
         onClose={() => setIsPlannerListDrawerOpen(false)}
         position="left"
-        size="medium"
+        size="normal"
         title="All AI Plans"
         hasBackdrop={true}
         footerActionButton={plannerListDrawerActions}
@@ -637,7 +637,7 @@ const planTitleHeader = useMemo(() => {
         open={isErrorDetailsDrawerOpen}
         onClose={() => setIsErrorDetailsDrawerOpen(false)}
         position="left"
-        size="medium"
+        size="normal"
         title="Error Details"
         hasBackdrop={true}
         footerActionButton={errorDrawerActions}

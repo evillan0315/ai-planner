@@ -20,8 +20,7 @@ import CustomDrawer from '@/components/Drawer/CustomDrawer';
 import FloatingResizableDraggableBox from '@/components/ui/FloatingResizableDraggableBox'; 
 import { editorStore, closeEditor, saveFileContent } from '@/components/editor/stores/editorStore'; 
 import FileEditorViewer from '@/components/editor/FileEditorViewer'; 
-import { GlobalAction } from '@/types/action';
-import GlobalActionButton from '@/components/ui/GlobalActionButton'; 
+import GlobalActionButton, { GlobalAction } from '@/components/ui/GlobalActionButton'; 
 import FileExplorer from '@/components/file-explorer/FileExplorer'; 
 import PlanGenerator from '@/components/planner/PlanGenerator'; 
 import  {Terminal } from '@/components/terminal/Terminal'; // ADDED
