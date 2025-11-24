@@ -1,7 +1,10 @@
 import React from 'react';
-import { Box, Typography, useTheme, SxProps } from '@mui/material';
+import { Box, Typography, useTheme, SxProps, IconButton, Tooltip } from '@mui/material';
 import LiveClock from '@/components/clock/LiveClock';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useStore } from '@nanostores/react';
+import { isTerminalVisible, toggleTerminal } from '@/stores/uiStore';
+import TerminalIcon from '@mui/icons-material/Terminal';
 
 // ---------------------------
 // 1. Interfaces & Types
@@ -30,6 +33,7 @@ const footerContentSx: SxProps = {
  */
 const Footer: React.FC = () => {
   const theme = useTheme();
+  const showTerminal = useStore(isTerminalVisible);
 
   return (
     <Box 
@@ -46,6 +50,19 @@ const Footer: React.FC = () => {
         
         {/* Right Status Area */}
         <Box className="flex items-center gap-2">
+            
+            {/* TERMINAL TOGGLE BUTTON */}
+            <Tooltip title={showTerminal ? 'Hide Terminal' : 'Show Terminal'}>
+                <IconButton 
+                    size="small" 
+                    onClick={toggleTerminal}
+                    // Highlight if active
+                    color={showTerminal ? 'primary' : 'inherit'} 
+                >
+                    <TerminalIcon fontSize="small" />
+                </IconButton>
+            </Tooltip>
+            
             <LiveClock />
             <ThemeToggle />
         </Box>
