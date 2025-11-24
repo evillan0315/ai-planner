@@ -1,8 +1,8 @@
 import { atom } from 'nanostores';
 import type { IPlan, IFileChange } from '../types';
 import {
-  INSTRUCTION as PLANNER_AI_INSTRUCTION,
-  INSTRUCTION_SCHEMA_OUTPUT as PLANNER_EXPECTED_OUTPUT_FORMAT
+  INSTRUCTION,
+  INSTRUCTION_SCHEMA_OUTPUT
 } from '@/components/planner/constants/instructions';
 
 import { projectRootDirectoryStore, setProjectRoot as setGlobalProjectRoot } from '@/components/file-explorer/stores/fileTreeStore';
@@ -44,8 +44,8 @@ export const plannerStore = atom<PlannerState>({
   applyError: null,
   projectRoot: projectRootDirectoryStore.get() || DEFAULT_PROJECT_ROOT_FROM_ENV, // Fallback to env default
   scanPathsInput: 'src, package.json, README.md, .env', // Provide sensible defaults for scan paths
-  additionalInstructions: PLANNER_AI_INSTRUCTION, // Default from constants
-  expectedOutputFormat: PLANNER_EXPECTED_OUTPUT_FORMAT, // Default from constants
+  additionalInstructions: INSTRUCTION, // Default from constants
+  expectedOutputFormat: INSTRUCTION_SCHEMA_OUTPUT, // Default from constants
   fileData: null,
   fileMimeType: null,
 });
@@ -207,9 +207,9 @@ export const resetPlannerState = () => {
     applyStatus: 'idle',
     applyError: null,
     projectRoot: projectRootDirectoryStore.get() ?? DEFAULT_PROJECT_ROOT_FROM_ENV,
-    scanPathsInput: 'src, public, package.json, README.md, .env', // Reset to default scan paths as well
-    additionalInstructions: PLANNER_AI_INSTRUCTION,
-    expectedOutputFormat: PLANNER_EXPECTED_OUTPUT_FORMAT,
+    scanPathsInput: 'package.json, README.md, .env', // Reset to default scan paths as well
+    additionalInstructions: INSTRUCTION,
+    expectedOutputFormat: INSTRUCTION_SCHEMA_OUTPUT,
     fileData: null, // Clear file data
     fileMimeType: null, // Clear file MIME type
   });
