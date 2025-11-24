@@ -7,7 +7,7 @@ import {
   setExpectedOutputFormat,
 } from '@/components/planner/stores/plannerStore';
 import CustomDrawer from '@/components/Drawer/CustomDrawer';
-import type { GlobalAction } from '@/types/action';
+import type { GlobalAction } from '@/components/ui/GlobalActionButton';
 import ClearIcon from '@mui/icons-material/Clear';
 import SaveIcon from '@mui/icons-material/Save';
 import MonacoEditor from '@/components/editor/monaco/MonacoEditor'; // Import MonacoEditor
