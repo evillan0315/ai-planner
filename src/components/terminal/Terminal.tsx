@@ -344,7 +344,7 @@ export const Terminal: React.FC<TerminalProps> = ({
     <Box sx={terminalContainerSx(theme, muitheme)}>
       <TerminalToolbar
         isConnected={isConnected}
-        currentPath="" // `currentPath` is retrieved from `terminalStore` if needed, not passed directly via prop if not used
+        currentPath={currentPath}  // `currentPath` is retrieved from `terminalStore` if needed, not passed directly via prop if not used
         onConnect={connectTerminal}
         onDisconnect={disconnectTerminal}
         onSettings={() => setOpen(true)}

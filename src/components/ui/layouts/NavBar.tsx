@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { ThemeToggle } from '@/components/ThemeToggle';
+
 
 // UI Icons
 import LoginIcon from '@mui/icons-material/Login';
@@ -174,7 +174,7 @@ export const NavBar: React.FC = () => {
               </Button>
             </RouterLink>
           )}
-          <ThemeToggle />
+
         </Box>
       </Toolbar>
     </AppBar>
