@@ -1,0 +1,40 @@
+@@ -36,6 +36,7 @@
+ import { setScanPathsInput, plannerStore } from '@/components/planner/stores/plannerStore';
+ import { fileExplorerService } from './api/fileExplorerService';
+ import { VIDEO_MIME_TYPES, AUDIO_MIME_TYPES } from '@/constants'; // NEW
++import { snackbarService } from '@/services/snackbarService'; // NEW IMPORT
+ 
+ 
+ /**
+@@ -330,22 +331,16 @@
+     });
+ 
+     if (pathsAddedCount === 0) {
+-        await dialogService.alert({
+-            title: 'Scan Paths Unchanged',
+-            content: 'All selected paths were already present in the AI scan configuration.',
+-            maxWidth: 'xs'
+-        });
++        snackbarService.showWarning('All selected paths were already present in the AI scan configuration.', 4000);
+         return;
+     }
+ 
+     // Convert Set back to comma-separated string and update store
+     const newScanPathsInput = Array.from(existingPaths).join(', ');
+     setScanPathsInput(newScanPathsInput);
+ 
+-    await dialogService.alert({
+-        title: 'Scan Paths Updated',
+-        content: pathsAddedCount === 1 
+-            ? `1 path added to AI scan configuration.`
+-            : `${pathsAddedCount} paths added to AI scan configuration.`, 
+-        maxWidth: 'xs'
+-    });
++    snackbarService.showSuccess(
++        pathsAddedCount === 1 
++            ? `1 path added to AI scan configuration.`
++            : `${pathsAddedCount} paths added to AI scan configuration.`
++    );
+     
+ }, [entries, handleClose]);
+ 

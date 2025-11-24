@@ -1,0 +1,54 @@
+--- a/src/components/ui/layouts/AppLayout.tsx
++++ b/src/components/ui/layouts/AppLayout.tsx
+@@ -51,6 +51,9 @@
+ 
+ // --- IMPORTS FOR RESIZABLE LAYOUT ---
+ import {
++  
+ // ... existing code ...
+ import { NavBar } from './NavBar'; // NEW IMPORT
+ 
+ // NEW IMPORTS FOR MULTI-WINDOW SUPPORT
+@@ -66,6 +69,10 @@
+ 
+ // Media Constants and Types
+ import type { IFileSystemEntry } from '@/components/file-explorer/types'; 
+@@ -81,6 +88,10 @@
+   terminalHeight,    // ADDED
+   setTerminalHeight, // ADDED
+ } from '@/stores/uiStore';
++
++// NEW IMPORTS FOR SNACKBAR
++import { CustomSnackbar } from '@/components/ui/CustomSnackbar'; 
++import { snackbarStore, closeSnackbar } from '@/stores/snackbarStore';
+ 
+ interface LayoutProps {
+   children: ReactNode;
+@@ -107,6 +118,9 @@
+   const $isTerminalVisible = useStore(isTerminalVisible);
+   const $terminalHeight = useStore(terminalHeight); // Get height from store
+ 
++  // NEW: Snackbar State
++  const snackbarState = useStore(snackbarStore);
++
+   const [isResizing, setIsResizing] = useState<null | 'left' | 'right' | 'bottom'>(null); // ADDED 'bottom'
+   const initialMouseX = useRef(0);
+   const initialMouseY = useRef(0); // ADDED Y tracking
+@@ -319,6 +333,15 @@
+           />
+         </FloatingResizableDraggableBox>
+       ))}
++      
++      {/* 3. Global Snackbar (NEW) */}
++      <CustomSnackbar 
++        open={snackbarState.isOpen}
++        message={snackbarState.message}
++        severity={snackbarState.severity}
++        autoHideDuration={snackbarState.autoHideDuration}
++        onClose={() => closeSnackbar()} 
++        // Place it high up in Z-index but below context menus (z=1000+)
++        alertSx={{ zIndex: 999 }}
++      />
+     </Box>
+   );
+ };

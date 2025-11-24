@@ -1,0 +1,74 @@
+--- a/../../src/planner/planner.service.ts
++++ b/../../src/planner/planner.service.ts
+@@ -13,7 +13,7 @@
+ import { ExecutorService } from "./executor.service";
+ import { FileChangeDto, GeneratedPlanDto } from "./dto";
+ import { PlanDto } from "./types";
+-import { validatePlan } from "./validator";
++import { validatePlan, GeneratedPlan } from "./validator";
+ import { LlmInputDto } from "@/llm/dto/llm-input.dto";
+ import { PrismaService } from "@/prisma/prisma.service";
+ import { FileAction as PrismaFileAction } from "@prisma/client";
+@@ -45,21 +45,21 @@
+     llmInput: LlmInputDto,
+     userId: string,
+   ): Promise<{ planId: string; plan: GeneratedPlanDto }> {
+-    const genPlan = await this.llm.generateContent(llmInput);
+-    this.logger.log("\n--- genPlan received by LLM ---");
+-    this.logger.debug(genPlan);
+-    this.logger.log(`GenPlan size: ${genPlan.length} characters.`);
+-    this.logger.log("--------------------------\n");
++    // 1. Generate plan using LLM Service (handles API call, extraction, JSON parsing, basic DTO mapping)
++    const rawPlanObject = await this.llm.generatePlan(llmInput);
+ 
+-    const extracted = LlmService.extractJsonFromMarkdown(genPlan);
++    // 2. Strict Zod validation on the resulting object structure
++    let validatedPlan: GeneratedPlan;
++    try {
++        validatedPlan = validatePlan(rawPlanObject);
++    } catch (e) {
++        this.logger.error("Zod Validation Failed on Generated Plan:", e as Error);
++        // Re-throw ZodError for upstream handling (e.g., Nest exceptions filter)
++        throw e;
++    }
+ 
+-    this.logger.log(`extracted:`, extracted);
+-    // Validate using zod validator (throws on invalid)
+-    const rawPlan:any = JSON.parse(extracted);
+-    this.logger.log(`validatePlan rawPlan:`, rawPlan);
++    this.logger.log("\n--- Validated Plan received ---");
++    this.logger.debug(validatedPlan);
++    this.logger.log("--------------------------\n");
+ 
+     // Persist Documentation if provided (cast to any to avoid Prisma client typing issues)
+-    let documentationId: string | null = null;
++    // Use validatedPlan for persistence logic
++    const rawPlan: any = validatedPlan; 
++
++    let documentationId: string | null = null;
+     if (rawPlan.documentation) {
+       const docData: any = {
+         content: rawPlan.documentation,
+@@ -94,9 +94,8 @@
+       }
+ 
+       // Normalize action to Prisma enum and validate
+-      const actionCandidate = change.action ?? change.actionType ?? change.type;
+-      const action = this.normalizeActionToPrisma(actionCandidate);
+-
++      // Since it passed Zod validation, change.action is already the Prisma enum string.
++      const action = change.action as PrismaFileAction; 
++
+       return {
+         index,
+         filePath,
+@@ -124,7 +123,7 @@
+     })();
+ 
+     let thoughtProcessValue: string | null = null;
+-    if (Array.isArray(rawPlan.thoughtProcess)) {
++    // Zod validation ensures thoughtProcess is an array of strings or a single string
++    if (Array.isArray(rawPlan.thoughtProcess)) {
+       thoughtProcessValue = rawPlan.thoughtProcess.join("\n");
+     } else if (typeof rawPlan.thoughtProcess === "string") {
+       thoughtProcessValue = rawPlan.thoughtProcess;
