@@ -5,11 +5,12 @@ import type { IApplyPlanResult, IGeneratePlanResponse, ILlmInput, IPlan, IPagina
 
 
 export const plannerService = {
-  async generatePlan(llmInput: ILlmInput): Promise<IGeneratePlanResponse> {
+  async generatePlan(llmInput: ILlmInput): Promise<string> {
     try {
-      const response = await axios.post<IGeneratePlanResponse>(`${API_BASE_URL}/plan`, llmInput, {
+      const response = await axios.post<IGeneratePlanResponse>(`${API_BASE_URL}/plan/generate`, llmInput, {
         headers: getAuthHeaders(),
       });
+      
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
@@ -18,7 +19,20 @@ export const plannerService = {
       throw new Error(JSON.stringify(error) || 'An unexpected error occurred during plan generation.');
     }
   },
-
+  async createPlan(plan: IPlan): Promise<IGeneratePlanResponse> {
+    try {
+      const response = await axios.post<IPlan>(`${API_BASE_URL}/plan/create`, plan, {
+        headers: getAuthHeaders(),
+      });
+      console.log(response.data, 'response.data');
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(JSON.stringify(error.response) || 'Failed to generate plan.');
+      }
+      throw new Error(JSON.stringify(error) || 'An unexpected error occurred during plan generation.');
+    }
+  },
   async getPlan(planId: string): Promise<{ plan: IPlan }> {
     // Updated return type
     try {

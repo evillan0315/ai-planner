@@ -29,7 +29,7 @@ import {
 } from './stores/plannerStore';
 import { plannerService } from './api/plannerService';
 import type { GlobalAction } from '@/components/ui/GlobalActionButton';
-import type { ILlmInput, IFileChange, IGitInstructions } from './types'; 
+import type { ILlmInput, IFileChange, IGitInstructions, IPlan } from './types'; 
 import { useNavigate } from 'react-router-dom';
 
 import BugReportIcon from '@mui/icons-material/BugReport';
@@ -51,7 +51,7 @@ import { PlanInputForm } from './PlanInputForm';
 import { PlanGenerationStatus } from './PlanGenerationStatus';
 import { CustomSnackbar } from '@/components/ui/CustomSnackbar'; 
 import { ContentLayout } from '@/components/ui/layouts/ContentLayout'; // <-- ADDED
-
+import { extractJsonFromMarkdown } from '@/utils/fileUtils';
 // Interface reflecting the normalized data structure passed from PlanMetadataEditorDrawer.
 // Matches the input requirements of updateCurrentPlanMetadata.
 interface IPlanMetadataUpdatePayload {
@@ -259,11 +259,16 @@ const PlanGenerator: React.FC = () => {
         }
       }
 
-      console.log(llmInput, 'llmInput');
+
       const response = await plannerService.generatePlan(llmInput);
-      setPlan(response.planId, response.plan);
-      setCurrentPlanId(response.planId);
-      navigate(`/planner-generator/${response.planId}`); // Navigate to the generated plan's URL
+      console.log(JSON.parse(response.rawPlanJson), 'plannerService.generatePlan response');
+      const parsePlan = JSON.parse(response.rawPlanJson);
+      
+      const planRes = await plannerService.createPlan({...parsePlan, projectRoot, llmInput});
+
+      setPlan(planRes.planId, planRes.plan);
+      setCurrentPlanId(planRes.planId);
+      //navigate(`/planner-generator/${response.planId}`); // Navigate to the generated plan's URL
     } catch (err: unknown) {
       console.error(err, 'Plan generation error');
       setError((err as Error).message || 'Failed to generate plan.');
@@ -311,7 +316,6 @@ const PlanGenerator: React.FC = () => {
     },
     [],
   );
-
   const handleEditFileChangeRequest = useCallback(
     (index: number, change: IFileChange) => {
       setIsFileChangeEditorOpen(true);
