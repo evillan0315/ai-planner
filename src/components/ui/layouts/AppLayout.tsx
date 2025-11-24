@@ -3,7 +3,9 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Box,
   Paper,
-  useTheme
+  useTheme,
+  SxProps, // Explicitly imported for helper function
+  Theme,   // Explicitly imported for helper function
 } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import { useStore } from '@nanostores/react';
@@ -88,6 +90,24 @@ const getMediaIcon = (mimeType?: string | null): React.ReactNode => {
   // Default for non-media files opened contextually (e.g., large logs, plaintext in floating viewer)
   return <InsertDriveFileIcon fontSize="small" color="action" />;
 };
+
+
+// --- Resizer Style Helper ---
+const getResizerSx = (theme: Theme, isCurrentResizing: boolean, direction: 'horizontal' | 'vertical'): SxProps<Theme> => ({
+    // Base properties (overridden by usage context if needed)
+    width: direction === 'horizontal' ? SIDEBAR_RESIZER_WIDTH : '100%',
+    height: direction === 'vertical' ? BOTTOM_RESIZER_HEIGHT : '100%',
+    
+    // Visual feedback
+    backgroundColor: isCurrentResizing ? theme.palette.primary.main : theme.palette.divider,
+    transition: 'background-color 0.2s ease',
+    '&:hover': {
+        backgroundColor: theme.palette.primary.light,
+    },
+    // Optional shadow for extra visibility when active
+    boxShadow: isCurrentResizing ? `0 0 5px ${theme.palette.primary.main}` : 'none',
+});
+// --- End Resizer Style Helper ---
 
 
 export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
@@ -305,13 +325,8 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
               onMouseDown={startResizing('left')}
               className="flex-shrink-0 cursor-ew-resize z-10"
               sx={{
+                ...getResizerSx(theme, isResizing === 'left', 'horizontal'),
                 width: SIDEBAR_RESIZER_WIDTH,
-                backgroundColor: theme.palette.divider,
-                transition: 'background-color 0.2s ease',
-                bgcolor: theme.palette.background.dark,
-                '&:hover': {
-                  backgroundColor: theme.palette.primary.main,
-                },
               }}
               title="Resize sidebar"
             />
@@ -334,13 +349,8 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
               onMouseDown={startResizing('right')}
               className="flex-shrink-0 cursor-ew-resize z-10"
               sx={{
-                width: SIDEBAR_RESIZER_WIDTH,
-                backgroundColor: theme.palette.divider,
-                bgcolor: theme.palette.background.dark,
-                transition: 'background-color 0.2s ease',
-                '&:hover': {
-                  backgroundColor: theme.palette.primary.main,
-                },
+                 ...getResizerSx(theme, isResizing === 'right', 'horizontal'),
+                 width: SIDEBAR_RESIZER_WIDTH,
               }}
               title="Resize sidebar"
             />
@@ -364,9 +374,8 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
           <Box
               className="terminal-area flex-shrink-0 relative"
               sx={{
-                  height: $terminalHeight + BOTTOM_RESIZER_HEIGHT, // Height + Resizer
+                  height: $terminalHeight + BOTTOM_RESIZER_HEIGHT, // Height + Resizer buffer
                   backgroundColor: theme.palette.background.default,
-                  borderTop: `1px solid ${theme.palette.divider}`, // Border applied implicitly by the resizer bar position
               }}
           >
               {/* Resizer Handle (Positioned at the TOP of the terminal area) */}
@@ -374,18 +383,22 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
                   onMouseDown={startResizing('bottom')}
                   className="terminal-resizer absolute top-0 left-0 right-0 z-20 cursor-ns-resize"
                   sx={{
+                      ...getResizerSx(theme, isResizing === 'bottom', 'vertical'),
                       height: BOTTOM_RESIZER_HEIGHT,
-                      backgroundColor: theme.palette.divider,
-                      transition: 'background-color 0.2s ease',
-  
-                      '&:hover': {
-                          backgroundColor: theme.palette.primary.main,
-                      },
                   }}
                   title="Resize terminal"
               />
-              {/* Terminal Content (adjust position for the resizer bar) */}
-              <Box sx={{ height: `calc(100% - 0px)`, backgroundColor: theme.palette.background.default, }}>
+              {/* Terminal Content (Adjust position to sit below the resizer bar) */}
+              <Box 
+                  sx={{ 
+                    height: `calc(100% - ${BOTTOM_RESIZER_HEIGHT}px)`, // Take 100% minus the resizer height
+                    backgroundColor: theme.palette.background.default, 
+                    position: 'absolute', 
+                    top: BOTTOM_RESIZER_HEIGHT, 
+                    left: 0, 
+                    right: 0 
+                  }}
+              >
                   <Terminal onLogout={logout} terminalHeight={$terminalHeight} />
               </Box>
           </Box>
