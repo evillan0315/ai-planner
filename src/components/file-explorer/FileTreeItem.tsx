@@ -15,9 +15,7 @@ import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'; // Added for expanded state
 import { getFileTypeIcon } from '@/constants/fileIcons'; 
 import type { IFileSystemEntry } from './types';
-import MarkdownRenderer from '@/components/markdown/MarkdownRenderer';
 import { format } from 'date-fns';
-
 
 
 /**
@@ -50,6 +48,17 @@ interface FileTreeItemProps {
   isDragTarget?: boolean;
 }
 
+// Helper function to format file size
+const formatSize = (bytes?: number): string => {
+    if (bytes === undefined || bytes === null || bytes < 0) return '';
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+};
+
+
 // ================================================
 // SX Prop Definitions
 // ================================================
@@ -57,36 +66,34 @@ interface FileTreeItemProps {
 const baseItemSx: (theme: ReturnType<typeof useTheme>, depth: number, isActive: boolean, isSelected: boolean, isDragTarget: boolean) => SxProps = (theme, depth, isActive, isSelected, isDragTarget) => ({
   display: 'flex',
   alignItems: 'center',
-  paddingY: 0.75,
-  paddingLeft: `${depth * 10}px`, // Indentation based on depth (16px per level)
+  paddingY: 0.5,
+  paddingLeft: `${depth * 16 + 4}px`, // Indentation based on depth (16px per level + 4px base)
   cursor: 'pointer',
   transition: 'background-color 0.15s ease-in-out, border 0.15s ease-in-out',
-  minHeight: '36px',
-  // Highlighting: Primary for active, secondary for drag target, action.selected for generic selection
+  minHeight: '32px', // Slightly reduced height for better density
+  
+  // Highlighting: Primary for active, secondary for selection, info for drag target
   borderLeft: isActive
     ? `3px solid ${theme.palette.primary.main}`
     : isSelected
-    ? `3px solid ${theme.palette.secondary.main}` // Use secondary color for selection
+    ? `3px solid ${theme.palette.secondary.main}` 
     : isDragTarget
-    ? `3px solid ${theme.palette.action.hover}`
+    ? `3px solid ${theme.palette.info.main}`
     : '3px solid transparent',
+
   backgroundColor: isActive 
-    ? theme.palette.action.selected // Default selection background for active file
+    ? theme.palette.action.selected
     : isSelected
-    ? theme.palette.action.selected // General selection background
+    ? theme.palette.action.selected
     : isDragTarget 
     ? theme.palette.action.hover 
     : 'transparent',
+
   '&:hover': {
     backgroundColor: theme.palette.action.hover,
   },
 });
-const markdownRendererSx: SxProps = {
-  px: 2,
-  py: 1,
-  '& p, & ul, & ol': { m: 0, p: 0 }, // Remove margins/padding from paragraphs and lists
-  '& ul, & ol': { pl: 2 }, // Add back padding for list items
-};
+
 const getIconColor = (entry: IFileSystemEntry) => {
   if (entry.isDirectory) {
     return 'info.main';
@@ -97,15 +104,6 @@ const getIconColor = (entry: IFileSystemEntry) => {
   if (entry.name.endsWith('.css') || entry.name.endsWith('.scss')) return 'secondary.main';
   if (entry.name.endsWith('.json')) return 'error.main';
   return 'text.secondary';
-};
-
-const formatSize = (bytes?: number): string => {
-    if (bytes === undefined || bytes === null || bytes < 0) return '';
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 };
 
 
@@ -173,16 +171,45 @@ const FileTreeItem: React.FC<FileTreeItemProps> = ({
 
   const IconComponent = entry.isDirectory ? FolderIcon : InsertDriveFileIcon;
   const iconColor = getIconColor(entry);
+  
+  // --- NEW TOOLTIP CONTENT (Simplified) ---
+  const TooltipContent = useMemo(() => {
+    return (
+      <Box sx={{ p: 1, maxWidth: 300 }}>
+        <Typography variant="body2" fontWeight="bold" sx={{ mb: 0.5, wordBreak: 'break-all', color: 'text.primary' }}>
+          {entry.name}
+        </Typography>
+        
+        {/* Path takes up too much space, keep it concise */}
+        <Typography variant="caption" color="text.secondary" component="div">
+          <Box component="span" sx={{ fontWeight: 'bold' }}>Path:</Box> <code style={{ fontSize: '0.65rem' }}>{entry.path}</code>
+        </Typography>
+        
+        <Typography variant="caption" color="text.secondary" display="block">
+          <Box component="span" sx={{ fontWeight: 'bold' }}>Type:</Box> {entry.isDirectory ? 'Directory' : 'File'}
+        </Typography>
+        
+        {entry.size !== undefined && !entry.isDirectory && (
+          <Typography variant="caption" color="text.secondary" display="block">
+             <Box component="span" sx={{ fontWeight: 'bold' }}>Size:</Box> {formatSize(entry.size)}
+          </Typography>
+        )}
+        
+        {entry.updatedAt && (
+          <Typography variant="caption" color="text.secondary" display="block">
+             <Box component="span" sx={{ fontWeight: 'bold' }}>Updated:</Box> {format(new Date(entry.updatedAt), 'yyyy-MM-dd HH:mm')}
+          </Typography>
+        )}
+        
+        {entry.mimeType && !entry.isDirectory && (
+          <Typography variant="caption" color="text.secondary" display="block">
+             <Box component="span" sx={{ fontWeight: 'bold' }}>MIME:</Box> {entry.mimeType}
+          </Typography>
+        )}
+      </Box>
+    );
+  }, [entry]);
 
-  const FILE_INFO_TOOLTIP = `
-- **Path:** \`${entry.path}\` 
-${ entry.type ==='file' ? `- **Size:** ${formatSize(entry.size)}` : `- **Files:** ${entry.children.length} files` }  
-- **Type:** ${entry.type}     
-${ entry.type ==='file' ? `- **Created:** ${format(new Date(entry.createdAt), 'yyyy-MM-dd hh:mm a')}` : `` }  
-${ entry.type ==='file' ? `- **Updated:** ${format(new Date(entry.updatedAt), 'yyyy-MM-dd hh:mm a')}` : `` }  
-
-
-`;
 
   return (
  
@@ -204,7 +231,7 @@ ${ entry.type ==='file' ? `- **Updated:** ${format(new Date(entry.updatedAt), 'y
         className="flex justify-between w-full"
       >
       
-        <Box className="flex items-center   flex-grow min-w-0 pr-4">
+        <Box className="flex items-center flex-grow min-w-0 pr-4">
          
           {entry.isDirectory && onToggleExpand ? (
             <IconButton size="small" sx={{ p: 0, mr: 0.5 }} onClick={handleIconClick} disabled={isLoadingChildren}>
@@ -225,25 +252,27 @@ ${ entry.type ==='file' ? `- **Updated:** ${format(new Date(entry.updatedAt), 'y
           {getFileTypeIcon(entry.name, entry.type, isExpanded, 'small')}
          
           </Box> 
-          <Tooltip title={
-          <>
-          <Box className="flex items-center gap-3 p-2" sx={{borderBottom: `1px solid ${theme.palette.divider}`}}>
-          {getFileTypeIcon(entry.name, entry.type, isExpanded, 'large')}
-          <Typography 
-            variant="h5" 
-            className="truncate"
+          <Tooltip 
+            title={TooltipContent} 
+            arrow 
+            placement="right" 
+            // Ensures the Tooltip style is visually distinct from the main file tree
+            slotProps={{
+                tooltip: {
+                    sx: { 
+                        bgcolor: theme.palette.background.paper, 
+                        border: `1px solid ${theme.palette.divider}`,
+                        boxShadow: theme.shadows[5],
+                        color: theme.palette.text.primary,
+                        maxWidth: 320,
+                    }
+                }
+            }}
           >
-          {entry.name} 
-          </Typography>
-          </Box>
-          <MarkdownRenderer content={FILE_INFO_TOOLTIP} sx={markdownRendererSx}/>
-          </>
-          } arrow placement="right">
           <span>
           <Typography 
             variant="body2" 
             sx={{ 
-                //whiteSpace: 'nowrap', 
                 fontWeight: entry.isDirectory ? 500 : 400,
             }}
             className="truncate w-full max-w-[160px]"
@@ -256,7 +285,7 @@ ${ entry.type ==='file' ? `- **Updated:** ${format(new Date(entry.updatedAt), 'y
           
         </Box>
         
-        <Box className="flex items-center  min-w-20 space-x-2 text-right  pr-2">
+        <Box className="flex items-center min-w-20 space-x-2 text-right pr-2">
             {!entry.isDirectory && entry.size !== undefined && (
                 <Typography variant="caption" color="text.secondary">
                     {formatSize(entry.size)}
@@ -269,4 +298,3 @@ ${ entry.type ==='file' ? `- **Updated:** ${format(new Date(entry.updatedAt), 'y
 };
 
 export default FileTreeItem;
-

@@ -304,7 +304,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ initialPath, onPathSelected
     if (entriesToPass.length > 0) {
       openContextMenu(e, entriesToPass, clickedPath);
     }
-  }, []);
+  }, [selectedPaths, currentDirectoryContents, treeState.cachedContents, handleSelectionClick]);
   
   // Render the controls component inside a memoized element for ContentLayout
   const controlsComponent = useMemo(() => (
