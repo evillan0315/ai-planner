@@ -63,11 +63,24 @@ const formatSize = (bytes?: number): string => {
 // SX Prop Definitions
 // ================================================
 
+const ICON_AREA_WIDTH = 24; // Fixed width for alignment of both chevron/placeholder and file type icon
+
+const iconAlignContainerSx: SxProps = {
+    width: `${ICON_AREA_WIDTH}px`,
+    height: `${ICON_AREA_WIDTH}px`,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0, 
+    p: 0,
+};
+
+
 const baseItemSx: (theme: ReturnType<typeof useTheme>, depth: number, isActive: boolean, isSelected: boolean, isDragTarget: boolean) => SxProps = (theme, depth, isActive, isSelected, isDragTarget) => ({
   display: 'flex',
   alignItems: 'center',
   paddingY: 0.5,
-  paddingLeft: `${depth * 16 + 4}px`, // Indentation based on depth (16px per level + 4px base)
+  paddingLeft: `${depth * 16}px`, // Indentation based on depth (16px per level). Removed the previous +4 offset for better control.
   cursor: 'pointer',
   transition: 'background-color 0.15s ease-in-out, border 0.15s ease-in-out',
   minHeight: '32px', // Slightly reduced height for better density
@@ -231,27 +244,33 @@ const FileTreeItem: React.FC<FileTreeItemProps> = ({
         className="flex justify-between w-full"
       >
       
-        <Box className="flex items-center flex-grow min-w-0 pr-4">
+        {/* Left Side: Indent + Content */}
+        <Box className="flex items-center flex-grow min-w-0 pr-4" sx={{ pl: 0.5 }}> {/* Add 4px base visual padding */}
          
-          {entry.isDirectory && onToggleExpand ? (
-            <IconButton size="small" sx={{ p: 0, mr: 0.5 }} onClick={handleIconClick} disabled={isLoadingChildren}>
-              {isLoadingChildren ? (
-                <CircularProgress size={16} color="inherit" />
-              ) : isExpanded ? (
-                <KeyboardArrowDownIcon fontSize="small" color="action" />
-              ) : (
-                <KeyboardArrowRightIcon fontSize="small" color="action" />
-              )}
-            </IconButton>
-          ) : (
-            <Box sx={{ width: '24px', mr: 0.5 }} /> 
-          )}
+          {/* 1. Expansion Icon / Placeholder */}
+          <Box sx={iconAlignContainerSx}> 
+            {entry.isDirectory && onToggleExpand ? (
+              <IconButton size="small" sx={{ p: 0 }} onClick={handleIconClick} disabled={isLoadingChildren}>
+                {isLoadingChildren ? (
+                  <CircularProgress size={14} color="inherit" />
+                ) : isExpanded ? (
+                  <KeyboardArrowDownIcon fontSize="small" color="action" />
+                ) : (
+                  <KeyboardArrowRightIcon fontSize="small" color="action" />
+                )}
+              </IconButton>
+            ) : (
+              <Box sx={{ width: '100%', height: '100%' }} /> // Spacer Box
+            )}
+          </Box>
           
      
-          <Box sx={{ mr: 0.5 }}> 
-          {getFileTypeIcon(entry.name, entry.type, isExpanded, 'small')}
-         
+          {/* 2. File Type Icon */}
+          <Box sx={iconAlignContainerSx}> 
+            {getFileTypeIcon(entry.name, entry.type, isExpanded, 'small')}
           </Box> 
+
+          {/* 3. File Name */}
           <Tooltip 
             title={TooltipContent} 
             arrow 
@@ -274,6 +293,7 @@ const FileTreeItem: React.FC<FileTreeItemProps> = ({
             variant="body2" 
             sx={{ 
                 fontWeight: entry.isDirectory ? 500 : 400,
+                ml: 0.5, // 4px margin after the file icon box
             }}
             className="truncate"
           >
