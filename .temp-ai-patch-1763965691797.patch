@@ -1,0 +1,158 @@
+--- a/media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/editor/FileEditorViewer.tsx
++++ b/media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/editor/FileEditorViewer.tsx
+@@ -34,6 +34,8 @@
+   Alert,
+   SxProps,
+   useTheme,
++}
++import SaveIcon from '@mui/icons-material/Save';
++import CodeIcon from '@mui/icons-material/Code'; // <-- NEW
++import PreviewIcon from '@mui/icons-material/Preview'; // <-- NEW
+ 
+ import { CarbonRowDelete } from '@/components/icons/CarbonRowDelete';
+ import {
+   IMAGE_MIME_TYPES,
+   VIDEO_MIME_TYPES,
+   AUDIO_MIME_TYPES,
++  MARKDOWN_EXTENSIONS, // <-- NEW
++  HTML_EXTENSIONS,     // <-- NEW
+ } from '@/constants';
+ 
+ // NEW IMPORTS FOR REFACTORED COMPONENTS
+@@ -43,6 +45,9 @@
+ import AudioPlayer from '@/components/ui/player/AudioPlayer';
+ import VideoPlayer from '@/components/ui/player/VideoPlayer';
+ 
++// New Type definition for view modes
++export type EditorViewMode = 'code' | 'rendered' | 'default'; 
++
+ interface FileEditorViewerProps {
+     onClose: () => void;
+     // Context props passed when used inside a Floating Window
+@@ -66,6 +71,9 @@
+ ) => {
+   const theme = useTheme();
+   const [searchParams] = useSearchParams();
++  
++  // NEW STATE: View Mode for toggling between raw code and rendered view (Markdown/HTML)
++  const [viewMode, setViewMode] = useState<EditorViewMode>('default'); 
+   
+   // Existing state: Cursor position and Placeholder for issues
+   const [cursorPosition, setCursorPosition] = useState<{ line: number; column: number }>({ line: 1, column: 1 });
+@@ -118,6 +126,16 @@
+                   VIDEO_MIME_TYPES.has(mimeType) || 
+                   AUDIO_MIME_TYPES.has(mimeType);
+ 
++  
++  const extension = fileEntry?.path.split('.').pop()?.toLowerCase() || '';
++
++  const isMarkdownOrHtml = useMemo(() => {
++      // Check file extension against known markdown/html constants
++      return MARKDOWN_EXTENSIONS.has(extension) || HTML_EXTENSIONS.has(extension);
++  }, [extension]);
++
++  // Effect to reset view mode when active tab changes
++  useEffect(() => {
++    setViewMode('default');
++  }, [fileEntry?.path]);
++
+   
+   // Dedicated Route Initialization Effect ---
+  useEffect(() => {
+@@ -134,22 +152,36 @@
+   const saveAction = isDedicatedRouteMode ? saveActiveTabContent : saveSingletonFileContent;
+   const updateAction = isDedicatedRouteMode ? updateActiveTabDraft : updateSingletonDraftContent;
+ 
+-  // Actions for the dedicated route editor (Right side: Save if changes exist)
+-  const dedicatedRouteRightActions: GlobalAction[] = hasUnsavedChanges ? [ // <<< RENAMED
+-    {
+-      label: 'Save',
+-      action: saveActiveTabContent, // Use multi-tab save action
+-      icon: <SaveIcon />,
+-      color: 'primary',
+-      variant: '',
+-      disabled: isLoading, 
+-      tooltip: 'Save active file content (Ctrl+S)',
+-    },
+-  ] : [];
++
++  const handleToggleView = useCallback(() => {
++      setViewMode(prev => {
++          // If default (which means it rendered as markdown/html initially), switch to 'code'
++          if (prev === 'default' || prev === 'rendered') return 'code';
++          // If currently 'code', switch to 'rendered'
++          return 'rendered'; 
++      });
++  }, []);
++
++
++  // Actions for the dedicated route editor (Right side: Save + Toggle View)
++  const dedicatedRouteRightActions: GlobalAction[] = useMemo(() => { 
++    const actions: GlobalAction[] = [];
++
++    // 1. View Toggle Action (Only for MD/HTML in dedicated mode)
++    if (isDedicatedRouteMode && isMarkdownOrHtml) {
++        const currentMode = viewMode === 'default' ? 'rendered' : viewMode; 
++        const isRendered = currentMode === 'rendered';
++
++        actions.push({
++            label: isRendered ? 'View Raw Code' : 'View Rendered Preview',
++            action: handleToggleView,
++            icon: isRendered ? <CodeIcon /> : <PreviewIcon />,
++            color: 'secondary',
++            variant: '',
++            disabled: isLoading,
++            tooltip: 'Toggle between raw code editor and rendered preview.',
++        });
++    }
++
++    // 2. Save Action
++    if (hasUnsavedChanges) { 
++        actions.push({
++          label: 'Save',
++          action: saveActiveTabContent, // Use multi-tab save action
++          icon: <SaveIcon />,
++          color: 'primary',
++          variant: '',
++          disabled: isLoading, 
++          tooltip: 'Save active file content (Ctrl+S)',
++        });
++    }
++
++    return actions;
++  }, [
++      hasUnsavedChanges, 
++      isDedicatedRouteMode, 
++      isMarkdownOrHtml, 
++      viewMode, 
++      handleToggleView, 
++      isLoading
++  ]);
+ 
+   // Actions for the dedicated route editor (Left side: Close All) // <<< ADDED
+   const dedicatedRouteLeftActions: GlobalAction[] = tabs.length > 0 ? [
+@@ -176,6 +208,7 @@
+                     mediaUrlLoading={mediaUrlLoading}
+                     mediaUrlError={mediaUrlError}
+                     onRegisterPlayerAction={handleRegisterFullscreen} // Pass action registration
++                    forceViewMode={'default'} // Always default for contextual media viewer
+                 />
+             </Box>
+          )}
+@@ -226,7 +259,7 @@
+             onSaveShortcut={saveActiveTabContent}
+             onContentChange={updateActiveTabDraft}
+             onCursorChange={handleCursorChange} // PASS CURSOR HANDLER HERE
+-        />
++            forceViewMode={isMarkdownOrHtml ? viewMode : 'default'} // <<< PASS VIEW MODE
+         );
+         
+         // Define footer content 
+@@ -274,6 +307,7 @@
+             onSaveShortcut={saveSingletonFileContent}
+             onContentChange={updateSingletonDraftContent}
+             onCursorChange={handleCursorChange} // PASS CURSOR HANDLER
++            forceViewMode={'default'} // <<< PASS DEFAULT VIEW MODE
+         />
+       </Box>
+       
