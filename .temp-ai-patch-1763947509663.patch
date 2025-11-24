@@ -1,0 +1,45 @@
+--- a/src/components/file-explorer/FileExplorerContextMenu.tsx
++++ b/src/components/file-explorer/FileExplorerContextMenu.tsx
+@@ -34,6 +34,8 @@
+ 
+ import { openFileInEditor } from '@/components/editor/stores/editorStore';
+ import { dialogService } from '@/services/dialogService'; 
++// NEW SNACKBAR IMPORT
++import { showSnackbar } from '@/stores/snackbarStore'; 
+ // NEW IMPORT
+ import { setScanPathsInput, plannerStore } from '@/components/planner/stores/plannerStore';
+ import { fileExplorerService } from './api/fileExplorerService';
+@@ -310,12 +312,10 @@
+     });
+ 
+     if (pathsAddedCount === 0) {
+-        await dialogService.alert({
+-            title: 'Scan Paths Unchanged',
+-            content: 'All selected paths were already present in the AI scan configuration.',
+-            maxWidth: 'xs'
+-        });
++        showSnackbar(
++            'All selected paths were already present in the AI scan configuration.',
++            'info'
++        );
+         return;
+     }
+ 
+@@ -323,13 +323,9 @@
+     const newScanPathsInput = Array.from(existingPaths).join(', ');
+     setScanPathsInput(newScanPathsInput);
+ 
+-    await dialogService.alert({
+-        title: 'Scan Paths Updated',
+-        content: pathsAddedCount === 1 
+-            ? `1 path added to AI scan configuration.`
+-            : `${pathsAddedCount} paths added to AI scan configuration.`, 
+-        maxWidth: 'xs'
+-    });
++    const successMessage = pathsAddedCount === 1 
++        ? `1 path added to AI scan configuration successfully.`
++        : `${pathsAddedCount} paths added to AI scan configuration successfully.`;
++        
++    showSnackbar(successMessage, 'success');
+     
+ }, [entries, handleClose]);
