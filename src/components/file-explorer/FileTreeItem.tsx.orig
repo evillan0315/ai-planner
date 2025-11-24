@@ -258,7 +258,7 @@ const FileTreeItem: React.FC<FileTreeItemProps> = ({
             placement="right" 
             // Ensures the Tooltip style is visually distinct from the main file tree
             slotProps={{
-                tooltip: { 
+                tooltip: {
                     sx: { 
                         bgcolor: theme.palette.background.paper, 
                         border: `1px solid ${theme.palette.divider}`,
@@ -269,13 +269,13 @@ const FileTreeItem: React.FC<FileTreeItemProps> = ({
                 }
             }}
           >
-          <span className="flex-grow min-w-0"> {/* Ensures the span consumes available width for truncation */}
+          <span>
           <Typography 
             variant="body2" 
             sx={{ 
                 fontWeight: entry.isDirectory ? 500 : 400,
             }}
-            className="truncate"
+            className="truncate w-full max-w-[160px]"
           >
             {entry.name}
           </Typography>

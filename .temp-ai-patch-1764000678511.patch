@@ -1,0 +1,18 @@
+--- a/src/components/file-explorer/FileTreeItem.tsx
++++ b/src/components/file-explorer/FileTreeItem.tsx
+@@ -155,14 +155,14 @@
+                 }
+             }}
+           >
+-          <span>
++          <span className="flex-grow min-w-0"> {/* Ensures the span consumes available width for truncation */}
+           <Typography 
+             variant="body2" 
+             sx={{ 
+                 fontWeight: entry.isDirectory ? 500 : 400,
+             }}
+-            className="truncate w-full max-w-[160px]"
++            className="truncate"
+           >
+             {entry.name}
+           </Typography>
