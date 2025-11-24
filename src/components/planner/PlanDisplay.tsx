@@ -244,16 +244,17 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
       )}
 
       {/* 6. Documentation */}
+      {plan.documentation && (
       <PlanSectionAccordion title="Documentation">
-        {plan.documentation ? (
+        
           <MarkdownRenderer content={plan.documentation} />
         ) : (
           <Typography variant="body2" color="text.secondary">
             No documentation provided.
           </Typography>
-        )}
+        
       </PlanSectionAccordion>
-
+      )}
       {/* 7. File Changes Table */}
       <PlanSectionAccordion title={`File Changes (${plan.changes.length})`} defaultExpanded>
         <PlanFileChangesTable
@@ -285,7 +286,8 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
       {/* 9. Git Instructions */}
       {gitInstructionsContent && (
         <PlanSectionAccordion title="Git Instructions">
-          <MarkdownRenderer content={gitInstructionsContent} />
+          {JSON.stringify(gitInstructionsContent)}
+         
         </PlanSectionAccordion>
       )}
 

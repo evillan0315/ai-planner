@@ -24,13 +24,12 @@ export const plannerService = {
       const response = await axios.post<IPlan>(`${API_BASE_URL}/plan/create`, plan, {
         headers: getAuthHeaders(),
       });
-      console.log(response.data, 'response.data');
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
-        throw new Error(JSON.stringify(error.response) || 'Failed to generate plan.');
+        throw new Error(JSON.stringify(error.response) || 'Failed to create plan.');
       }
-      throw new Error(JSON.stringify(error) || 'An unexpected error occurred during plan generation.');
+      throw new Error(JSON.stringify(error) || 'An unexpected error occurred during plan creation.');
     }
   },
   async getPlan(planId: string): Promise<{ plan: IPlan }> {
