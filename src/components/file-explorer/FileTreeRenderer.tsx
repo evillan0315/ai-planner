@@ -75,7 +75,7 @@ const FileTreeRenderer: React.FC<FileTreeRendererProps> = React.memo(({
 }) => {
     
     return (
-    <Paper className="h-full" sx={{backgroundColor: 'background.default'}}>
+    <Box className="h-full overflow-auto" sx={{backgroundColor: 'background.default'}}>
       <List disablePadding dense>
         {contents.map((entry) => {
           const entryPath = entry.path;
@@ -160,7 +160,7 @@ const FileTreeRenderer: React.FC<FileTreeRendererProps> = React.memo(({
           );
         })}
       </List>
-      </Paper>
+      </Box>
     );
 }, (prevProps, nextProps) => {
     // Custom memoization check to optimize tree rendering

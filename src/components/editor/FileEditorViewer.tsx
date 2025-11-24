@@ -302,7 +302,7 @@ const handleRegisterFullscreen = useCallback((fn: (() => void) | null) => {
                 {/* REPLACED: CircularProgress with Loading type="linear" */}
                 {isLoading ? (
                     <Loading 
-                        type="linear" 
+                        type="skeleton" 
                         message={`Loading ${contextEntry?.name || 'file'}...`} 
                         className="w-full"
                     />
