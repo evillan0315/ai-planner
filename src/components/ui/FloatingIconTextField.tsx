@@ -38,8 +38,7 @@ const CornerMap: Record<CornerPosition, IconPositioning> = {
 // ---------------------------
 
 const ICON_OFFSET = 6; // px offset from edge (to align with typical MUI padding)
-// FIXED: Increased clearance dramatically to ensure icons clear text content area vertically.
-const PADDING_FOR_FLOATING_ICONS = 40; // Clearance needed for a row of icons (approx. 40px)
+const MIN_CONTENT_AREA_CLEARANCE = 10; // Clearance needed for a row of icons + spacing
 
 
 const getFloatingActionsContainerSx = (
@@ -54,7 +53,7 @@ const getFloatingActionsContainerSx = (
   // Horizontal positioning and flow direction (flow should be inward from the anchor)
   ...(positioning.x === 'right' ? 
     { right: ICON_OFFSET, left: 'auto', flexDirection: 'row-reverse' } : // Anchor Right, flow Right-to-Left (First group closest to corner)
-    { left: ICON_OFFSET, right: 'auto', flexDirection: 'row' }), // Anchor Left, flow Left-to-Right (First group closest to corner)
+    { left: ICON_OFFSET, right: 'auto', flexDirection: 'row' }), 
 });
 
 const getInputAreaPaddingSx = (
@@ -65,8 +64,7 @@ const getInputAreaPaddingSx = (
     
     // Determine required padding based on vertical location
     const neededPadding: { paddingTop?: number; paddingBottom?: number; } = {};
-    // Use fixed clearance
-    const effectiveClearance = PADDING_FOR_FLOATING_ICONS; 
+    const effectiveClearance = MIN_CONTENT_AREA_CLEARANCE; 
 
     // Check if we need top padding
     if (activeCorners.includes('top-left') || activeCorners.includes('top-right')) {
@@ -79,13 +77,12 @@ const getInputAreaPaddingSx = (
     
     // Target the actual textarea/input field within the multiline InputBase structure
     return {
-        // Target the multiline input element specifically
         '& .MuiInputBase-inputMultiline': { 
             // We use !important because default MUI padding can be hard to override otherwise.
             ...(neededPadding.paddingBottom && { paddingBottom: `${neededPadding.paddingBottom}px !important` }),
             ...(neededPadding.paddingTop && { paddingTop: `${neededPadding.paddingTop}px !important` }),
-            // Also ensure left/right padding is sufficient if we decide to place controls there too
-        }
+        },
+      
     };
 };
 
@@ -128,7 +125,6 @@ export default function FloatingIconTextField({
 
       return {
           ...userInputProps,
-          // Apply padding adjustment here
           sx: combinedSx
       };
   }, [userInputProps, inputPaddingSx]);
@@ -164,7 +160,8 @@ export default function FloatingIconTextField({
         // Pass multiline back
         multiline={multiline} 
         {...props} 
-        InputProps={combinedInputProps} // Inject combined InputProps
+        InputProps={combinedInputProps}
+
       />
 
       {actionRenderers}

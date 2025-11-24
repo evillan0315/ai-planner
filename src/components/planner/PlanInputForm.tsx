@@ -288,13 +288,18 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
             <FloatingIconTextField
               label="Enter your prompt"
               multiline
-              rows={2} // Default visible rows
+              rows={1} // Default visible rows
               fullWidth
               value={userPrompt}
               onChange={(e) => setUserPrompt(e.target.value)}
               disabled={isLoading}
               floatingActionGroupsByCorner={floatingActionGroupsByCorner} 
-              sx={{backgroundColor:'background.paper'}}
+              sx={{
+                backgroundColor:'background.paper',           
+                '& .MuiInputBase-multiline': { 
+                  padding: '40px 20px 40px 20px !important'
+                },
+            }}
             />
             <Stack 
                 direction="row" 

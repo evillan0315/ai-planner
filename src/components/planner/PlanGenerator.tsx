@@ -427,20 +427,37 @@ const PlanGenerator: React.FC = () => {
 // --- New Header Configuration Memoization ---
 
 const headerRightActions: GlobalAction[] = useMemo(() => {
-    if (!plan) return [];
+    const actions: GlobalAction[] = [];
+    const isGenerating = isLoading;
+    
+    // 1. Generate Plan Button (Icon only, visible always unless currently loading)
+    actions.push({
+        label: isGenerating ? 'Generating...' : 'Generate Plan',
+        action: handleGeneratePlan,
+        icon: isGenerating ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon />,
+        color: 'success', 
+        disabled: isGenerating || !userPrompt.trim(),
+        //iconOnly: true,
+    });
 
-    const isApplying = applyStatus === 'applying';
-    const isSuccess = applyStatus === 'success';
 
-    return [{
-        label: isApplying ? 'Applying...' : isSuccess ? 'Applied!' : 'Apply Plan',
-        action: handleApplyPlan,
-        icon: isApplying ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon />,
-        color: isSuccess ? 'success' : 'primary',
-        //variant: 'contained',
-        disabled: isApplying || isSuccess,
-    }];
-}, [plan, applyStatus, handleApplyPlan]);
+    // 2. Apply Plan Button (Only available if a plan exists)
+    if (plan) {
+        const isApplying = applyStatus === 'applying';
+        const isSuccess = applyStatus === 'success';
+
+        actions.push({
+            label: isApplying ? 'Applying...' : isSuccess ? 'Applied!' : 'Apply Plan',
+            action: handleApplyPlan,
+            icon: isApplying ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon />,
+            color: isSuccess ? 'success' : 'primary',
+            disabled: isApplying || isSuccess,
+            iconOnly: true,
+        });
+    }
+
+    return actions;
+}, [plan, applyStatus, handleApplyPlan, handleGeneratePlan, isLoading, userPrompt]);
 const headerLeftActions: GlobalAction[] = useMemo(() => {
     if (!plan) return [];
 
@@ -459,7 +476,7 @@ const headerLeftActions: GlobalAction[] = useMemo(() => {
 const planTitleHeader = useMemo(() => {
     if (!plan) {
       return (
-          <Typography variant="subtitle1" fontWeight="bold" ><AddRoadIcon /> Generate New Plan</Typography>
+          <Typography variant="subtitle1" fontWeight="bold" ><AddRoadIcon /> Planner</Typography>
       );
     } else {
       return (
