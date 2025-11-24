@@ -623,7 +623,7 @@ const planTitleHeader = useMemo(() => {
       <CustomDrawer
         open={isPlannerListDrawerOpen}
         onClose={() => setIsPlannerListDrawerOpen(false)}
-        position="right"
+        position="left"
         size="medium"
         title="All AI Plans"
         hasBackdrop={true}
@@ -635,7 +635,7 @@ const planTitleHeader = useMemo(() => {
       <CustomDrawer
         open={isErrorDetailsDrawerOpen}
         onClose={() => setIsErrorDetailsDrawerOpen(false)}
-        position="right"
+        position="left"
         size="medium"
         title="Error Details"
         hasBackdrop={true}
