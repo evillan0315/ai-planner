@@ -21,7 +21,8 @@ import FloatingResizableDraggableBox from '@/components/ui/FloatingResizableDrag
 import { editorStore, closeEditor, saveFileContent } from '@/components/editor/stores/editorStore'; 
 import FileEditorViewer from '@/components/editor/FileEditorViewer'; 
 import GlobalActionButton, { GlobalAction } from '@/components/ui/GlobalActionButton'; 
-import GlobalLoadingOverlay from '@/components/ui/loader/GlobalLoadingOverlay'; 
+// REMOVED: import GlobalLoadingOverlay from '@/components/ui/loader/GlobalLoadingOverlay'; 
+import GlobalLinearLoader from '@/components/ui/loader/GlobalLinearLoader'; // ADDED
 import FileExplorer from '@/components/file-explorer/FileExplorer'; 
 import PlanGenerator from '@/components/planner/PlanGenerator'; 
 import  {Terminal } from '@/components/terminal/Terminal'; // ADDED
@@ -127,6 +128,17 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
 
   /** Start resizing a sidebar */
   const startResizing = useCallback((side: 'left' | 'right' | 'bottom') => (e: React.MouseEvent) => {
+    // Check if the target is an interactive element inside the header (like a button)
+    const target = e.target as HTMLElement;
+    const isInteractive = target.closest('button, a, input, [role="button"]');
+    
+    // Safety check: Do not start resizing if target is an interactive element
+    if (isInteractive) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+
     setIsResizing(side);
     initialMouseX.current = e.clientX;
     initialMouseY.current = e.clientY; // Store initial Y position
@@ -260,6 +272,8 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
       className="transition-colors duration-200"
     >
       <NavBar />
+      {/* 0. Global Linear Loader (Sits immediately below the sticky NavBar) */}
+      <GlobalLinearLoader /> 
       
       {/* Main content + optional sidebars (NEW STRUCTURE) */}
       <Box 
@@ -436,7 +450,7 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
           />
         </FloatingResizableDraggableBox>
       ))}
-      <GlobalLoadingOverlay />
+      {/* REMOVED GlobalLoadingOverlay which showed a blocking modal */}
     </Box>
   );
 };
