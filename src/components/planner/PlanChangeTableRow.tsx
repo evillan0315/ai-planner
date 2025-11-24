@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   TableRow,
   TableCell,
   Chip,
   Tooltip,
-  IconButton,
   CircularProgress,
   SxProps,
   Box
@@ -13,6 +12,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import EditIcon from '@mui/icons-material/Edit';
 import MarkdownRenderer from '@/components/markdown/MarkdownRenderer';
+import GlobalActionButton, { GlobalAction } from '@/components/ui/GlobalActionButton';
 import type { IFileChange } from '@/components/planner/types';
 
 type ChangeApplyStatus = 'idle' | 'applying' | 'success' | 'failure';
@@ -52,6 +52,47 @@ const PlanChangeTableRow: React.FC<PlanChangeTableRowProps> = ({
     }
   };
 
+  const actions = useMemo(() => {
+    const actionList: GlobalAction[] = [];
+    
+    // 1. Apply / Status Action
+    if (status === 'applying') {
+        actionList.push({
+            label: 'Applying...', // Used for Tooltip
+            component: <CircularProgress size={20} color="primary" sx={{ display: 'block', margin: 'auto' }} />,
+        });
+    } else if (status === 'success') {
+        actionList.push({
+            label: 'Applied successfully',
+            component: (
+                <Tooltip title="Applied successfully" placement="top">
+                    <CheckCircleOutlineIcon color="success" fontSize="small" />
+                </Tooltip>
+            ),
+        });
+    } else {
+        // Idle/Failure state: Apply button
+        actionList.push({
+            label: status === 'failure' ? 'Retry Apply' : 'Apply this change',
+            action: () => onApplySingleChange(index),
+            icon: <RocketLaunchIcon fontSize="small" />,
+            color: status === 'failure' ? 'error' : 'primary',
+            iconOnly: true,
+        });
+    }
+
+    // 2. Edit Action
+    actionList.push({
+        label: 'Edit this change',
+        action: () => onEditFileChange(index, change),
+        icon: <EditIcon fontSize="small" />,
+        color: 'secondary',
+        iconOnly: true,
+    });
+    
+    return actionList;
+  }, [status, index, change, onApplySingleChange, onEditFileChange]);
+
   return (
     <TableRow key={index} hover>
       <TableCell className="truncate nowrap max-w-[100px]">
@@ -85,34 +126,7 @@ const PlanChangeTableRow: React.FC<PlanChangeTableRowProps> = ({
           justifyContent: 'center',
         }}
       >
-        {status === 'applying' ? (
-          <CircularProgress size={20} color="inherit" />
-        ) : status === 'success' ? (
-          <Tooltip title="Applied successfully">
-            <CheckCircleOutlineIcon color="success" fontSize="small" />
-          </Tooltip>
-        ) : (
-          <Tooltip title="Apply this change">
-            <IconButton
-              onClick={() => onApplySingleChange(index)}
-              size="small"
-              color="primary"
-              aria-label={`apply change ${index}`}
-            >
-              <RocketLaunchIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        )}
-        <Tooltip title="Edit this change">
-          <IconButton
-            onClick={() => onEditFileChange(index, change)}
-            size="small"
-            color="secondary"
-            aria-label={`edit change ${index}`}
-          >
-            <EditIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
+        <GlobalActionButton globalActions={actions} iconOnly={true} />
       </TableCell>
     </TableRow>
   );

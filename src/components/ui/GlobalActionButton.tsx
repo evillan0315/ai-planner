@@ -1,9 +1,6 @@
 import React from 'react';
 import { Box, Button, Tooltip, IconButton, ButtonProps } from '@mui/material';
 
-import type { GlobalAction } from '@/types/action'; // Corrected import path for GlobalAction
-
-
 // Define ButtonColor and ButtonVariant based on Material UI's ButtonProps
 export type ButtonColor = ButtonProps['color'];
 export type ButtonVariant = ButtonProps['variant'];
