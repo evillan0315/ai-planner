@@ -25,6 +25,7 @@ import FolderSharedIcon from '@mui/icons-material/FolderShared'; // NEW - Using 
 import InfoIcon from '@mui/icons-material/Info'; // NEW
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'; // NEW
 import * as path from 'path-browserify';
+import { showSnackbar } from '@/stores/snackbarStore';
 
 import { useStore } from '@nanostores/react';
 
@@ -381,11 +382,7 @@ const handleAddToScanPath = useCallback(async () => {
     });
 
     if (pathsAddedCount === 0) {
-        await dialogService.alert({
-            title: 'Scan Paths Unchanged',
-            content: 'All selected paths were already present in the AI scan configuration.',
-            maxWidth: 'xs'
-        });
+        showSnackbar('All selected paths were already present in the AI scan configuration.', 'info');
         return;
     }
 
@@ -393,13 +390,12 @@ const handleAddToScanPath = useCallback(async () => {
     const newScanPathsInput = Array.from(existingPaths).join(', ');
     setScanPathsInput(newScanPathsInput);
 
-    await dialogService.alert({
-        title: 'Scan Paths Updated',
-        content: pathsAddedCount === 1 
+    showSnackbar(
+        pathsAddedCount === 1 
             ? `1 path added to AI scan configuration.`
             : `${pathsAddedCount} paths added to AI scan configuration.`, 
-        maxWidth: 'xs'
-    });
+        'success'
+    );
     
 }, [entries, handleClose]);
 
@@ -427,6 +423,7 @@ const handleInfo = useCallback(async () => {
         content: metadataContent,
         maxWidth: 'sm'
     });
+
 
 }, [clickedEntry, handleClose, entries.length, theme]);
 

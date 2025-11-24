@@ -10,6 +10,7 @@ import { initAuth } from './stores/authStore';
 import Loading from './components/Loading';
 import ErrorBoundary from './components/ErrorBoundary'; // Import the new ErrorBoundary
 import GlobalDialogManager from '@/components/ui/dialogs/GlobalDialogManager'; // ADD IMPORT
+import GlobalSnackbarManager from '@/components/ui/GlobalSnackbarManager'; 
 
 // Lazy load page components
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -110,6 +111,8 @@ function App() {
       </ErrorBoundary>
       {/* Global Dialog Manager for Alert/Confirm/Prompt functionality */}
       <GlobalDialogManager /> 
+      <GlobalSnackbarManager /> 
+      
     </ThemeProvider>
   );
 }
