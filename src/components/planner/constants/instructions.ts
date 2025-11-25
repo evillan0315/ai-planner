@@ -30,9 +30,7 @@ Output Rules:
 - If you applied changes, also provide relevant \`git\` commands for staging, committing, and pushing (e.g. \`git add .\`, \`git commit -m "feat: your commit message"\`).
 `;
 export const INSTRUCTION_SCHEMA_OUTPUT = `
-  
-  {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+ {
   "title": "AI Planner Output Schema",
   "type": "object",
   "additionalProperties": false,
@@ -44,7 +42,6 @@ export const INSTRUCTION_SCHEMA_OUTPUT = `
     "confidence",
     "estimatedEffortMinutes",
     "changes",
-    "gitInstructions",
     "metadata",
     "error"
   ],
@@ -59,22 +56,11 @@ export const INSTRUCTION_SCHEMA_OUTPUT = `
     },
     "assumptions": {
       "type": "array",
-      "items": { "type": "string" },
-      "minItems": 0
+      "items": { "type": "string" }
     },
-    "confidence": {
-      "type": "number",
-      "minimum": 0.0,
-      "maximum": 1.0
-    },
-    "estimatedEffortMinutes": {
-      "type": "integer",
-      "minimum": 0
-    },
-    "documentation": {
-      "type": "string",
-      "minLength": 1
-    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "estimatedEffortMinutes": { "type": "integer", "minimum": 0 },
+    "documentation": { "type": "string" },
     "changes": {
       "type": "array",
       "items": {
@@ -87,105 +73,15 @@ export const INSTRUCTION_SCHEMA_OUTPUT = `
             "type": "string",
             "enum": ["ADD", "MODIFY", "DELETE", "REPAIR", "ANALYZE", "INSTALL", "RUN"]
           },
-          "filePath": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "^[^\0]+$"
-          },
-          "reason": { "type": "string", "minLength": 1 },
-
-          "oldContent": {
-            "anyOf": [
-              { "type": "string", "maxLength": 200 },
-              { "type": "null" }
-            ]
-          },
-          "newContent": {
-            "anyOf": [
-              { "type": "string", "minLength": 1 },
-              { "type": "null" }
-            ]
-          },
+          "filePath": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string" },
+          "oldContent": { "type": ["string", "null"] },
+          "newContent": { "type": ["string", "null"] },
           "testsAdded": {
-            "anyOf": [
-              {
-                "type": "array",
-                "items": { "type": "string" },
-                "minItems": 0
-              },
-              { "type": "null" }
-            ]
+            "type": ["array", "null"],
+            "items": { "type": "string" }
           },
           "estimatedMinutes": { "type": "integer", "minimum": 0 }
-        },
-        "allOf": [
-          {
-            "if": {
-              "properties": { "action": { "const": "ADD" } }
-            },
-            "then": {
-              "required": ["newContent"],
-              "properties": {
-                "diff": { "type": ["null"] }
-              }
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "action": { "enum": ["MODIFY", "REPAIR"] }
-              }
-            },
-            "then": {
-              "required": ["newContent"],
-              "properties": {
-                "newContent": { "type": "string", "minLength": 1 }
-              }
-            }
-          },
-          {
-            "if": {
-              "properties": { "action": { "const": "DELETE" } }
-            },
-            "then": {
-              "properties": {
-                "diff": { "type": ["null"] },
-                "newContent": { "type": ["null"] }
-              }
-            }
-          }
-        ]
-      },
-      "minItems": 0
-    },
-    "tests": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["add", "modify"],
-      "properties": {
-        "add": {
-          "type": "array",
-          "items": { "type": "string" },
-          "minItems": 0
-        },
-        "modify": {
-          "type": "array",
-          "items": { "type": "string" },
-          "minItems": 0
-        }
-      }
-    },
-    "gitInstructions": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["branchName", "commitMessage", "commands"],
-      "properties": {
-        "branchName": { "type": "string", "minLength": 1 },
-        "commitMessage": { "type": "string", "minLength": 5 },
-        "commands": {
-          "type": "array",
-          "items": { "type": "string", "minLength": 1 },
-          "minItems": 1
         }
       }
     },
@@ -194,12 +90,13 @@ export const INSTRUCTION_SCHEMA_OUTPUT = `
       "additionalProperties": false,
       "required": ["tokensUsed"],
       "properties": {
-        "tokensUsed": { "anyOf": [{ "type": "integer" }, { "type": "null" }] }
+        "tokensUsed": { "type": ["integer", "null"] }
       }
     },
-    "error": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
+    "error": { "type": ["string", "null"] }
   }
-}`; 
+}
+`; 
 
 /** Example of a valid output JSON matching the schema */
 export const INSTRUCTION_EXAMPLE_OUTPUT = `{

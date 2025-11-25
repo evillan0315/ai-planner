@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Button, Tooltip, IconButton, ButtonProps } from '@mui/material';
+import { Box, Button, Tooltip, IconButton, type ButtonProps } from '@mui/material';
 
 // Define ButtonColor and ButtonVariant based on Material UI's ButtonProps
 export type ButtonColor = ButtonProps['color'];

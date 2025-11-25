@@ -10,8 +10,8 @@ import {
   Paper
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { type GlobalAction } from '@/types/action';
-import GlobalActionButton from '@/components/ui/GlobalActionButton';
+
+import GlobalActionButton, { type GlobalAction } from '@/components/ui/GlobalActionButton';
 import { ContentLayout } from '@/components/ui/layouts/ContentLayout'; // NEW IMPORT
 
 interface CustomDrawerProps {

@@ -1,6 +1,6 @@
 import React, { ReactNode, useMemo } from 'react';
-import { Box, Paper, Toolbar, AppBar, useTheme, SxProps, Theme } from '@mui/material';
-import GlobalActionButton, { GlobalAction } from '@/components/ui/GlobalActionButton';
+import { Box, Paper, Toolbar, AppBar, useTheme, type SxProps, type Theme } from '@mui/material';
+import GlobalActionButton, { type GlobalAction } from '@/components/ui/GlobalActionButton';
 
 interface ContentLayoutProps {
   /** Content of the sticky header (e.g., title, navigation). */

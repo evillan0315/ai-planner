@@ -4,7 +4,7 @@ import {
   INSTRUCTION,
   INSTRUCTION_SCHEMA_OUTPUT
 } from '@/components/planner/constants/instructions';
-
+import { startGlobalLoading, stopGlobalLoading } from '@/components/ui/loader/stores/loadingStore';
 import { projectRootDirectoryStore, setProjectRoot as setGlobalProjectRoot } from '@/components/file-explorer/stores/fileTreeStore';
 import { plannerService } from '../api/plannerService'; // Import plannerService
 

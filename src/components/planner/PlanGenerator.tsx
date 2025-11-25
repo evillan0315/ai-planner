@@ -28,10 +28,14 @@ import {
   setPlannerProjectRoot, // <-- ADDED
 } from './stores/plannerStore';
 import { plannerService } from './api/plannerService';
+import { fileExplorerService } from '@/components/file-explorer/api/fileExplorerService';
+import { ScanConfig } from '@/components/file-explorer/types'; 
+import { buildLLMPrompt, extractJsonFromMarkdown } from './utils'; 
+import { loadingStore, startGlobalLoading, stopGlobalLoading } from '@/components/ui/loader/stores/loadingStore';
 import type { GlobalAction } from '@/components/ui/GlobalActionButton';
 import type { ILlmInput, IFileChange, IGitInstructions, IPlan } from './types'; 
 import { useNavigate } from 'react-router-dom';
-
+import { getMonacoLanguage } from '@/utils/editorUtils';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
@@ -52,7 +56,7 @@ import { PlanInputForm } from './PlanInputForm';
 import { PlanGenerationStatus } from './PlanGenerationStatus';
 import { CustomSnackbar } from '@/components/ui/snackbar/CustomSnackbar'; 
 import { ContentLayout } from '@/components/ui/layouts/ContentLayout'; // <-- ADDED
-import { extractJsonFromMarkdown } from '@/utils/fileUtils';
+
 // Interface reflecting the normalized data structure passed from PlanMetadataEditorDrawer.
 // Matches the input requirements of updateCurrentPlanMetadata.
 interface IPlanMetadataUpdatePayload {
@@ -100,7 +104,7 @@ const PlanGenerator: React.FC = () => {
   const globalProjectRoot = useStore(projectRootDirectoryStore);
   const navigate = useNavigate();
   const theme = useTheme();
-
+  const { isGlobalLoading } = useStore(loadingStore);
   const [isProjectRootPickerDialogOpen, setIsProjectRootPickerDialogOpen] = useState(false);
   const [isScanPathsDialogOpen, setIsScanPathsDialogOpen] = useState(false);
   const [isAiInstructionDrawerOpen, setIsAiInstructionDrawerOpen] = useState(false);
@@ -231,52 +235,173 @@ const PlanGenerator: React.FC = () => {
     },
     [],
   );
-
-  const handleGeneratePlan = async () => {
-    setIsLoading(true);
+  const handleScanDirectory = async () => {
     try {
-      const llmInput: ILlmInput = {
-        userPrompt,
-        projectRoot,
-        relevantFiles: [],
-        additionalInstructions,
-        expectedOutputFormat,
-        scanPaths: currentScanPathsArray,
-        requestType: 'LLM_GENERATION',
-        output: 'JSON',
-        fileData: fileData || undefined,
-        fileMimeType: fileMimeType || undefined,
-      };
-
-      // Adjust requestType based on file presence
-      if (llmInput.fileData && llmInput.fileMimeType) {
-        if (llmInput.fileMimeType.startsWith('image/')) {
-          llmInput.requestType = 'TEXT_WITH_IMAGE';
-        }
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        else {
-          llmInput.requestType = 'TEXT_WITH_FILE';
-        }
-      }
-
-
-      const response = await plannerService.generatePlan(llmInput);
-      console.log(JSON.parse(response.rawPlanJson), 'plannerService.generatePlan response');
-      const parsePlan = JSON.parse(response.rawPlanJson);
-      
-      const planRes = await plannerService.createPlan({...parsePlan, projectRoot, llmInput});
-
-      setPlan(planRes.planId, planRes.plan);
-      setCurrentPlanId(planRes.planId);
-      //navigate(`/planner-generator/${response.planId}`); // Navigate to the generated plan's URL
-    } catch (err: unknown) {
-      console.error(err, 'Plan generation error');
-      setError((err as Error).message || 'Failed to generate plan.');
-    } finally {
-      // setIsLoading(false) is handled by setPlan or setError
+    const rFiles: ScanConfig = {
+      projectRoot,
+      scanPaths: currentScanPathsArray,
+      verbose: false
     }
-  };
+    return await fileExplorerService.scanDirectory(rFiles);
+   } catch (err: unknown) {
+      console.error(err, 'File Scan Errpr  ');
+      setError((err as Error).message || 'Failed to scan files.');
+    } 
+  }
+  const handleProjectStructure = async () => {
+    try {
+    return await plannerService.getProjectStructure(projectRoot);
+   } catch (err: unknown) {
+      console.error(err, 'Failed to get structure   ');
+      setError((err as Error).message || 'Failed to get structure ');
+    } 
+  }
+  const handleGeneratePlan = useCallback(async (): Promise<void> => {
+  // FIlePath: src/components/planner/PlanGenerator.tsx
+  // Title: handleGeneratePlan - robust plan generation flow
+  // Reason: Improve error handling, parsing resilience, store updates, and loading state management
+
+  // Guard: require a non-empty prompt and a project root
+  if (!userPrompt || !userPrompt.trim()) {
+    setError('Please provide a prompt before generating a plan.');
+    return;
+  }
+  if (!projectRoot || !projectRoot.trim()) {
+    setError('Please select a project root before generating a plan.');
+    return;
+  }
+
+  setError('');
+  setIsLoading(true);
+  startGlobalLoading('Generating Plan...');
+
+  try {
+    // 1) Scan files
+    const relevantFiles = await handleScanDirectory();
+    if (!relevantFiles || !Array.isArray(relevantFiles) || relevantFiles.length === 0) {
+      throw new Error('No files returned from scanner. Adjust your scan paths or project root.');
+    }
+
+    // 2) Get project structure (string). Allow empty string but validate type.
+    const projectStructure = await handleProjectStructure();
+    if (projectStructure !== undefined && typeof projectStructure !== 'string') {
+      console.warn('Unexpected projectStructure type; proceeding with empty string fallback.', projectStructure);
+    }
+
+    // 3) Compose LLM input
+    const llmInput: ILlmInput = {
+      userPrompt,
+      projectRoot,
+      relevantFiles,
+      additionalInstructions,
+      expectedOutputFormat,
+      scanPaths: currentScanPathsArray,
+      requestType: 'LLM_GENERATION',
+      output: 'JSON',
+      fileData: fileData || undefined,
+      fileMimeType: fileMimeType || undefined,
+    };
+
+    if (llmInput.fileData && llmInput.fileMimeType) {
+      llmInput.requestType = llmInput.fileMimeType.startsWith('image/') ? 'TEXT_WITH_IMAGE' : 'TEXT_WITH_FILE';
+    }
+
+    // 4) Build prompt
+    const fullPrompt = await buildLLMPrompt(llmInput, relevantFiles, (projectStructure as string) ?? '');
+
+    // 5) Call the planner service to generate raw LLM output
+    const rawResponse = await plannerService.generatePlan(llmInput, fullPrompt);
+    if (!rawResponse || (typeof rawResponse !== 'string' && typeof rawResponse !== 'object')) {
+      throw new Error('Planner returned an unexpected response.');
+    }
+    
+    const extracted = await extractJsonFromMarkdown(rawResponse);
+    
+    // 6) Extract JSON from markdown (resilient)
+    let parsedPlan: IPlan | null = null;
+    const tryParse = (candidate: string) => {
+      try {
+        return JSON.parse(candidate) as IPlan;
+      } catch {
+        return null;
+      }
+    };
+
+    // If response is an object with `content` or similar, try to pull sensible string
+    let candidateString: string | undefined;
+    if (typeof extracted === 'string') {
+      candidateString = extracted;
+    } else if (typeof extracted === 'object') {
+      // Common keys: content, body, text, result
+      candidateString =
+        (extracted as any).content ??
+        (extracted as any).body ??
+        (extracted as any).text ??
+        JSON.stringify(extracted);
+    }
+
+      try {
+        
+        if (candidateString) {
+          parsedPlan = tryParse(candidateString);
+        }
+      } catch (e) {
+        console.warn('extractJsonFromMarkdown failed, falling back to raw parse.', e);
+      }
+    
+
+
+    // Attempt 3: if we still don't have a plan, throw
+    if (!parsedPlan) {
+      throw new Error('Failed to parse plan from LLM response.');
+    }
+
+    parsedPlan.title = parsedPlan.title?.trim() || truncateTitle(parsedPlan.summary || userPrompt.slice(0, 80));
+
+    // 7) Persist plan via plannerService.createPlan and normalize response
+    const createRes = await plannerService.createPlan(parsedPlan);
+    console.log(createRes, 'createRes');
+    // Normalize created plan (accept multiple response shapes)
+    // Final sanity check
+    if (!createRes) {
+      throw new Error('Failed to create or normalize the plan returned by the service.');
+    }
+    setPlan(createRes);
+    setCurrentPlanId(createRes.planId);
+    // Optionally navigate to a plan detail view (uncomment if desired)
+    navigate(`/planner-generator/${createRes.planId}`);
+
+  } catch (err: unknown) {
+    const message = (err as Error)?.message ?? String(err);
+    console.error('Plan generation error:', err);
+    setError(message || 'Failed to generate plan.');
+  } finally {
+    setIsLoading(false);
+    stopGlobalLoading();
+  }
+}, [
+  userPrompt,
+  projectRoot,
+  additionalInstructions,
+  expectedOutputFormat,
+  currentScanPathsArray,
+  fileData,
+  fileMimeType,
+  handleScanDirectory,
+  handleProjectStructure,
+  buildLLMPrompt,
+  plannerService,
+  extractJsonFromMarkdown,
+  setError,
+  setIsLoading,
+  setPlan,
+  setCurrentPlanId,
+  startGlobalLoading,
+  stopGlobalLoading,
+  truncateTitle,
+  navigate,
+]);
+ 
 
   const handleApplyPlan = useCallback(async () => { // <-- MOVED FROM PlanDisplay.tsx
     if (!plan || !plan.id) {

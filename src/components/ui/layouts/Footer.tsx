@@ -41,6 +41,7 @@ const Footer: React.FC = () => {
       sx={footerContentSx}
     >
         <Typography variant="caption" color="text.secondary">
+        <LiveClock />
             AI Planner v1.0.0
         </Typography>
         {/* Left Status Area - currently unused, can add editor status later */}
@@ -63,7 +64,7 @@ const Footer: React.FC = () => {
                 </IconButton>
             </Tooltip>
             
-            <LiveClock />
+            
             <ThemeToggle />
         </Box>
     </Box>

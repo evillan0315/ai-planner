@@ -13,7 +13,9 @@ import type {
   ICopyFileRequest,
   ICopyFileResponse,
   IMoveFileRequest,
-  IMoveFileResponse
+  IMoveFileResponse,
+  ScannedFile,
+  ScanConfig
 } from '@/components/file-explorer/types'; 
 
 /**
@@ -224,7 +226,7 @@ export const fileExplorerService = {
   async moveFileOrFolder(sourcePath: string, destinationPath: string): Promise<IMoveFileResponse> {
     const data: IMoveFileRequest = { sourcePath, destinationPath };
     try {
-      const response = await axios.post<IMoveFileResponse>(
+      const response = await axios.post<ScannedFile[]>(
         `${API_BASE_URL}/file/move`,
         data,
         { headers: getAuthHeaders() },
@@ -238,6 +240,32 @@ export const fileExplorerService = {
       }
       throw new Error(
         `An unexpected error occurred while moving: ${sourcePath}.`,
+      );
+    }
+  },
+
+  /**
+   * Scan a file or folder.
+   * @param sourcePath Source path.
+   * @param destinationPath Destination path.
+   */
+  async scanDirectory(data: ScanConfig): Promise<ScannedFile[] | []> {
+
+    try {
+      const response = await axios.post<ScannedFile[] | []>(
+        `${API_BASE_URL}/file/scan`,
+        data,
+        { headers: getAuthHeaders() },
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(
+          error.response.data.message || `Failed to scan`,
+        );
+      }
+      throw new Error(
+        `An unexpected error occurred while scanning`,
       );
     }
   },

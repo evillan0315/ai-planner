@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo, MouseEvent as ReactMouseEvent } from 'react';
-import { Box, Paper, Typography, IconButton, useTheme, SxProps, Theme, Tooltip } from '@mui/material';
+import { Box, Paper, Typography, IconButton, useTheme, type SxProps, type Theme, Tooltip } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import FullscreenIcon from '@mui/icons-material/Fullscreen'; // NEW: Import FullscreenIcon
 

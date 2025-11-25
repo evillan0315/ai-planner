@@ -140,3 +140,15 @@ export interface IMoveFileResponse extends IFileOperationResult {
   sourcePath: string;
   destinationPath: string;
 }
+
+export interface ScanConfig {
+  scanPaths: string[];
+  projectRoot: string;
+  verbose: boolean;
+}
+
+export interface ScannedFile {
+  filePath: string;
+  relativePath: string;
+  content: string;
+}
