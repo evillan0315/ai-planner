@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -48,6 +48,9 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
   const [snackbarSeverity, setSnackbarSeverity] = useState<
     'success' | 'error' | 'info' | 'warning'
   >('info');
+
+  // NEW STATE FOR SELECTION
+  const [selectedChangeIndices, setSelectedChangeIndices] = useState<Set<number>>(new Set());
 
   // Memoize the thought process content to resolve esbuild parsing error
   const thoughtProcessContent = useMemo(() => {
@@ -169,6 +172,29 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
     }
   };
 
+  // --- Selection Handlers ---
+
+  const handleToggleChangeSelection = useCallback((index: number, isSelected: boolean) => {
+    setSelectedChangeIndices(prev => {
+      const newSet = new Set(prev);
+      if (isSelected) {
+        newSet.add(index);
+      } else {
+        newSet.delete(index);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleToggleAllSelection = useCallback((selectAll: boolean) => {
+    if (selectAll) {
+      const allIndices = plan.changes.map((_, index) => index);
+      setSelectedChangeIndices(new Set(allIndices));
+    } else {
+      setSelectedChangeIndices(new Set());
+    }
+  }, [plan.changes]);
+
   return (
     <Box className="space-y-4 p-2 w-full h-full"> 
 
@@ -262,6 +288,10 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
             individualChangeStatus={individualChangeStatus}
             onApplySingleChange={handleApplySingleChange}
             onEditFileChange={onEditFileChange}
+            // NEW PROPS
+            selectedChangeIndices={selectedChangeIndices}
+            onToggleChangeSelection={handleToggleChangeSelection}
+            onToggleAllSelection={handleToggleAllSelection}
         />
       </PlanSectionAccordion>
 

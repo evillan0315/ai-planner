@@ -6,7 +6,8 @@ import {
   Tooltip,
   CircularProgress,
   SxProps,
-  Box
+  Box,
+  Checkbox
 } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
@@ -23,6 +24,9 @@ interface PlanChangeTableRowProps {
   status: ChangeApplyStatus;
   onApplySingleChange: (index: number) => void;
   onEditFileChange: (index: number, change: IFileChange) => void;
+  // NEW PROPS
+  isSelected: boolean;
+  onSelectChange: (index: number, isSelected: boolean) => void;
 }
 
 const reasonRendererSx: SxProps = {
@@ -37,6 +41,9 @@ const PlanChangeTableRow: React.FC<PlanChangeTableRowProps> = ({
   status,
   onApplySingleChange,
   onEditFileChange,
+  // NEW PROPS
+  isSelected,
+  onSelectChange,
 }) => {
   const getChipColor = (action: IFileChange['action']) => {
     switch (action) {
@@ -50,6 +57,10 @@ const PlanChangeTableRow: React.FC<PlanChangeTableRowProps> = ({
       default:
         return 'default';
     }
+  };
+
+  const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onSelectChange(index, event.target.checked);
   };
 
   const actions = useMemo(() => {
@@ -95,6 +106,14 @@ const PlanChangeTableRow: React.FC<PlanChangeTableRowProps> = ({
 
   return (
     <TableRow key={index} hover>
+      {/* NEW: Selection Checkbox */}
+      <TableCell padding="checkbox">
+        <Checkbox
+          checked={isSelected}
+          onChange={handleCheckboxChange}
+          size="small"
+        />
+      </TableCell>
       <TableCell className="truncate nowrap max-w-[100px]">
         <Tooltip title={change.filePath}>
           {change.filePath}
