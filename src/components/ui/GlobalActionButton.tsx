@@ -37,6 +37,7 @@ function GlobalActionButton({ globalActions, iconOnly = false }: GlobalActionBut
             <React.Fragment key={index}>{action.component}</React.Fragment>
           ) : action.iconOnly ? (
             <Tooltip key={index} title={action.label} arrow>
+            <span>
               <IconButton
                 onClick={action.action}
                 color={action.color || 'primary'}
@@ -45,6 +46,7 @@ function GlobalActionButton({ globalActions, iconOnly = false }: GlobalActionBut
               >
                 {action.icon ? action.icon : null}
               </IconButton>
+              </span>
             </Tooltip>
           ) : (
             <Button

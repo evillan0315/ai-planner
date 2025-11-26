@@ -185,7 +185,7 @@ const isToggleableFile = isMarkdown || isHtml;
 
 // Use Effect to reset viewMode when active file changes
 useEffect(() => {
-    console.log(isToggleableFile, extension)
+
     if (fileEntry?.path) {
         // If MD/HTML, default to preview, otherwise default to code (irrelevant for non-toggleable files)
         setViewMode(isToggleableFile ? 'preview' : 'code');

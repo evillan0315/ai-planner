@@ -11,6 +11,7 @@ import type {
   ILlmInput,
   IPlan,
   IPaginatedPlansResponse,
+  GenerateText
 } from '../types';
 import { geminiService } from '@/api/geminiService';
 import type { GenerateContentRequest, GenerateContentResponse, Content, Part } from '@/types/gemini';
@@ -107,7 +108,7 @@ export const plannerService = {
   async generatePlan(llmInput: ILlmInput, prompt: string): Promise<string> {
     
     const inputPrompt: GenerateContentRequest = {
-      model: 'gemini-2.5-flash-preview',
+      model: 'gemini-2.5-flash-preview-09-2025',
       contents: [
         {
           role: 'user',
@@ -161,7 +162,29 @@ export const plannerService = {
       throw new Error(`Failed to generate plan: ${String(err)}`);
     }
   },
+  
 
+  async generate(llmInput: ILlmInput, prompt: string): Promise<string> {
+    const genText: GenerateText = {
+      prompt,
+      systemInstruction: `
+      ${llmInput.additionalInstructions}\n\n
+      ${llmInput.expectedOutputFormat}\n\n
+      `
+    }
+
+    try {
+      const response = await axios.post<string>(`${API_BASE_URL}/gemini/file/generate-text`, genText, {
+        headers: getAuthHeaders(),
+      });
+      return response.data;
+    } catch (error: any) {
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(error.response.data?.message ?? JSON.stringify(error.response.data) ?? 'Failed to create plan.');
+      }
+      throw new Error(error?.message ?? 'An unexpected error occurred during plan creation.');
+    }
+  },
   async createPlan(plan: IPlan): Promise<IGeneratePlanResponse> {
     try {
       const response = await axios.post<IGeneratePlanResponse>(`${API_BASE_URL}/plan/create`, plan, {

@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+/**
+ * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+ * Title: Terminal Component (Terminal.tsx)
+ * Reason: Provide inline JSDoc metadata and formal documentation for the Terminal React component, its props, helper functions, and each significant effect/handler. Metadata blocks are placed at the top of the file and inside each major code block per project requirements.
+ */
+
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Paper, useTheme } from '@mui/material';
 import { useStore } from '@nanostores/react';
@@ -26,11 +32,32 @@ import stripAnsi from 'strip-ansi';
 import { SystemInfo, PromptData } from './types/terminal';
 import { useAuth } from '@/hooks/useAuth';
 import { ContentLayout } from '@/components/ui/layouts/ContentLayout';
+
+/**
+ * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+ * Title: TerminalProps Interface
+ * Reason: Describe the component props used by Terminal component.
+ */
+/**
+ * TerminalProps describes the external properties accepted by the Terminal component.
+ *
+ * @property {() => void} onLogout - Callback invoked to log the user out.
+ * @property {number} terminalHeight - Height value provided by parent layout used for resizing logic.
+ */
 interface TerminalProps {
   onLogout: () => void;
   terminalHeight: number;
 }
 
+/**
+ * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+ * Title: terminalContainerSx helper
+ * Reason: Provide consistent MUI sx styling for the terminal container supporting light/dark themes.
+ *
+ * @param {'light' | 'dark'} themeMode - Theme mode selected.
+ * @param {any} theme - MUI theme object.
+ * @returns {object} - sx style object for container Box.
+ */
 const terminalContainerSx = (themeMode: 'light' | 'dark', theme: any) => ({
   display: 'flex',
   flexDirection: 'column',
@@ -44,39 +71,83 @@ const terminalContainerSx = (themeMode: 'light' | 'dark', theme: any) => ({
       : theme.palette.background.paper,
 });
 
-// Height is now inherited from the parent Box sizing in AppLayout.
+/**
+ * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+ * Title: xtermBoxSx helper
+ * Reason: Create styles for the xterm container box so Xterm can occupy available space.
+ *
+ * @returns {object} - sx style object
+ */
 const xtermBoxSx = () => ({
   flexGrow: 1,
   overflow: 'hidden',
   '.xterm': { padding: '2px' },
 });
 
+/**
+ * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+ * Title: Terminal Component
+ * Reason: Primary exported React component that embeds Xterm.js, hooks to the socket service, and synchronizes state with the terminal store.
+ *
+ * The component:
+ * - Initializes Xterm with fit/clipboard/webgl addons
+ * - Binds socket event listeners to handle PTY output, system info, prompts and connection events
+ * - Attempts automatic connection when an auth token is present
+ * - Provides toolbar controls for connect/disconnect/settings/logout
+ *
+ * @param {TerminalProps} props - Component properties.
+ * @returns {JSX.Element} Rendered Terminal component.
+ */
 export const Terminal: React.FC<TerminalProps> = ({
   onLogout,
   terminalHeight,
 }) => {
+  /**
+   * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+   * Title: useAuth usage
+   * Reason: Acquire authentication helpers (isLoggedIn, logout, user) used for auth flows.
+   */
   const { isLoggedIn, logout, user } = useAuth();
+
+  /**
+   * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+   * Title: Global store values
+   * Reason: Pull connection state and current path from terminalStore for toolbar and UI.
+   */
   const { isConnected, currentPath } = useStore(terminalStore);
   const navigate = useNavigate();
 
-  // FIX: Stabilize logout function reference to prevent infinite loop
+  /**
+   * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+   * Title: logoutRef stabilization
+   * Reason: Keep a stable reference to logout to avoid effect re-run loops and to use in promise catch blocks.
+   */
   const logoutRef = useRef(logout);
   useEffect(() => {
     logoutRef.current = logout;
   }, [logout]);
-  // END FIX
 
   const muitheme = useTheme();
   const { theme } = useStore(themeAtom);
+
+  /**
+   * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+   * Title: DOM and addon refs
+   * Reason: Hold references to DOM container and xterm/addons to manage lifecycle.
+   */
   const terminalContainerRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XtermTerminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
   const clipboardAddonRef = useRef<ClipboardAddon | null>(null);
   const [open, setOpen] = useState(false);
 
-  // ──────────────────────────────────────────────
-  // Initialize terminal with WebGL + Clipboard
-  // ──────────────────────────────────────────────
+  /**
+   * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+   * Title: XTerm initialization effect
+   * Reason: Create Xterm instance with Fit and Clipboard addons, attempt WebGL addon, register onData and onKey handlers, and ensure proper cleanup on unmount or theme change.
+   *
+   * Runs whenever `theme` changes to update terminal styling.
+   */
   useEffect(() => {
     const container = terminalContainerRef.current;
     if (!container) return;
@@ -109,6 +180,13 @@ export const Terminal: React.FC<TerminalProps> = ({
     term.loadAddon(fitAddon);
     term.loadAddon(clipboardAddon);
 
+    /**
+     * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+     * Title: waitForContainerReady helper
+     * Reason: Poll until the terminal container has non-zero dimensions, then open the Xterm instance and attempt WebGL.
+     *
+     * @returns {void}
+     */
     const waitForContainerReady = () => {
       const rect = container.getBoundingClientRect();
       if (rect.width > 0 && rect.height > 0) {
@@ -127,7 +205,7 @@ export const Terminal: React.FC<TerminalProps> = ({
           try {
             fitAddon.fit();
             // Initial resize event to backend
-            terminalSocketService.resize(term.cols, term.rows); 
+            terminalSocketService.resize(term.cols, term.rows);
           } catch (err) {
             console.warn('[Terminal] Fit skipped:', err);
           }
@@ -137,14 +215,24 @@ export const Terminal: React.FC<TerminalProps> = ({
         fitAddonRef.current = fitAddon;
         clipboardAddonRef.current = clipboardAddon; // Store clipboard addon in ref
 
-        // All character input (typing and pasting) goes through onData
+        /**
+         * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+         * Title: onData handler
+         * Reason: Route all character data (typing and pasting) to the socket service.
+         *
+         * @param {string} data - Character data from xterm.
+         */
         term.onData((data) => {
           terminalSocketService.sendInput(data);
         });
 
-        // ──────────────────────────────────────────────
-        // Input Handling (onKey for specific DOM events/control sequences)
-        // ──────────────────────────────────────────────
+        /**
+         * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+         * Title: onKey handler
+         * Reason: Process certain DOM key events (Ctrl+C, Enter, Arrows, Tab) that may require explicit PTY sequences or special handling.
+         *
+         * @param {{ domEvent: KeyboardEvent }} ev - Event payload from Xterm onKey.
+         */
         term.onKey(({ domEvent }) => {
           const { key: pressedKey, ctrlKey } = domEvent;
           // Note: ClipboardAddon handles copy/paste typically via browser shortcuts (Ctrl/Cmd + C/V) 
@@ -195,7 +283,6 @@ export const Terminal: React.FC<TerminalProps> = ({
               break;
           }
         });
-
       } else {
         requestAnimationFrame(waitForContainerReady);
       }
@@ -214,24 +301,48 @@ export const Terminal: React.FC<TerminalProps> = ({
     };
   }, [theme]); // Re-run if theme mode changes to update terminal theme
 
-  // ──────────────────────────────────────────────
-  // Socket Event Handling (via terminalSocketService)
-  // ──────────────────────────────────────────────
+  /**
+   * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+   * Title: Socket event listeners effect
+   * Reason: Attach socket event listeners to handle PTY output, errors, system info, prompts, and connection state events. Remove listeners on cleanup to prevent leaks.
+   *
+   * NOTE: This effect intentionally runs once on mount to register handlers.
+   */
   useEffect(() => {
     const term = xtermRef.current;
     if (!term) return;
 
-    // Handlers that write to the XTerm.js instance and update the global terminalStore
+    /**
+     * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+     * Title: handleOutput
+     * Reason: Write raw PTY output to Xterm and store a stripped text version in the terminal store.
+     *
+     * @param {string} data - Raw ANSI output from backend PTY.
+     */
     const handleOutput = (data: string) => {
       term.write(data);
       appendOutput(stripAnsi(data)); // Update nanostore with plain text version
     };
 
+    /**
+     * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+     * Title: handleError
+     * Reason: Render error message in terminal and update store.
+     *
+     * @param {string} data - Error message
+     */
     const handleError = (data: string) => {
       term.writeln(`\r\n\x1b[31mError:\x1b[0m ${data}`);
       appendOutput(`Error: ${stripAnsi(data)}`); // Update nanostore
     };
 
+    /**
+     * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+     * Title: handleOutputInfo
+     * Reason: Convert system info object to a formatted string, write to terminal, and update store.
+     *
+     * @param {SystemInfo} data - Information object returned by the backend.
+     */
     const handleOutputInfo = (data: SystemInfo) => {
       const formatted = Object.entries(data)
         .map(([k, v]) => `${k}: ${v}`)
@@ -240,13 +351,23 @@ export const Terminal: React.FC<TerminalProps> = ({
       setSystemInfo(`${formatted}\n`); // Update nanostore
     };
 
+    /**
+     * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+     * Title: handlePrompt
+     * Reason: Update CWD in store when backend emits prompt metadata (CWD), PTY still prints prompt text via handleOutput.
+     *
+     * @param {PromptData} data - Prompt metadata containing cwd and other info.
+     */
     const handlePrompt = (data: PromptData) => {
       // Update CWD in store. PTY itself will print the prompt via `handleOutput`.
       setCurrentPath(data.cwd);
     };
 
-    // Listeners for internal connection/disconnection state changes of the underlying socket
-    // These update the global `isConnected` state directly and write messages to XTerm
+    /**
+     * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+     * Title: Connection state handlers
+     * Reason: Update isConnected state on socket connect/disconnect/error events.
+     */
     const handleSocketConnect = () => {
       setConnected(true);
     };
@@ -284,9 +405,13 @@ export const Terminal: React.FC<TerminalProps> = ({
     };
   }, []); // Empty dependency array ensures these listeners are set up once on mount
 
-  // ──────────────────────────────────────────────
-  // Auto-connect on mount and handle disconnect on unmount
-  // ──────────────────────────────────────────────
+  /**
+   * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+   * Title: Auto-connect effect
+   * Reason: Attempt to connect automatically on mount if a valid auth token exists. If auth fails, trigger logout and redirect to /login.
+   *
+   * @remarks Depends on navigate but intentionally uses logoutRef for stable logout reference handling.
+   */
   useEffect(() => {
     const token = getAuthToken();
     if (!token) {
@@ -314,11 +439,15 @@ export const Terminal: React.FC<TerminalProps> = ({
     return () => {
       disconnectTerminal();
     };
-  }, [navigate]); // Depend on logout and navigate
+  }, [navigate]); // Depend on navigate and stable logoutRef (logout handled indirectly)
 
-  // ──────────────────────────────────────────────
-  // Dynamic height/width refit for XTerm.js instance (Triggered by AppLayout resize)
-  // ──────────────────────────────────────────────
+  /**
+   * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+   * Title: Refit effect on external terminalHeight change
+   * Reason: When parent layout changes provided terminalHeight, re-fit xterm and notify backend with new cols/rows.
+   *
+   * @remarks This ensures the backend PTY receives the updated geometry after layout changes.
+   */
   useEffect(() => {
     const term = xtermRef.current;
     if (!term) return;
@@ -337,14 +466,16 @@ export const Terminal: React.FC<TerminalProps> = ({
     });
   }, [terminalHeight]); // Re-fit whenever the provided terminalHeight changes
 
-  // ──────────────────────────────────────────────
-  // Render
-  // ──────────────────────────────────────────────
+  /**
+   * FilePath: /media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/terminal/Terminal.md
+   * Title: Render
+   * Reason: Render toolbar, terminal container (which becomes the Xterm root), and settings dialog.
+   */
   return (
     <Box sx={terminalContainerSx(theme, muitheme)}>
       <TerminalToolbar
         isConnected={isConnected}
-        currentPath={currentPath}  // `currentPath` is retrieved from `terminalStore` if needed, not passed directly via prop if not used
+        currentPath={currentPath} // `currentPath` is retrieved from `terminalStore` if needed, not passed directly via prop if not used
         onConnect={connectTerminal}
         onDisconnect={disconnectTerminal}
         onSettings={() => setOpen(true)}
@@ -355,7 +486,7 @@ export const Terminal: React.FC<TerminalProps> = ({
       <Box
         ref={terminalContainerRef}
         // Use a click handler here to force focus on the terminal container
-        onClick={() => xtermRef.current?.focus()} 
+        onClick={() => xtermRef.current?.focus()}
         sx={xtermBoxSx()}
       />
 
@@ -363,4 +494,3 @@ export const Terminal: React.FC<TerminalProps> = ({
     </Box>
   );
 };
-

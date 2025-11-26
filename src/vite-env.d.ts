@@ -10,6 +10,7 @@ interface ImportMetaEnv {
   readonly VITE_GEMINI_API_URL: string;
   readonly VITE_GEMINI_API_MODEL: string;
   readonly VITE_GEMINI_API_KEY: string;
+  readonly VITE_GEMINI_API_ENDPOINT: string;
   readonly VITE_TERMINAL_WS_URL: string; // ADDED
 }
 

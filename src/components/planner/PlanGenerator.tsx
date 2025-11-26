@@ -310,47 +310,18 @@ const PlanGenerator: React.FC = () => {
     const fullPrompt = await buildLLMPrompt(llmInput, relevantFiles, (projectStructure as string) ?? '');
 
     // 5) Call the planner service to generate raw LLM output
-    const rawResponse = await plannerService.generatePlan(llmInput, fullPrompt);
+    const rawResponse = await plannerService.generate(llmInput, fullPrompt);
+    
     if (!rawResponse || (typeof rawResponse !== 'string' && typeof rawResponse !== 'object')) {
       throw new Error('Planner returned an unexpected response.');
     }
     
     const extracted = await extractJsonFromMarkdown(rawResponse);
-    
+    console.log(extracted, 'extracted');
     // 6) Extract JSON from markdown (resilient)
-    let parsedPlan: IPlan | null = null;
-    const tryParse = (candidate: string) => {
-      try {
-        return JSON.parse(candidate) as IPlan;
-      } catch {
-        return null;
-      }
-    };
+    let parsedPlan: IPlan = JSON.parse(extracted);
 
-    // If response is an object with `content` or similar, try to pull sensible string
-    let candidateString: string | undefined;
-    if (typeof extracted === 'string') {
-      candidateString = extracted;
-    } else if (typeof extracted === 'object') {
-      // Common keys: content, body, text, result
-      candidateString =
-        (extracted as any).content ??
-        (extracted as any).body ??
-        (extracted as any).text ??
-        JSON.stringify(extracted);
-    }
-
-      try {
-        
-        if (candidateString) {
-          parsedPlan = tryParse(candidateString);
-        }
-      } catch (e) {
-        console.warn('extractJsonFromMarkdown failed, falling back to raw parse.', e);
-      }
     
-
-
     // Attempt 3: if we still don't have a plan, throw
     if (!parsedPlan) {
       throw new Error('Failed to parse plan from LLM response.');
@@ -373,7 +344,7 @@ const PlanGenerator: React.FC = () => {
 
   } catch (err: unknown) {
     const message = (err as Error)?.message ?? String(err);
-    console.error('Plan generation error:', err);
+   
     setError(message || 'Failed to generate plan.');
   } finally {
     setIsLoading(false);

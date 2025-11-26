@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { clockConfigsStore } from '@/stores/clockStore';
-import { Box, IconButton, Tooltip, useTheme } from '@mui/material';
+import { Box, IconButton, Tooltip, useTheme, SxProps } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
 
 import ClockDigital from './ClockDigital';
@@ -9,18 +9,12 @@ import ClockAnalog from './ClockAnalog';
 import ClockConfigDialog from './ClockConfigDialog';
 import { ClockConfig } from './types';
 
-const LiveClockContainerSx = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 1,
-    flexShrink: 0,
-    height: '100%',
-};
+interface LiveClockProps {
+  footer?: boolean;
+  sx?: SxProps; // Added sx prop
+}
 
-/**
- * Main component to display multiple configured clocks and handle the configuration dialog.
- */
-const LiveClock: React.FC = () => {
+const LiveClock: React.FC<LiveClockProps> = ({ footer = false, sx }) => {
   const clockConfigs = useStore(clockConfigsStore);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const theme = useTheme();
@@ -28,35 +22,56 @@ const LiveClock: React.FC = () => {
   const handleOpenConfig = () => setIsConfigOpen(true);
   const handleCloseConfig = () => setIsConfigOpen(false);
 
-  const renderClock = (config: ClockConfig) => {
+  const defaultSx: SxProps = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: footer ? 0.5 : 1,
+    flexShrink: 0,
+    height: footer ? '30px' : '100%',
+  };
+
+  const renderClock = (config?: ClockConfig) => {
+    if (!config) {
+      return (
+        <Box
+          key="undefined-clock"
+          sx={{
+            fontFamily: 'monospace',
+            fontSize: footer ? 12 : 16,
+            color: theme.palette.text.disabled,
+          }}
+        >
+          --:--:--
+        </Box>
+      );
+    }
+
     const key = config.id;
     if (config.displayType === 'digital') {
-      return <ClockDigital key={key} config={config} />;
+      return <ClockDigital key={key} config={config} isConfigPreview={false} fontSize={footer ? 12 : undefined} />;
     }
-    return <ClockAnalog key={key} config={config} />;
+    return <ClockAnalog key={key} config={config} isConfigPreview={false} size={footer ? 20 : undefined} />;
   };
 
   return (
-    <Box sx={LiveClockContainerSx} className="h-full">
-      
-      {/* Render Clocks */}
+    <Box sx={{ ...defaultSx, ...sx }} className={footer ? 'h-[30px]' : 'h-full'}>
       {clockConfigs.map(renderClock)}
-      
-      {/* Configuration Button */}
-      <Tooltip title="Configure Clocks/Timezones">
-        <IconButton 
-            onClick={handleOpenConfig} 
-            color="inherit" 
+
+      {!footer && (
+        <Tooltip title="Configure Clocks/Timezones">
+          <IconButton
+            onClick={handleOpenConfig}
+            color="inherit"
             size="small"
             aria-label="configure clock"
             sx={{ ml: 1, color: theme.palette.text.secondary }}
-        >
-          <SettingsIcon fontSize="small" />
-        </IconButton>
-      </Tooltip>
+          >
+            <SettingsIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      )}
 
-      {/* Configuration Dialog */}
-      <ClockConfigDialog open={isConfigOpen} onClose={handleCloseConfig} maxWidth="lg"/>
+      <ClockConfigDialog open={isConfigOpen} onClose={handleCloseConfig} maxWidth="lg" />
     </Box>
   );
 };

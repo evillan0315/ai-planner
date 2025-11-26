@@ -8,7 +8,7 @@ export const AvailableTimezones = [
     value: Intl.DateTimeFormat().resolvedOptions().timeZone,
     label: 'Local Time',
   },
-  { value: 'America/New_York', label: 'New York' },
+  { value: 'America/New_York', label: 'New York' }, // DST-aware
   { value: 'Europe/London', label: 'London' },
   { value: 'Asia/Tokyo', label: 'Tokyo' },
   { value: 'Australia/Sydney', label: 'Sydney' },
@@ -19,6 +19,12 @@ const DEFAULT_CLOCKS: ClockConfig[] = [
     id: 'local',
     label: 'Local Time',
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    displayType: 'digital',
+  },
+  {
+    id: 'ny',
+    label: 'New York',
+    timezone: 'America/New_York', // uses DST automatically
     displayType: 'digital',
   },
 ];
@@ -53,4 +59,15 @@ export const updateClockDisplayType = (
   displayType: ClockDisplayType,
 ) => {
   updateClockConfig(id, { displayType });
+};
+
+// --- Utility to get current time string in a timezone ---
+export const getCurrentTimeInZone = (timezone: string) => {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: true,
+    timeZone: timezone,
+  }).format(new Date());
 };

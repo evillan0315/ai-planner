@@ -1,34 +1,49 @@
-import React from 'react';
-import { Box, Typography, SxProps } from '@mui/material';
+import React, { useEffect, useState } from 'react';
 import { ClockConfig } from './types';
-import { useLiveClock } from './hooks/useLiveClock';
+import { SxProps, Theme, Box } from '@mui/material';
 
 interface ClockDigitalProps {
-  config: ClockConfig;
-  isConfigPreview?: boolean; // NEW PROP
+  config?: ClockConfig; // Optional
+  isConfigPreview?: boolean; // Optional small preview
+  fontSize?: number; // Optional font size override
+  sx?: SxProps<Theme>; // Optional MUI sx prop for styling
 }
 
-const DigitalClockContainerSx = (isConfigPreview: boolean): SxProps => ({
-  display: 'flex',
-  flexDirection: 'column',
-  // Align items center for footer, flex-start for compact list preview
-  alignItems: isConfigPreview ? 'flex-start' : 'center', 
-  padding: 0.5,
-  lineHeight: 1.2,
-});
+const ClockDigital: React.FC<ClockDigitalProps> = ({ config, isConfigPreview = false, fontSize, sx }) => {
+  const [timeStr, setTimeStr] = useState('');
 
-const ClockDigital: React.FC<ClockDigitalProps> = ({ config, isConfigPreview = false }) => {
-  const { time } = useLiveClock(config);
+  useEffect(() => {
+    if (!config) return;
+
+    const updateTime = () => {
+      const now = new Date();
+      const options: Intl.DateTimeFormatOptions = {
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        hour12: !config.format24Hr,
+        timeZone: config.timezone,
+      };
+      setTimeStr(new Intl.DateTimeFormat('en-US', options).format(now));
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, [config?.timezone, config?.format24Hr]);
+
+  const appliedFontSize = fontSize ?? (isConfigPreview ? 14 : 24);
 
   return (
-    // Adjusting class names based on alignment in flex column. 'text-right' is used for footer display.
-    <Box sx={DigitalClockContainerSx(isConfigPreview)} className={`flex items-center min-w-28 ${isConfigPreview ? '' : 'text-right'}`}>
-      <Typography variant="caption" sx={{ color: 'text.secondary' }} noWrap>
-        {config.label}
-      </Typography>
-      <Typography variant="body1" fontWeight="bold" sx={{ fontFamily: 'monospace, sans-serif' }} noWrap>
-        {time}
-      </Typography>
+    <Box
+      component="span"
+      sx={{
+        fontSize: appliedFontSize,
+        fontFamily: 'monospace',
+        ...sx,
+      }}
+    >
+      {config ? timeStr : '--:--:--'}
     </Box>
   );
 };

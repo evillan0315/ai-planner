@@ -1,53 +1,62 @@
 import React from 'react';
-import { Box, Typography, SxProps } from '@mui/material';
+import { Box, Typography, SxProps, Theme } from '@mui/material';
 import { ClockConfig } from './types';
 import { useLiveClock } from './hooks/useLiveClock';
-import AccessTimeIcon from '@mui/icons-material/AccessTime'; // Icon for visual flair
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
 interface ClockAnalogProps {
   config: ClockConfig;
-  isConfigPreview?: boolean; // NEW PROP
+  isConfigPreview?: boolean;
+  fontSize?: number; // Optional font size override
+  sx?: SxProps<Theme>; // Optional MUI sx prop
 }
 
 const AnalogClockContainerSx = (isConfigPreview: boolean): SxProps => ({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'flex-start',
-  padding: 0.5, // MUI spacing 0.5 = 4px padding top/bottom/right (when used with inline flex)
+  padding: 0.5,
   lineHeight: 1.1,
   flexShrink: 0,
-  // Add visual separation from other clocks only when NOT in config preview
-  ...(isConfigPreview ? {} : {
-      borderLeft: '1px solid',
-      borderColor: 'divider',
-  }),
+  ...(isConfigPreview ? {} : { borderLeft: '1px solid', borderColor: 'divider' }),
 });
 
 const TimeDisplaySx: SxProps = { 
-    display: 'flex', 
-    alignItems: 'center', 
-    gap: 0.5,
+  display: 'flex', 
+  alignItems: 'center', 
+  gap: 0.5,
 };
 
-const ClockAnalog: React.FC<ClockAnalogProps> = ({ config, isConfigPreview = false }) => {
-  // Pass 'analog' override to ensure 12-hour format is used regardless of stored config preference (for demonstration)
-  const { time, date } = useLiveClock(config, 'analog'); 
+const ClockAnalog: React.FC<ClockAnalogProps> = ({ config, isConfigPreview = false, fontSize, sx }) => {
+  const { time, date } = useLiveClock(config); // hook now DST-aware
 
-  // Preserve existing `pl-3` (p-left: 0.75rem / 12px) if it's not a preview, as it relies on this spacing when border is active.
-  const className = `flex-shrink-0 min-w-40 ${isConfigPreview ? '' : 'pl-3'}`;
+  const appliedFontSize = fontSize ?? (isConfigPreview ? 12 : 16);
 
   return (
-    <Box sx={AnalogClockContainerSx(isConfigPreview)} className={className}>
-      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold' }} noWrap>
+    <Box sx={{ ...AnalogClockContainerSx(isConfigPreview), ...sx }}>
+      <Typography
+        variant="caption"
+        sx={{ color: 'text.secondary', fontWeight: 'bold', fontSize: appliedFontSize * 0.7 }}
+        noWrap
+      >
         {config.label}
       </Typography>
       <Box sx={TimeDisplaySx}>
         <AccessTimeIcon fontSize="small" sx={{ color: 'text.primary' }} />
-        <Typography variant="subtitle1" fontWeight="medium" sx={{ fontFamily: 'serif' }} noWrap>
+        <Typography
+          variant="subtitle1"
+          fontWeight="medium"
+          sx={{ fontFamily: 'serif', fontSize: appliedFontSize }}
+          noWrap
+        >
           {time}
         </Typography>
       </Box>
-      <Typography variant="caption" sx={{ color: 'text.disabled' }} noWrap>
+      <Typography
+        variant="caption"
+        sx={{ color: 'text.disabled', fontSize: appliedFontSize * 0.6 }}
+        noWrap
+      >
         {date}
       </Typography>
     </Box>

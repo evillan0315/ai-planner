@@ -59,7 +59,11 @@ export type LlmOutputFormat =
   | 'PRISMA_SCHEMA';
 
 // Frontend DTOs and Interfaces
-
+export interface GenerateText {
+  prompt: string;
+  systemInstruction: string;
+  conversationId: string;
+}
 /**
  * Represents a scanned file with its path and content, used for LLM context.
  */

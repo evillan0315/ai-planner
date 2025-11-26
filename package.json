@@ -34,6 +34,7 @@
     "clx": "^1.0.0",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.24",
+    "js-yaml": "^4.1.1",
     "monaco-editor": "^0.50.0",
     "nanostores": "^1.0.1",
     "path-browserify": "^1.0.1",

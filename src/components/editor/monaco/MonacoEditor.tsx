@@ -20,6 +20,7 @@ interface MonacoEditorProps {
   onCursorChange?: (line: number, column: number) => void;
   // NEW: Optional URL for tsconfig.json file
   tsConfigUrl?: string; 
+  actionButtons?: any;
 }
 
 // Mapping application themes to Monaco Editor themes
@@ -43,7 +44,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
   sx,
   onSaveShortcut, 
   onCursorChange,
-  tsConfigUrl = '/media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/tsconfig.json', 
+  tsConfigUrl, 
 }) => {
   const { theme: currentAppTheme } = useStore(themeAtom);
   const monacoTheme = theme
@@ -56,19 +57,9 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
   const loadAndApplyTsConfig = async (monaco: Monaco) => {
     
     if (language !== 'typescript') return;
-    const conf = {
-    "moduleResolution": "bundler",
-    "strict": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src"]
-    }
-  }
+
   
-  monaco.languages.typescript.typescriptDefaults.setCompilerOptions(JSON.parse(conf));
+  //monaco.languages.typescript.typescriptDefaults.setCompilerOptions(JSON.parse(conf));
 
     
   };

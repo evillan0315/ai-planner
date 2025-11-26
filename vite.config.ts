@@ -29,10 +29,10 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
         },
-        '/gemini': {
-          target: env.VITE_GEMINI_API_URL,
+        '/v1beta/models': {
+          target: env.VITE_GEMINI_API_ENDPOINT,
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/gemini/, ''),
+          rewrite: (path) => path.replace(/^\/v1beta\/models/, ''),
         },
     
       },
@@ -54,6 +54,7 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_FRONTEND_PORT': env.VITE_FRONTEND_PORT,
       'import.meta.env.VITE_GEMINI_API_URL': JSON.stringify(env.VITE_GEMINI_API_URL),
       'import.meta.env.VITE_GEMINI_API_MODEL': JSON.stringify(env.VITE_GEMINI_API_MODEL),
+      'import.meta.env.VITE_GEMINI_API_ENDPOINT': JSON.stringify(env.VITE_GEMINI_API_ENDPOINT),
       'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(env.VITE_GEMINI_API_KEY),
       'import.meta.env.VITE_TERMINAL_WS_URL': JSON.stringify(env.VITE_TERMINAL_WS_URL),
       'import.meta.env.VITE_WS_URL': JSON.stringify(env.VITE_WS_URL),

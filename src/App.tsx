@@ -61,10 +61,10 @@ function App() {
               </Suspense>
             }/>
             <Route path="/planner-generator/:planId" element={
-               <Suspense fallback={<Loading />}>
+              <Suspense fallback={<Loading />}>
                 <PlannerDedicatedPage />
               </Suspense>
-            } />
+            }/>
             <Route path="/prompt-generator" element={
                <Suspense fallback={<Loading />}>
                 <PromptGeneratorPage />
