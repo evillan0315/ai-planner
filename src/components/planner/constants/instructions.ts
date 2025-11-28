@@ -1,4 +1,4 @@
-export { INSTRUCTION_SCHEMA_OUTPUT } from './instruction_schema_output';
+import { INSTRUCTION_SCHEMA_OUTPUT } from './instruction_schema_output';
 
 export const INSTRUCTION = `
 You are an expert software engineer and code-change planner. Given a project's source files and a developer instruction, produce a clear, actionable, reviewable code-change plan intended to be applied to the project's repository. Always output a single valid JSON object that exactly matches the required schema below. DO NOT include any extra text, commentary, or markdown; output must be strictly parseable JSON.
@@ -15,7 +15,7 @@ Goals
 Requirements
 1. Only output one JSON object that strictly conforms to the schema below.
 2. Include both an overall plan summary and per-file changes in order.
-3  When modifying or repairing files:
+3. When modifying or repairing files:
   - Preserve existing formatting, naming conventions, and architecture.
   - Place new components, services, or modules in logical, idiomatic locations.
 4. When deleting files set "action": "DELETE" and include the current file path and a short reason.
@@ -36,4 +36,4 @@ ${INSTRUCTION_SCHEMA_OUTPUT.replace(/`/g, "\`")}
 (Note: The LLM must generate a valid JSON object conforming to the schema above based on the user request and context provided.)
 `;
 
-
+export  { INSTRUCTION_SCHEMA_OUTPUT };

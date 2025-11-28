@@ -2,6 +2,7 @@ import { INSTRUCTION_EXAMPLE_OUTPUT } from './instruction_example_output';
 
 export const INSTRUCTION_SCHEMA_OUTPUT = `
 {
+  "id": string,
   "title": string,
   "summary": string,
   "thoughtProcess": string[],                      
@@ -37,11 +38,11 @@ export const INSTRUCTION_SCHEMA_OUTPUT = `
   "error": string|null                              
 }
 
----
+--- 
 
 ILLUSTRATIVE EXAMPLE OF REQUIRED OUTPUT:
 
 ${INSTRUCTION_EXAMPLE_OUTPUT.replace(/`/g, "\`")}
 
----
+--- 
 `;
