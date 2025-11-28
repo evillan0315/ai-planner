@@ -1,6 +1,15 @@
 import axios from 'axios';
 import { getAuthHeaders, API_BASE_URL } from '../../../api/authService';
-import { IRecording, CreateRecordingDto, UpdateRecordingStatusDto } from '../types';
+import {
+  IRecording,
+  CreateRecordingDto,
+  UpdateRecordingStatusDto,
+  IStartScreenRecordingDto,
+  IScreenshotDto,
+  IScreenshotResponseDto,
+  ICameraRecordingResponseDto,
+  IStartCameraRecordingDto,
+} from '../types';
 
 const API_ENDPOINT = `${API_BASE_URL}/recording`;
 
@@ -9,6 +18,7 @@ const API_ENDPOINT = `${API_BASE_URL}/recording`;
  * Handles communication with the backend for recording management operations.
  */
 export const recordingApiService = {
+  // --- Basic CRUD (Existing) ---
   async getAllRecordings(): Promise<IRecording[]> {
     const response = await axios.get<IRecording[]>(API_ENDPOINT, { headers: getAuthHeaders() });
     return response.data;
@@ -31,5 +41,74 @@ export const recordingApiService = {
 
   async deleteRecording(id: string): Promise<void> {
     await axios.delete(`${API_ENDPOINT}/${id}`, { headers: getAuthHeaders() });
+  },
+
+  // --- Screen Recording & Screenshot ---
+
+  /**
+   * Starts a screen recording session.
+   */
+  async startScreenRecording(
+    dto: IStartScreenRecordingDto,
+  ): Promise<{ path: string; id: string }> {
+    const response = await axios.post<{
+      path: string;
+      id: string;
+    }>(`${API_ENDPOINT}/record-start`, dto, { headers: getAuthHeaders() });
+    return response.data;
+  },
+
+  /**
+   * Stops an active screen recording session.
+   */
+  async stopScreenRecording(id: string): Promise<{ id: string; status: string; path: string }> {
+    const response = await axios.post(
+      `${API_ENDPOINT}/record-stop?id=${id}`,
+      {}, // No body required for stop via query param
+      { headers: getAuthHeaders() },
+    );
+    return response.data;
+  },
+
+  /**
+   * Captures a screenshot of the desktop.
+   */
+  async captureScreenshot(
+    dto: IScreenshotDto,
+  ): Promise<IScreenshotResponseDto> {
+    const response = await axios.post<IScreenshotResponseDto>(
+      `${API_ENDPOINT}/screenshot`,
+      dto,
+      { headers: getAuthHeaders() },
+    );
+    return response.data;
+  },
+
+  // --- Camera Recording ---
+
+  /**
+   * Starts a camera recording session.
+   */
+  async startCameraRecording(
+    dto: IStartCameraRecordingDto,
+  ): Promise<ICameraRecordingResponseDto> {
+    const response = await axios.post<ICameraRecordingResponseDto>(
+      `${API_ENDPOINT}/camera-record-start`,
+      dto,
+      { headers: getAuthHeaders() },
+    );
+    return response.data;
+  },
+
+  /**
+   * Stops an active camera recording session.
+   */
+  async stopCameraRecording(id: string): Promise<ICameraRecordingResponseDto> {
+    const response = await axios.post<ICameraRecordingResponseDto>(
+      `${API_ENDPOINT}/camera-record-stop?id=${id}`,
+      {}, // No body required for stop via query param
+      { headers: getAuthHeaders() },
+    );
+    return response.data;
   },
 };
