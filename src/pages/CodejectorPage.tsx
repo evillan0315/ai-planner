@@ -7,7 +7,7 @@ import {
   loadFileContentFromPath,
 } from '@/components/editor/stores/editorStore';
 import CodeIcon from '@mui/icons-material/Code';
-import { useSearchParams } from 'react-router-dom'; // ADDED
+import { useSearchParams } from 'react-router-dom'; // KEEP: Used for loading initial path via URL query parameter
 // Import UI Store for Layout Control
 import { isLeftSidebarVisible } from '@/stores/uiStore';
 
