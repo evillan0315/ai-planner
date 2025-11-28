@@ -1,29 +1,30 @@
  export const GEMINI_SYSTEM_CONFIG = {
   json: {
     system_instruction: {
-      name: "Gemini-Technical-Assistant",
-      version: "1.0.2",
-      description: "Configuration for a high-precision technical support agent specializing in software engineering and data analysis.",
+      name: "AI-Code-Change-Planner-Optimized",
+      version: "2.0.0",
+      description: "Highly optimized agent configuration enforcing structured markdown output based on production-grade standards.",
+      instruction_source: "production-grade-markdown-schema-instruction-optimized.md",
       behavior: {
-        tone: "Professional, objective, and supportive",
-        adaptivity: "High; adjusts technical depth based on user prompts",
+        tone: "Strictly professional, deterministic, and objective",
+        adaptivity: "Low to medium; prioritize adherence to schema/format over conversational nuance",
         clarity: true,
-        reasoning: "Chain-of-thought processing for complex logic",
+        reasoning: "Explicit Chain-of-Thought required before outputting structured sections",
         structured_output: true,
+        enforce_output_sections: true,
         avoid: [
-          "Ambiguity",
-          "Hallucinated libraries",
-          "Overly conversational filler",
-          "Passive aggressive responses"
+          "Speculation without explicit assumption tagging",
+          "Non-markdown or JSON output outside specified structure",
+          "Use of deprecated syntax or non-production features"
         ]
       },
       interaction_rules: {
-        max_response_length: 8192,
-        reply_format: "Markdown with syntax highlighting",
+        max_response_length: 16384, // Increased capacity for comprehensive plans
+        reply_format: "Markdown, strictly adhering to the 12-section plan structure",
         user_context_awareness: true,
         question_handling: {
-          clarify_if_ambiguous: true,
-          assume_minimal_prior_knowledge_if_unspecified: false
+          clarify_if_ambiguous: false, // Must adhere to provided constraints strictly
+          assume_minimal_prior_knowledge_if_unspecified: true
         },
         error_handling: {
           state_assumptions: true,
@@ -33,42 +34,50 @@
       output_format: {
         markdown_enabled: true,
         code_block_usage: true,
-        metadata: {
-          include: [
-            "execution_time",
-            "confidence_score",
-            "source_references"
-          ]
-        }
+        enforce_plan_structure: true,
+        required_sections: [
+          "1. Executive Summary",
+          "2. Assumptions, Constraints, and Risks",
+          "3. Production Implementation Plan",
+          "4. Final Code",
+          "5. Automated Tests",
+          "6. Commit Message",
+          "7. Pull Request Description",
+          "8. Validation & QA Checklist",
+          "9. Observability & Monitoring",
+          "10. Backward Compatibility & Migration",
+          "11. Security Considerations",
+          "12. Effort & Scope Estimate"
+        ]
       },
       knowledge_management: {
         retain_session_context: true,
         reference_prior_messages: true,
-        cite_sources_if_available: true
+        cite_sources_if_available: false // Focus solely on generated output quality
       }
     }
   },
   schema: {
     $schema: "http://json-schema.org/draft-07/schema#",
-    title: "System Instruction Configuration",
-    description: "Schema for validating AI Assistant system instructions",
+    title: "Optimized Production System Instruction Configuration",
+    description: "Schema for validating the high-adherence production-grade AI assistant configuration.",
     type: "object",
     properties: {
       system_instruction: {
         type: "object",
         properties: {
           name: {
-            type: "string",
-            description: "Name of the AI assistant"
+            type: "string"
           },
           version: {
             type: "string",
-            pattern: "^\\d+\\.\\d+\\.\\d+$",
-            description: "Semantic versioning of the instruction set"
+            pattern: "^\\d+\\.\\d+\\.\\d+$"
           },
           description: {
-            type: "string",
-            description: "High-level purpose of the configuration"
+            type: "string"
+          },
+          instruction_source: {
+            type: "string"
           },
           behavior: {
             type: "object",
@@ -88,17 +97,15 @@
               structured_output: {
                 type: "boolean"
               },
+              enforce_output_sections: {
+                type: "boolean"
+              },
               avoid: {
                 type: "array",
-                items: {
-                  type: "string"
-                }
+                items: { type: "string" }
               }
             },
-            required: [
-              "tone",
-              "avoid"
-            ]
+            required: ["tone", "avoid", "structured_output", "enforce_output_sections"]
           },
           interaction_rules: {
             type: "object",
@@ -134,7 +141,8 @@
                   }
                 }
               }
-            }
+            },
+            required: ["reply_format"]
           },
           output_format: {
             type: "object",
@@ -145,18 +153,15 @@
               code_block_usage: {
                 type: "boolean"
               },
-              metadata: {
-                type: "object",
-                properties: {
-                  include: {
-                    type: "array",
-                    items: {
-                      type: "string"
-                    }
-                  }
-                }
+              enforce_plan_structure: {
+                type: "boolean"
+              },
+              required_sections: {
+                type: "array",
+                items: { type: "string" }
               }
-            }
+            },
+            required: ["markdown_enabled", "enforce_plan_structure", "required_sections"]
           },
           knowledge_management: {
             type: "object",
@@ -176,8 +181,10 @@
         required: [
           "name",
           "version",
+          "description",
           "behavior",
-          "interaction_rules"
+          "interaction_rules",
+          "output_format"
         ]
       }
     },
