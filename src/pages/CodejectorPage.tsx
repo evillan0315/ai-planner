@@ -42,7 +42,6 @@ const CodejectorPage: React.FC = () => {
 
     if (urlPath) {
       const n = loadFileContentFromPath(urlPath);
-     
     }
     // 1. Force Left Sidebar (File Explorer) ON when entering Codejector workspace
     // We only force it on if it's currently off.

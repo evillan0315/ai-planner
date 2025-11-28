@@ -32,7 +32,7 @@ type ValidChildren = React.ReactElement<FileEditorViewerPropsWithAction> | React
 
 interface FloatingResizableDraggableBoxProps {
   children: ValidChildren; // Updated children type
-  id: string; // NEW: Required unique ID for linking to store state
+  id: string; // Required unique ID for linking to store state
   title?: string;
   
   // State controlled by parent/store
@@ -60,7 +60,7 @@ interface FloatingResizableDraggableBoxProps {
   /** Optional content for the footer area (e.g., actions, status bar). */
   footerActions?: React.ReactNode;
   /** Custom class for outer box (for utility-first styling like margin/shadow). */
-  className?: string;
+  className?: string; 
 }
 
 // ---------------------------
@@ -117,7 +117,6 @@ const footerSx: (theme: Theme) => SxProps = (theme) => ({
     minHeight: `${HEADER_HEIGHT_PX}px`, 
     flexShrink: 0,
     backgroundColor: theme.palette.background.default,
-    
 });
 
 // ---------------------------
@@ -126,12 +125,11 @@ const footerSx: (theme: Theme) => SxProps = (theme) => ({
 
 /**
  * A reusable component that displays its children within a floating, resizable, and draggable box.
- * State (position, size, zIndex) is managed externally via props and callbacks.
- * This component now dynamically injects a handler into its single child (`FileEditorViewer`)
+ * This component now dynamically injects a handler into its single child (`FileEditorViewer`) 
  * to receive content-specific actions (like requestFullscreen).
  */
 const FloatingResizableDraggableBox: React.FC<FloatingResizableDraggableBoxProps> = ({
-  children,
+  children, // Updated children type
   id, // NEW: Use ID
   title,
   currentX, // NEW: Use current state props
@@ -406,7 +404,7 @@ const FloatingResizableDraggableBox: React.FC<FloatingResizableDraggableBoxProps
         sx={boxStyle} 
         className={`bg-background-paper rounded-lg ${className}`}
         onMouseDown={handleBoxClick} // Capture click/mousedown anywhere in the box
-    >
+    > 
       
       {/* Resizing Handles */}
       {resizeDirections.map((dir) => (
@@ -425,7 +423,7 @@ const FloatingResizableDraggableBox: React.FC<FloatingResizableDraggableBoxProps
         sx={{...dragHeaderSx, backgroundColor: theme.palette.background.paper}} 
         onMouseDown={handleDragStart}
         className={` gap-2 flex-shrink-0 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-      >
+      > 
         {/* Left Actions */}
         <Box className="flex items-center flex-shrink-0 gap-1">
           {headerLeftActions}
@@ -465,3 +463,4 @@ const FloatingResizableDraggableBox: React.FC<FloatingResizableDraggableBoxProps
 };
 
 export default FloatingResizableDraggableBox;
+

@@ -114,7 +114,18 @@ const PlanChangeTableRow: React.FC<PlanChangeTableRowProps> = ({
           size="small"
         />
       </TableCell>
-      <TableCell className="truncate nowrap max-w-[100px]">
+      <TableCell
+        align="center"
+        sx={{
+          display: 'flex',
+          gap: 0.5,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <GlobalActionButton globalActions={actions} iconOnly={true} />
+      </TableCell>
+      <TableCell className="truncate nowrap max-w-sm">
         <Tooltip title={change.filePath}>
           {change.filePath}
         </Tooltip>
@@ -136,17 +147,7 @@ const PlanChangeTableRow: React.FC<PlanChangeTableRowProps> = ({
           '-'
         )}
       </TableCell>
-      <TableCell
-        align="center"
-        sx={{
-          display: 'flex',
-          gap: 0.5,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <GlobalActionButton globalActions={actions} iconOnly={true} />
-      </TableCell>
+      
     </TableRow>
   );
 };

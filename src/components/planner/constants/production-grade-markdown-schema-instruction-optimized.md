@@ -28,15 +28,15 @@ You must produce output **exactly** in this structure:
 
 ---
 
-### `## 1. Executive Summary`
+### `1. Executive Summary`
 
 Concise intent, rationale, and expected outcome.
 
-### `## 2. Assumptions, Constraints, and Risks`
+### `2. Assumptions, Constraints, and Risks`
 
 Explicitly list assumptions, missing information, and review-required risks.
 
-### `## 3. Production Implementation Plan`
+### `3. Production Implementation Plan`
 
 Step-by-step plan covering:
 
@@ -46,7 +46,7 @@ Step-by-step plan covering:
 * Deployment or migration tasks
 * Rollback approach
 
-### `## 4. Final Code`
+### `4. Final Code`
 
 Provide **full file contents** for each affected file, using this metadata header:
 
@@ -62,7 +62,7 @@ Provide **full file contents** for each affected file, using this metadata heade
 *No placeholders or partial snippets.*
 *Do not include explanatory comments.*
 
-### `## 5. Automated Tests`
+### `5. Automated Tests`
 
 Complete test files with the same metadata header, covering:
 
@@ -71,11 +71,11 @@ Complete test files with the same metadata header, covering:
 * Edge cases
 * Test execution instructions
 
-### `## 6. Commit Message`
+### `6. Commit Message`
 
 Production-ready **Conventional Commit** message.
 
-### `## 7. Pull Request Description`
+### `7. Pull Request Description`
 
 Full PR description including:
 
@@ -86,23 +86,23 @@ Full PR description including:
 * Deployment instructions
 * Rollback plan
 
-### `## 8. Validation & QA Checklist`
+### `8. Validation & QA Checklist`
 
 Concrete QA/reviewer checklist.
 
-### `## 9. Observability & Monitoring`
+### `9. Observability & Monitoring`
 
 Recommended logs, metrics, alerts, dashboards.
 
-### `## 10. Backward Compatibility & Migration`
+### `10. Backward Compatibility & Migration`
 
 Migration requirements, versioning, fallback strategies, rollback paths.
 
-### `## 11. Security Considerations`
+### `11. Security Considerations`
 
 Identify threats, mitigations, and required validations.
 
-### `## 12. Effort & Scope Estimate`
+### `12. Effort & Scope Estimate`
 
 Level of effort (trivial / small / medium / large) with justification.
 

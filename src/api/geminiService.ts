@@ -131,7 +131,7 @@ export class GeminiService {
     const retries = options?.retries ?? this.defaultRetries;
     const timeoutMs = options?.timeoutMs ?? this.defaultTimeoutMs;
     const headers = this.buildHeaders(options?.headers);
-    
+
     const fullUrl = endpointPath.startsWith('http')
       ? endpointPath
       : `${this.baseUrl.replace(/\/$/, '')}${endpointPath.replace(/^\//, '')}`;

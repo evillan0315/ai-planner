@@ -32,6 +32,7 @@ interface PlannerState {
   expectedOutputFormat: string;
   fileData: string | null;
   fileMimeType: string | null;
+  revisionTone?: string | '';
 }
 
 export const plannerStore = atom<PlannerState>({
@@ -43,11 +44,12 @@ export const plannerStore = atom<PlannerState>({
   applyStatus: 'idle',
   applyError: null,
   projectRoot: projectRootDirectoryStore.get() || DEFAULT_PROJECT_ROOT_FROM_ENV, // Fallback to env default
-  scanPathsInput: 'src, package.json, README.md, .env', // Provide sensible defaults for scan paths
+  scanPathsInput: 'package.json, README.md, .env', // Provide sensible defaults for scan paths
   additionalInstructions: INSTRUCTION, // Default from constants
   expectedOutputFormat: INSTRUCTION_SCHEMA_OUTPUT, // Default from constants
   fileData: null,
   fileMimeType: null,
+  revisionTone: ''
 });
 
 // Action to set the current plan ID
@@ -60,17 +62,28 @@ export const setUserPrompt = (prompt: string) => {
 };
 
 export const setPlan = (planId: string | null, plan: IPlan | null) => {
+  if(plan){
+ 
+    console.log(plan, 'setPlan');
+
   plannerStore.set({
     ...plannerStore.get(),
+    userPrompt: plan.title,
     currentPlanId: planId,
     plan: plan,
     isLoading: false,
-    error: null, // Clear error on successful plan load/generation
-    applyStatus: 'idle', // Ensure apply status is reset when a new plan is generated or loaded.
-    applyError: null,
+    //error: null, // Clear error on successful plan load/generation
+    //applyStatus: 'idle', // Ensure apply status is reset when a new plan is generated or loaded.
+    //applyError: null,
+    scanPathsInput: plan.llmInput && plan.llmInput.scanPaths ? plan.llmInput.scanPaths
+      .join(',') : 'package.json, README.md, .env'
   });
+  }
+  
 };
-
+export const setRevisionTone = (tone: string) => {
+  plannerStore.set({ ...plannerStore.get(), revisionTone: tone });
+};
 export const setIsLoading = (loading: boolean) => {
   plannerStore.set({ ...plannerStore.get(), isLoading: loading, error: null });
 };
@@ -89,15 +102,14 @@ export const setApplyStatus = (
 export const setScanPathsInput = (paths: string) => {
   plannerStore.set({ ...plannerStore.get(), scanPathsInput: paths });
 };
-
 export const setAdditionalInstructions = (instructions: string) => {
   plannerStore.set({ ...plannerStore.get(), additionalInstructions: instructions });
 };
 
+
 export const setExpectedOutputFormat = (format: string) => {
   plannerStore.set({ ...plannerStore.get(), expectedOutputFormat: format });
 };
-
 // NEW ACTION: Update projectRoot specific to the planner state
 export const setPlannerProjectRoot = (root: string) => {
   plannerStore.set({ ...plannerStore.get(), projectRoot: root });

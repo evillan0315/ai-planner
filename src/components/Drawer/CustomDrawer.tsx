@@ -1,3 +1,4 @@
+
 import type { ReactNode } from 'react';
 import React, { useMemo } from 'react';
 import {
@@ -7,7 +8,8 @@ import {
   Typography,
   useTheme,
   DialogActions,
-  Paper
+  Paper,
+  // Use Box instead of Paper for content wrapper
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
@@ -51,23 +53,25 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({
   title,
 }) => {
   const theme = useTheme();
-  const drawerWidth = `${drawerWidthPercentage[size] * 100}%`;
+  const drawerSizeValue = `${drawerWidthPercentage[size] * 100}%`;
   const isFullScreen = size === 'fullscreen';
 
-  // Styles for the drawer based on the position
-  const drawerPaperStyle = {
-    ...(position === 'left' || position === 'right'
-      ? { width: isFullScreen ? '100%' : drawerWidth }
-      : { height: isFullScreen ? '100%' : drawerWidth }),
-    //bgcolor: theme.palette.background.paper,
-    color: theme.palette.text.primary,
-    overflow: 'auto',
-    borderLeft: `${position === 'right' ? '1px solid' : ''}`,
-    borderRight: `${position === 'left' ? '1px solid' : ''}`,
-    borderTop: `${position === 'bottom' ? '1px solid' : ''}`,
-    borderBottom: `${position === 'top' ? '1px solid' : ''}`,
-    borderColor: theme.palette.divider,
-  };
+  // --- Styles for the inner Paper component of the Drawer (Sizing and Borders) ---
+  const drawerPaperStyle = useMemo(() => {
+    return {
+      ...(position === 'left' || position === 'right'
+        ? { width: isFullScreen ? '100%' : drawerSizeValue }
+        : { height: isFullScreen ? '100%' : drawerSizeValue }),
+      // Non-sizing styles applied directly to the PaperProps
+      color: theme.palette.text.primary,
+      overflow: 'auto',
+      borderLeft: `${position === 'right' ? '1px solid' : ''}`,
+      borderRight: `${position === 'left' ? '1px solid' : ''}`,
+      borderTop: `${position === 'bottom' ? '1px solid' : ''}`,
+      borderBottom: `${position === 'top' ? '1px solid' : ''}`,
+      borderColor: theme.palette.divider,
+    };
+  }, [position, isFullScreen, drawerSizeValue, theme]);
 
   // --- Header Content and Actions ---
   
@@ -105,10 +109,9 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({
   // Determine height properties for ContentLayout
   const effectiveFooterHeight = footerActionButton ? DEFAULT_FOOTER_HEIGHT_WITH_ACTIONS : 0;
   
-  
-  // --- Standard Drawer Content (Non-Fullscreen) ---
-  const standardContent = (
-    // The Box wrapper ensures the ContentLayout takes up the full 100% height/width allowed by the Drawer paper
+  // The Box wrapper ensures the ContentLayout takes up the full 100% height/width allowed by the Drawer paper
+  const content = (
+    // Use Box as a content wrapper for 100% height
     <Box
         sx={{
             display: 'flex',
@@ -125,33 +128,12 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({
             footerContent={footerContent}
             headerHeight={DEFAULT_HEADER_HEIGHT}
             footerHeight={effectiveFooterHeight}
-            // Ensure main content area starts without internal padding, allowing children to control layout
-            contentWrapperSx={{p: 0}} 
+            // contentWrapperSx is for the *scrolling content area*. 
+            // It should handle internal padding, not the drawer's main sizing/borders.
         />
     </Box>
   );
 
-  // --- Fullscreen Drawer Content ---
-  const fullScreenContent = (
-    <Paper
-        sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100vh',
-            width: '100vw',
-        }}
-    >
-        <ContentLayout
-            headerContent={headerContent}
-            headerRightActions={headerRightActions}
-            children={children}
-            footerContent={footerContent}
-            headerHeight={DEFAULT_HEADER_HEIGHT}
-            footerHeight={effectiveFooterHeight}
-            contentWrapperSx={{p: 2}} // Apply general padding to the scrolling content area
-        />
-    </Paper>
-  );
 
   return (
     <Drawer
@@ -160,8 +142,12 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({
       onClose={onClose}
       hideBackdrop={!hasBackdrop}
       disableEscapeKeyDown={!closeOnEscape}
+      // FIX: Apply the custom sizing and border styles to the internal Paper component
+      PaperProps={{
+        sx: drawerPaperStyle,
+      }}
     >
-        {isFullScreen ? fullScreenContent : standardContent}
+        {content}
     </Drawer>
   );
 };

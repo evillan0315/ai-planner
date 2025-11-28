@@ -60,7 +60,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, fileName }) => {
     
     // When the component mounts or src changes, set the element in the hook state.
     // The hook manages setting up listeners internally.
-    setMediaElement(element); 
+    setMediaElement(element);
 
     if (element) {
       // Ensure src is set and load triggered

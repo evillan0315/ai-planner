@@ -47,3 +47,29 @@ export async function extractJsonFromMarkdown(text: string): string {
     }
     return text.trim();
   }
+
+/**
+ * Truncates a file path to show start/end segments for display.
+ * @param filePath The full file path.
+ * @param maxLength Maximum allowed length before truncation.
+ */
+export const truncatePathDisplay = (filePath: string, maxLength = 60): string => {
+    if (!filePath || filePath.length <= maxLength) return filePath;
+
+    //const parts = filePath.split(/[/\]/);
+    const parts = filePath.split(/[/\\]/);
+    const fileName = parts[parts.length - 1];
+    
+    // Reserve space for filename and ellipsis/separator
+    const remainingSpace = maxLength - fileName.length - 3; // -3 for '.../'
+
+    if (remainingSpace <= 0) {
+        return `...${fileName.slice(-maxLength + 3)}`;
+    }
+    
+    const start = filePath.slice(0, remainingSpace);
+    const lastSeparatorIndex = Math.max(start.lastIndexOf('/'), start.lastIndexOf('\\'));
+    const finalStart = lastSeparatorIndex > 0 ? start.slice(0, lastSeparatorIndex) : start;
+    
+    return `${finalStart}/.../${fileName}`;
+};

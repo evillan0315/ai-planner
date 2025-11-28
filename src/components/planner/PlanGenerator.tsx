@@ -26,8 +26,12 @@ import {
   setFileDataAndMimeType,
   setApplyStatus, // <-- ADDED
   setPlannerProjectRoot, // <-- ADDED
+  setRevisionTone
 } from './stores/plannerStore';
 import { plannerService } from './api/plannerService';
+import { promptService, ReviseRequestDto } from '@/components/prompt/api';
+
+import { INSTRUCTION, INSTRUCTION_SCHEMA_OUTPUT } from './constants/instructions';
 import { fileExplorerService } from '@/components/file-explorer/api/fileExplorerService';
 import { ScanConfig } from '@/components/file-explorer/types'; 
 import { buildLLMPrompt, extractJsonFromMarkdown } from './utils'; 
@@ -100,6 +104,7 @@ const PlanGenerator: React.FC = () => {
     fileMimeType,
     applyStatus, // <-- ADDED
     applyError, // <-- ADDED
+    revisionTone
   } = useStore(plannerStore);
   const globalProjectRoot = useStore(projectRootDirectoryStore);
   const navigate = useNavigate();
@@ -144,12 +149,12 @@ const PlanGenerator: React.FC = () => {
   // Effect to populate generator fields when a plan is loaded
   useEffect(() => {
     if (plan && currentPlanId === plan.id) {
-      setUserPrompt(plan.llmInput?.userPrompt || '');
+      setUserPrompt(plan.llmInput?.userPrompt || plan.title);
       // Prioritize plan's projectRoot, then global, then current store value
-      setPlannerProjectRoot(plan.llmInput?.projectRoot || globalProjectRoot || projectRoot || '');
-      setScanPathsInput(plan.llmInput?.scanPaths?.join(', ') || 'src, public, package.json, README.md, .env');
-      setAdditionalInstructions(plan.llmInput?.additionalInstructions || '');
-      setExpectedOutputFormat(plan.llmInput?.expectedOutputFormat || '');
+      setPlannerProjectRoot(plan.llmInput?.projectRoot || globalProjectRoot || projectRoot || '/');
+      setScanPathsInput(plan.llmInput?.scanPaths?.join(', ') || 'package.json, README.md, .env');
+      setAdditionalInstructions(plan.llmInput?.additionalInstructions || INSTRUCTION);
+      setExpectedOutputFormat(plan.llmInput?.expectedOutputFormat || INSTRUCTION_SCHEMA_OUTPUT);
       // No direct setting of fileData/MimeType from plan as it's an ephemeral input for new generation.
     }
   }, [plan, currentPlanId, globalProjectRoot, projectRoot]);
@@ -162,7 +167,11 @@ const PlanGenerator: React.FC = () => {
       setSnackbarOpen(true);
     }
   }, [error]);
-  
+  useEffect(() => {
+    if (userPrompt) {
+      setUserPrompt(userPrompt);
+    }
+  }, [userPrompt]);
   // Effect to handle GLOBAL Apply Status snackbar (MOVED FROM PlanDisplay)
   useEffect(() => {
     if (applyStatus === 'success') {
@@ -188,7 +197,20 @@ const PlanGenerator: React.FC = () => {
         .filter(Boolean),
     [scanPathsInput],
   );
+  
+  
 
+  const handlePromptGenerate = useCallback(async () => {
+     const payload: ReviseRequestDto = { text: userPrompt, tone: revisionTone };
+     const rawResponse = await promptService.reviseText(payload);
+     setUserPrompt(rawResponse.revisedText)
+     console.log(rawResponse, 'rawResponse handlePromptGenerate');
+  }, [userPrompt,revisionTone,setUserPrompt, promptService.reviseText]);
+
+  const handleRevisionTone = useCallback((tone: string) => {
+     setRevisionTone(tone || '');
+  }, [setRevisionTone]);
+  
   const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -319,18 +341,48 @@ const PlanGenerator: React.FC = () => {
     const extracted = await extractJsonFromMarkdown(rawResponse);
     console.log(extracted, 'extracted');
     // 6) Extract JSON from markdown (resilient)
-    let parsedPlan: IPlan = JSON.parse(extracted);
+    // 6) Extract JSON from markdown (resilient)
+    let parsedPlan: IPlan | null = null;
+    const tryParse = (candidate: string) => {
+      try {
+        return JSON.parse(candidate) as IPlan;
+      } catch(error) {
+        const errorData = {
+            message: (error as Error).message || 'Failed to parse llm response.',
+            data: JSON.stringify(candidate)
+        }
+        console.log(errorData, 'errorData');
+        setError(JSON.stringify(errorData));
+        return errorData;
+      }
+    };
 
-    
+
+      try {
+        
+        if (extracted) {
+          parsedPlan = tryParse(extracted);
+        }
+      } catch (e) {
+        //setError((error as Error).message || 'Failed to parse llm response.');
+        console.warn('extractJsonFromMarkdown failed, falling back to raw parse.', e);
+        //throw new Error('Failed to parse plan from LLM response.');
+      }
     // Attempt 3: if we still don't have a plan, throw
     if (!parsedPlan) {
-      throw new Error('Failed to parse plan from LLM response.');
+      //setError(JSON.stringify(errorData));
+      //throw new Error('Failed to parse plan from LLM response.');
     }
 
     parsedPlan.title = parsedPlan.title?.trim() || truncateTitle(parsedPlan.summary || userPrompt.slice(0, 80));
-
+    const revisedPlan = {
+      ...parsedPlan,
+      llmInput,
+      projectRoot
+    }
+    console.warn('revisedPlan', revisedPlan);
     // 7) Persist plan via plannerService.createPlan and normalize response
-    const createRes = await plannerService.createPlan(parsedPlan);
+    const createRes = await plannerService.createPlan(revisedPlan);
     console.log(createRes, 'createRes');
     // Normalize created plan (accept multiple response shapes)
     // Final sanity check
@@ -356,14 +408,10 @@ const PlanGenerator: React.FC = () => {
   additionalInstructions,
   expectedOutputFormat,
   currentScanPathsArray,
-  fileData,
-  fileMimeType,
   handleScanDirectory,
   handleProjectStructure,
   buildLLMPrompt,
   plannerService,
-  extractJsonFromMarkdown,
-  setError,
   setIsLoading,
   setPlan,
   setCurrentPlanId,
@@ -632,6 +680,7 @@ const planTitleHeader = useMemo(() => {
       >
         <PlanInputForm
           userPrompt={userPrompt}
+          revisionTone={revisionTone}
           setUserPrompt={setUserPrompt}
           projectRoot={projectRoot}
           scanPathsInput={scanPathsInput}
@@ -646,6 +695,7 @@ const planTitleHeader = useMemo(() => {
           handleFileChange={handleFileChange}
           handleClearFile={handleClearFile}
           handleGeneratePlan={handleGeneratePlan}
+          handlePromptGenerate={handlePromptGenerate}
           handleClearPlan={handleClearPlan}
           openProjectRootPicker={openProjectRootPicker} // Use local helper
           openScanPathsDrawer={openScanPathsDrawer}     // Use local helper
@@ -654,6 +704,7 @@ const planTitleHeader = useMemo(() => {
           openExpectedOutputDrawer={() => setIsExpectedOutputDrawerOpen(true)}
           openErrorDetailsDrawer={() => setIsErrorDetailsDrawerOpen(true)}
           plan={plan}
+          handleRevisionTone={handleRevisionTone}
         />
       </Box>
 
@@ -662,7 +713,7 @@ const planTitleHeader = useMemo(() => {
         open={isProjectRootPickerDialogOpen}
         onClose={() => setIsProjectRootPickerDialogOpen(false)}
         position="left"
-        size="small" // Increased size for better file viewing
+        size="medium" // Increased size for better file viewing
         title="Select Project Root Folder"
         hasBackdrop={true}
         footerActionButton={directoryPickerDrawerActions}
@@ -682,7 +733,7 @@ const planTitleHeader = useMemo(() => {
         open={isScanPathsDialogOpen}
         onClose={() => setIsScanPathsDialogOpen(false)}
         position="left"
-        size="normal"
+        size="medium"
         title="Manage AI Scan Paths"
         hasBackdrop={true}
         footerActionButton={scanPathsDrawerActions}
@@ -750,13 +801,13 @@ const planTitleHeader = useMemo(() => {
         open={isErrorDetailsDrawerOpen}
         onClose={() => setIsErrorDetailsDrawerOpen(false)}
         position="left"
-        size="normal"
+        size="medium"
         title="Error Details"
         hasBackdrop={true}
         footerActionButton={errorDrawerActions}
       >
         <ErrorDetailsDrawerContent 
-            plan={plan} 
+            plan={plan || error} 
             error={error} 
         />
       </CustomDrawer>

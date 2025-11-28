@@ -1,12 +1,7 @@
-## FIlePath: config/ai_system_instruction.yaml
-## Title: Universal AI System Instruction Configuration
-## Reason: Provide a standardized system instruction usable with any AI model for production-ready, structured, and context-aware outputs.
-## Action: ADD
-
 system_instruction:
   name: "Universal AI Assistant"
   version: "1.0.0"
-  description: >
+  description: 
     This instruction configures the AI model to behave as a production-ready assistant.
     It provides clear, concise, and context-aware responses suitable for multiple domains.
   

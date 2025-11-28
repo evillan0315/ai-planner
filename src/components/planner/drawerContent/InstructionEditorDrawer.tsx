@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Typography, Box } from '@mui/material'; // Removed TextField
+import { Typography, Box, Paper } from '@mui/material'; // Removed TextField
 import { useStore } from '@nanostores/react';
 import {
   plannerStore,
@@ -11,7 +11,13 @@ import type { GlobalAction } from '@/components/ui/GlobalActionButton';
 import ClearIcon from '@mui/icons-material/Clear';
 import SaveIcon from '@mui/icons-material/Save';
 import MonacoEditor from '@/components/editor/monaco/MonacoEditor'; // Import MonacoEditor
+import DynamicFormBuilder from '@/components/form/DynamicFormBuilder';
+import SystemConfigForm from '@/components/planner/config/SystemConfigForm';
 
+import {GEMINI_SYSTEM_CONFIG} from '../config';
+
+// Path to the configuration file to load
+const CONFIG_FILE_PATH = "/media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/planner/config/ai_system_instruction.yaml";
 interface InstructionEditorDrawerProps {
   open: boolean;
   onClose: () => void;
@@ -102,24 +108,17 @@ const InstructionEditorDrawer: React.FC<InstructionEditorDrawerProps> = ({
       hasBackdrop={true}
       footerActionButton={drawerActions}
     >
-      <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Typography variant="body2" color="text.secondary">
-          {type === 'ai'
-            ? 'Define the overall instructions for the AI. This is Markdown-compatible and acts as the system prompt.'
-            : 'Provide the desired output format and structure, typically a JSON schema or an example of a valid response.'}
-        </Typography>
-        <Box sx={monacoEditorSx}> 
-          <MonacoEditor
-            value={localValue}
-            onChange={(value) => setLocalValue(value || '')}
-            language={monacoLanguage}
-            options={{
-              readOnly: false,
-              minimap: { enabled: false },
-              wordWrap: 'on',
-            }}
+      <Box sx={{ p: 0, height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+        
+        <Box sx={monacoEditorSx}>
+        <SystemConfigForm 
+          schema={GEMINI_SYSTEM_CONFIG.schema} 
+          initialData={GEMINI_SYSTEM_CONFIG.json}
+          //onFormChange={handleCancel}
+          level={0}
           />
         </Box>
+        
       </Box>
     </CustomDrawer>
   );

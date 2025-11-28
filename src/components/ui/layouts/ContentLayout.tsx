@@ -1,5 +1,5 @@
 import React, { ReactNode, useMemo } from 'react';
-import { Box, Paper, Toolbar, AppBar, useTheme, type SxProps, type Theme } from '@mui/material';
+import { Box, Paper, Toolbar, AppBar, useTheme, SxProps, Theme } from '@mui/material';
 import GlobalActionButton, { type GlobalAction } from '@/components/ui/GlobalActionButton';
 
 interface ContentLayoutProps {
@@ -134,3 +134,4 @@ export const ContentLayout: React.FC<ContentLayoutProps> = ({
     </Box>
   );
 };
+

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -13,6 +13,8 @@ import {
   useTheme,
   Stack,
   Paper,
+  Menu,
+  MenuItem
 } from '@mui/material';
 import AddRoadIcon from '@mui/icons-material/AddRoad';
 import DescriptionIcon from '@mui/icons-material/Description'; // Icon for documentation/help
@@ -24,6 +26,8 @@ import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import SettingsIcon from '@mui/icons-material/Settings'; 
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch'; 
 import NoteAddIcon from '@mui/icons-material/NoteAdd'; 
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'; 
+import StyleIcon from '@mui/icons-material/Style'; 
 
 import type { IPlan } from './types'; 
 import  { PROJECT_ROOT_TOOLTIP_DOCS } from './constants/documentation'; 
@@ -31,32 +35,12 @@ import FloatingIconTextField from '@/components/ui/FloatingIconTextField';
 import type { GlobalAction } from '@/components/ui/GlobalActionButton'; 
 import type { GlobalActionGroup } from '@/components/ui/GlobalActioButtonGroup'; 
 import MarkdownRenderer from '@/components/markdown/MarkdownRenderer';
-/**
- * Truncates a file path to show start/end segments for display.
- * @param filePath The full file path.
- * @param maxLength Maximum allowed length before truncation.
- */
-const truncatePathDisplay = (filePath: string, maxLength = 60): string => {
-    if (!filePath || filePath.length <= maxLength) return filePath;
+import { REVISION_TONES } from './constants/tones';
 
-    const parts = filePath.split(/[/\\]/);
-    const fileName = parts[parts.length - 1];
-    
-    // Reserve space for filename and ellipsis/separator
-    const remainingSpace = maxLength - fileName.length - 3; // -3 for '.../'
+import { truncatePathDisplay } from './utils/index';
+import { useStore } from '@nanostores/react';
 
-    if (remainingSpace <= 0) {
-        return `...${fileName.slice(-maxLength + 3)}`;
-    }
-    
-    const start = filePath.slice(0, remainingSpace);
-    const lastSeparatorIndex = Math.max(start.lastIndexOf('/'), start.lastIndexOf('\\'));
-    const finalStart = lastSeparatorIndex > 0 ? start.slice(0, lastSeparatorIndex) : start;
-    
-    return `${finalStart}/.../${fileName}`;
-};
 
-// --- End new content constants and helpers ---
 
 
 interface PlanInputFormProps {
@@ -75,7 +59,9 @@ interface PlanInputFormProps {
   handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   handleClearFile: () => void;
   handleGeneratePlan: () => Promise<void>;
+  handlePromptGenerate: () => Promise<void>;
   handleClearPlan: () => void;
+  handleRevisionTone: (tone: string) => void;
   openProjectRootPicker: () => void;
   openScanPathsDrawer: () => void;
   openPlannerListDrawer: () => void;
@@ -83,6 +69,7 @@ interface PlanInputFormProps {
   openExpectedOutputDrawer: () => void;
   openErrorDetailsDrawer: () => void;
   plan: IPlan | null;
+  revisionTone: string | '';
 }
 
 
@@ -90,7 +77,6 @@ interface PlanInputFormProps {
 const formSectionSx = {
   
 };
-
 
 export const PlanInputForm: React.FC<PlanInputFormProps> = ({
   userPrompt,
@@ -108,32 +94,52 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
   handleFileChange,
   handleClearFile,
   handleGeneratePlan,
+  handlePromptGenerate,
   handleClearPlan,
+  handleRevisionTone,
   openProjectRootPicker,
   openScanPathsDrawer,
   openPlannerListDrawer,
   openAiInstructionDrawer,
   openExpectedOutputDrawer,
   openErrorDetailsDrawer,
-  plan
+  plan,
+  revisionTone
 }) => {
   const theme = useTheme();
   const cardSx = {
     backgroundColor: theme.palette.background.paper,
     border: `1px solid ${theme.palette.divider}`
   }
+
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+
+  const open = Boolean(anchorEl);
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleMenuItemClick = (tone: { value: string, label: string, icon: JSX.Element }) => {
+    handleRevisionTone(tone.value); // Call handler with selected tone value
+    handleClose();
+  };
+
   // Split actions into logical groups and map them to corners
   const floatingActionGroupsByCorner: Partial<Record<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right', GlobalActionGroup[]>> = useMemo(() => {
       
     // Action 0: Error Details (BugReportIcon) - conditionally added to Primary Actions
-    const errorDetailsAction: GlobalAction[] = error ? [{
+    const errorDetailsAction: GlobalAction[] = [{
         label: "View Error Details",
         action: openErrorDetailsDrawer,
         icon: <BugReportIcon fontSize="small" />,
         color: 'error',
         disabled: isLoading,
         iconOnly: true,
-    }] : [];
+    }]; // Only show if plan exists AND error exists
       
     // 1. Primary Actions (Bottom Right)
     const primaryActions: GlobalAction[] = [
@@ -141,7 +147,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
         // ADDED: Error details icon moved here
         ...errorDetailsAction,
         
-        {          
+        {
           label: "New Plan (Clear existing content)",
           action: handleClearPlan,
           icon: <NoteAddIcon fontSize="small" color="inherit" />,
@@ -149,7 +155,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           disabled: isLoading && !plan,
           iconOnly: true,
         },
-        {          
+        {
           label: "Generate Plan",
           action: handleGeneratePlan,
           icon: isLoading ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon fontSize="small" />,
@@ -161,19 +167,35 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
     
     // 2. Model Settings Actions (Top Right)
     const modelSettingsActions: GlobalAction[] = [
-        {          
-          label: "Edit AI Instructions / System Prompt",
-          action: openAiInstructionDrawer,
-          icon: <SettingsIcon fontSize="small" />,
-          color: additionalInstructions.length > 50 ? 'primary' : 'secondary', // Highlight if custom instructions exist
+        {
+           label: "Tone Selector",
+          action: handleClick,
+          icon: <StyleIcon fontSize="small" />,
+          color: additionalInstructions.length > 50 ? 'primary' : 'secondary', 
           disabled: isLoading,
           iconOnly: true,
         },
-        {          
+        {
+          label: "Prompt Generator (Revise Prompt)",
+          action: handlePromptGenerate,
+          icon: <AutoAwesomeIcon fontSize="small" />,
+          color: additionalInstructions.length > 50 ? 'primary' : 'secondary', 
+          disabled: isLoading || !userPrompt.trim(),
+          iconOnly: true,
+        },
+        {
+          label: "Edit AI Instructions / System Prompt",
+          action: openAiInstructionDrawer,
+          icon: <SettingsIcon fontSize="small" />,
+          color: additionalInstructions.length > 50 ? 'primary' : 'secondary', 
+          disabled: isLoading,
+          iconOnly: true,
+        },
+        {
           label: `Edit Expected Output Format / JSON Schema`,
           action: openExpectedOutputDrawer,
           icon: <SchemaIcon fontSize="small" />,
-          color: expectedOutputFormat.length > 50 ? 'primary' : 'secondary', // Highlight if custom schema exists
+          color: expectedOutputFormat.length > 50 ? 'primary' : 'secondary', 
           disabled: isLoading,
           iconOnly: true,
         },
@@ -182,7 +204,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
     // 3. Context Actions (Bottom Left)
     const contextActions: GlobalAction[] = [
         // ADDED: View All Saved Plans (ListAltIcon) moved here
-        {          
+        {
           label: "View All Saved Plans",
           action: openPlannerListDrawer,
           icon: <ListAltIcon fontSize="small" />,
@@ -190,7 +212,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           disabled: isLoading,
           iconOnly: true,
         },
-        {          
+        {
           label: `Set Project Root Directory (${truncatePathDisplay(projectRoot)})`,
           action: openProjectRootPicker,
           icon: <FolderOpenIcon fontSize="small" />,
@@ -198,7 +220,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           disabled: isLoading,
           iconOnly: true,
         },
-        {          
+        {
           label: `Manage AI Scan Paths (${scanPathsInput.split(',').filter(Boolean).length} included)`,
           action: openScanPathsDrawer,
           icon: <AddRoadIcon fontSize="small" />,
@@ -206,7 +228,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           disabled: isLoading,
           iconOnly: true,
         },
-        {          
+        {
           label: "Upload Context File (Image/Text)",
           action: () => fileInputRef.current?.click(),
           icon: <UploadFileIcon fontSize="small" />,
@@ -235,24 +257,28 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
 
 
   }, [
-    projectRoot, 
-    scanPathsInput, 
-    isLoading, 
-    selectedFile, 
-    openProjectRootPicker, 
-    openScanPathsDrawer, 
-    fileInputRef,
+    isLoading,
+    error,
+    plan,
+    userPrompt,
+    projectRoot,
+    scanPathsInput,
+    additionalInstructions,
+    expectedOutputFormat,
+    selectedFile,
+    openErrorDetailsDrawer,
     handleClearPlan,
     handleGeneratePlan,
+    handleClick,
+    handlePromptGenerate,
     openAiInstructionDrawer,
     openExpectedOutputDrawer,
-    openPlannerListDrawer, // New dependency
-    openErrorDetailsDrawer, // New dependency
-    userPrompt,
-    plan,
-    additionalInstructions, 
-    expectedOutputFormat, 
-    error, // New dependency
+    openPlannerListDrawer,
+    openProjectRootPicker,
+    openScanPathsDrawer,
+    fileInputRef,
+    
+    // Note: truncatePathDisplay and other utilities/constants are assumed stable.
   ]);
 
   return (
@@ -288,19 +314,36 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
             <FloatingIconTextField
               label="Enter your prompt"
               multiline
-              rows={1} // Default visible rows
+              rows={3}
               fullWidth
               value={userPrompt}
               onChange={(e) => setUserPrompt(e.target.value)}
               disabled={isLoading}
               floatingActionGroupsByCorner={floatingActionGroupsByCorner} 
               sx={{
-                backgroundColor:'background.paper',           
+                backgroundColor:'background.paper',
                 '& .MuiInputBase-multiline': { 
                   padding: '40px 20px 40px 20px !important'
                 },
             }}
             />
+            <Menu
+              id="basic-menu"
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleClose}
+              MenuListProps={{
+                'aria-labelledby': 'basic-button',
+              }}
+            >
+              {REVISION_TONES.map((tone) => (
+                <MenuItem key={tone.value} onClick={() => handleMenuItemClick(tone)} className="gap-2">
+                  {tone.icon}
+                  {tone.label}
+                </MenuItem>
+              ))}
+
+            </Menu>
             <Stack 
                 direction="row" 
                 spacing={2} 

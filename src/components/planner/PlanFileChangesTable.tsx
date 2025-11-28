@@ -129,12 +129,13 @@ const PlanFileChangesTable: React.FC<PlanFileChangesTableProps> = ({
                         />
                     </Tooltip>
                 </TableCell>
-                <TableCell sx={tableHeadCellSx}>File Path</TableCell>
-                <TableCell sx={tableHeadCellSx}>Action</TableCell>
-                <TableCell sx={tableHeadCellSx}>Reason</TableCell>
                 <TableCell sx={tableHeadCellSx} align="center" width="120px">
                   Actions
                 </TableCell>
+                <TableCell sx={tableHeadCellSx}>File Path</TableCell>
+                <TableCell sx={tableHeadCellSx}>Action</TableCell>
+                <TableCell sx={tableHeadCellSx}>Reason</TableCell>
+                
               </TableRow>
             </TableHead>
             <TableBody>
