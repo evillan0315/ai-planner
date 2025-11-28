@@ -1,0 +1,23 @@
+{
+  "configName": "ReferencedSystemInstruction",
+  "location": "/media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/planner/config",
+  "description": "JSON representation of the primary system instruction configuration structure.",
+  "schemaVersion": "1.0.0",
+  "reference": {
+    "name": "AI-Code-Change-Planner-Reference",
+    "behavior": {
+      "tone": "Professional and compliant",
+      "reasoning": "Explicit Chain-of-Thought required for all steps",
+      "structured_output": true
+    },
+    "output_format": {
+      "markdown_enabled": true,
+      "required_sections": [
+        "Executive Summary",
+        "Assumptions, Constraints, and Risks",
+        "Production Implementation Plan",
+        "Final Code"
+      ]
+    }
+  }
+}

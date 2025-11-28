@@ -1,4 +1,6 @@
 import { deepMerge } from "@/components/planner/utils/objectUtils"; // Assuming a deepMerge utility exists or needs to be defined/imported for safety
+// Importing default config structure reference for context, even if not directly used in DEFAULT_SYSTEM_CONFIG initialization
+import REF_CONFIG from './system_instruction_reference.json';
 
 // Since we don't see objectUtils.ts, we must define a minimal deep merge or stick to shallow merge if overrides are simple.
 // For this scope, I will define a very basic object merge capable of handling the structure, assuming we only need to overwrite top-level/known nested structures if provided in overrides.
