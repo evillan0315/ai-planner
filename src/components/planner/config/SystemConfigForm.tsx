@@ -37,6 +37,7 @@ const getNestedValue = (obj, path) => {
  */
 const setNestedValue = (obj, path, value) => {
   if (!obj) return {};
+  // We must handle arrays distinctly if they are the root or an intermediate step that needs cloning
   const newObj = Array.isArray(obj) ? [...obj] : { ...obj };
   let current = newObj;
   for (let i = 0; i < path.length; i++) {
@@ -46,7 +47,8 @@ const setNestedValue = (obj, path, value) => {
     } else {
       if (!current[key] || typeof current[key] !== 'object' || Array.isArray(current[key])) {
         // Create a new object if the intermediate path doesn't exist or is a primitive/array
-        current[key] = {};
+        // If the next key in path suggests an array index, we should create an array, otherwise an object.
+        current[key] = (i + 1 < path.length && !isNaN(parseInt(path[i+1]))) ? [] : {};
       }
       current = current[key];
     }
