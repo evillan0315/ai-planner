@@ -21,14 +21,14 @@ interface ContentLayoutProps {
   contentWrapperSx?: SxProps<Theme>;
 }
 
-const DEFAULT_HEADER_HEIGHT = 48;
+const DEFAULT_HEADER_HEIGHT = 50; // Adjusted to match NavBar height
 const DEFAULT_FOOTER_HEIGHT = 30;
 
 const headerBarSx = (theme: Theme): SxProps => ({
   backgroundColor: theme.palette.background.default,
   //borderBottom: `1px solid ${theme.palette.divider}`,
   color: theme.palette.primary.main,
-  minHeight: `${DEFAULT_HEADER_HEIGHT}px`,
+  minHeight: `${DEFAULT_HEADER_HEIGHT}px`, // Using 50px default
   //boxShadow: 0,
   // Tailwind handles sticky positioning and Z-index
 });
@@ -39,13 +39,13 @@ const toolbarSx: SxProps = {
   alignItems: 'center',
   width: '100%',
   px: `0px !important`,
-  minHeight: `38px`
+  minHeight: `${DEFAULT_HEADER_HEIGHT}px !important` // Updated minHeight here too
 };
 
 const mainContentSx = (hHeight: number, fHeight: number): SxProps => ({
   flexGrow: 1,
   // Ensure the container fills remaining vertical space
-  height: `calc(100% - ${hHeight}px - ${fHeight}px)`,
+  height: `calc(100% - ${hHeight}px - ${fHeight}px)`, // Footer height is handled by AppLayout now
   minHeight: `calc(100% - ${hHeight}px - ${fHeight}px)`,
   overflowY: 'auto',
 });
@@ -82,7 +82,7 @@ export const ContentLayout: React.FC<ContentLayoutProps> = ({
     <Box className="flex flex-col h-full w-full">
 
       <AppBar position="static" className="sticky top-0 z-[400]" sx={headerBarSx(theme)}>
-        <Toolbar sx={{ ...toolbarSx, minHeight: `${DEFAULT_HEADER_HEIGHT}px !important`}}>
+        <Toolbar sx={toolbarSx}>
           {renderedHeaderActionsLeft && (
             <Box className="flex items-center flex-shrink-0 min-w-10 pl-2">
               {renderedHeaderActionsLeft}

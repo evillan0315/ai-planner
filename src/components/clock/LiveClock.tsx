@@ -53,9 +53,20 @@ const LiveClock: React.FC<LiveClockProps> = ({ footer = false, sx }) => {
     return <ClockAnalog key={key} config={config} isConfigPreview={false} size={footer ? 20 : undefined} />;
   };
 
-  return (
+  return ( 
     <Box sx={{ ...defaultSx, ...sx }} className={footer ? 'h-[30px]' : 'h-full'}>
-      {clockConfigs.map(renderClock)}
+      {/* Clock display area - clickable when footer is true */}
+      <Box 
+        onClick={footer ? handleOpenConfig : undefined} 
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: footer ? 0.5 : 0, // Remove gap from internal Box if clock is being wrapped
+          cursor: footer ? 'pointer' : 'default',
+        }}
+      >
+        {clockConfigs.map(renderClock)}
+      </Box>
 
       {!footer && (
         <Tooltip title="Configure Clocks/Timezones">

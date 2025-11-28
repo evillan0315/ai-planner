@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getAuthHeaders, API_BASE_URL } from '../../../api/authService';
+import { getAuthHeaders, API_BASE_URL } from '@/api/authService';
 import {
   IRecording,
   CreateRecordingDto,
