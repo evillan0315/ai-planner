@@ -203,7 +203,7 @@ const SystemConfigForm = () => {
   const initialConfig = DEFAULT_SYSTEM_CONFIG.json.system_instruction;
   const [config, setConfig] = useState(initialConfig);
   const [currentTab, setCurrentTab] = useState(0);
-
+  
   // Sync state if initialConfig changes externally (though unlikely for this component)
   useEffect(() => {
     setConfig(initialConfig);

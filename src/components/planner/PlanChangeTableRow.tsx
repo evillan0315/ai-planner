@@ -116,12 +116,14 @@ const PlanChangeTableRow: React.FC<PlanChangeTableRowProps> = ({
       </TableCell>
       <TableCell
         align="center"
-        sx={{
+        sx={
+          {
           display: 'flex',
           gap: 0.5,
           alignItems: 'center',
           justifyContent: 'center',
-        }}
+        }
+        }
       >
         <GlobalActionButton globalActions={actions} iconOnly={true} />
       </TableCell>

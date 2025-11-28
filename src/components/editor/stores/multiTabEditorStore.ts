@@ -16,6 +16,8 @@ export interface IEditorTab {
   draftContent: string;
   mimeType?: string;
   language?: string;
+  line?: number; // Cursor line number
+  col?: number; // Cursor column number
   hasUnsavedChanges: boolean;
   isLoading: boolean;
   error: string | null;
@@ -69,17 +71,20 @@ export const openTab = async (filePath: string) => {
   const extension = normalizedPath.split('.').pop()?.toLowerCase() || '';
   // Note: We don't have mimeType easily here, so we rely on extension/assume non-media unless known.
 
+
   const newTab: IEditorTab = {
     id: normalizedPath,
     name: path.basename(normalizedPath),
     filePath: normalizedPath,
     content: '',
     draftContent: '',
+    line: undefined,
+    col: undefined,
     hasUnsavedChanges: false,
     isLoading: true,
     error: null,
   };
-
+  
   const newTabs = [...current.tabs, newTab];
   const newActiveIndex = newTabs.length - 1; // Index of the new tab
 

@@ -84,12 +84,12 @@ const PlanMetadataEditorDrawer: React.FC<PlanMetadataEditorDrawerProps> = ({
       setDocumentation(initialDocumentation || '');
       setAssumptions(getNormalizedStringArray(initialAssumptions));
       setConfidence(initialConfidence);
-      setEstimatedEffortMinutes(initialEstimatedEffortMinutes); // Used fixed prop
-      setBuildScripts(initialBuildScripts ? JSON.stringify(initialBuildScripts, null, 2) : '');
-      setGitInstructionsBranch(initialGitInstructions?.branchName || '');
-      setGitInstructionsCommit(initialGitInstructions?.commitMessage || '');
-      setGitInstructionsCommands(initialGitInstructions?.commands?.join('\n') || '');
-      setBuildScriptsError(null);
+    setEstimatedEffortMinutes(initialEstimatedEffortMinutes); // Used fixed prop
+    setBuildScripts(initialBuildScripts ? JSON.stringify(initialBuildScripts, null, 2) : '');
+    setGitInstructionsBranch(initialGitInstructions?.branchName || '');
+    setGitInstructionsCommit(initialGitInstructions?.commitMessage || '');
+    setGitInstructionsCommands(initialGitInstructions?.commands?.join('\n') || '');
+    setBuildScriptsError(null);
     }
   }, [
     open,
@@ -152,8 +152,8 @@ const PlanMetadataEditorDrawer: React.FC<PlanMetadataEditorDrawerProps> = ({
       thoughtProcess: normalizedThoughtProcess,
       documentation: documentation.trim() || undefined,
       assumptions: normalizedAssumptions,
-      confidence: confidence,
-      estimatedEffortMinutes: estimatedEffortMinutes,
+      confidence: confidence === undefined ? undefined : confidence, // Preserve undefined if explicitly set to undefined, else send number
+      estimatedEffortMinutes: estimatedEffortMinutes === undefined ? undefined : estimatedEffortMinutes, // Preserve undefined
       buildScripts: parsedBuildScripts,
       gitInstructions: gitInstructionsObject,
     });

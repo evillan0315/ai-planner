@@ -159,13 +159,13 @@ export default function FloatingIconTextField({
   if (editor) {
       // Render MonacoEditor instead of TextField
       return (
-        <Box position="relative" display="inline-block" width="100%">
+        <Box position="relative" display="inline-block" width="100%" height="100%">
             <MonacoEditor
                 value={props.value as string} // Assumes value is string when editor=true
                 onChange={props.onChange as (value: string) => void} // Assumes onChange handles string
                 options={props.options} // Pass options if available
                 language={props.language} // Pass language if available
-                sx={{width: '100%', minHeight: props.rows ? `${props.rows * 20}px` : '200px' }} // Simple height estimation
+                sx={{width: '100%', minHeight: '200px', height: '100%' }}
             />
             {actionRenderers}
         </Box>

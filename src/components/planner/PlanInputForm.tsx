@@ -17,14 +17,14 @@ import {
   MenuItem
 } from '@mui/material';
 import AddRoadIcon from '@mui/icons-material/AddRoad';
-import DescriptionIcon from '@mui/icons-material/Description'; // Icon for documentation/help
+import DescriptionIcon from '@mui/icons-material/Description';
 import SchemaIcon from '@mui/icons-material/Schema';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import SettingsIcon from '@mui/icons-material/Settings'; 
-import RocketLaunchIcon from '@mui/icons-material/RocketLaunch'; 
+import SendIcon from '@mui/icons-material/Send'; 
 import NoteAddIcon from '@mui/icons-material/NoteAdd'; 
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'; 
 import StyleIcon from '@mui/icons-material/Style'; 
@@ -32,16 +32,12 @@ import StyleIcon from '@mui/icons-material/Style';
 import type { IPlan } from './types'; 
 import  { PROJECT_ROOT_TOOLTIP_DOCS } from './constants/documentation'; 
 import FloatingIconTextField from '@/components/ui/FloatingIconTextField'; 
-import type { GlobalAction } from '@/components/ui/GlobalActionButton'; 
+import  GlobalActionButton, {  type GlobalAction } from '@/components/ui/GlobalActionButton'; 
 import type { GlobalActionGroup } from '@/components/ui/GlobalActioButtonGroup'; 
 import MarkdownRenderer from '@/components/markdown/MarkdownRenderer';
 import { REVISION_TONES } from './constants/tones';
 
 import { truncatePathDisplay } from './utils/index';
-import { useStore } from '@nanostores/react';
-
-
-
 
 interface PlanInputFormProps {
   userPrompt: string;
@@ -66,27 +62,27 @@ interface PlanInputFormProps {
   openScanPathsDrawer: () => void;
   openPlannerListDrawer: () => void;
   openAiInstructionDrawer: () => void;
+  openSystemConfig: () => void;
   openExpectedOutputDrawer: () => void;
   openErrorDetailsDrawer: () => void;
   plan: IPlan | null;
   revisionTone: string | '';
 }
 
-
-
 const formSectionSx = {
-  
+  // Define your styles here if needed
+      px:2,
+      py:0.5,
+      margin:0
 };
 
-export const PlanInputForm: React.FC<PlanInputFormProps> = ({
+export const PlanInputForm: React.FC<PlanInputFormProps> = React.memo(function PlanInputForm({
   userPrompt,
   setUserPrompt,
   projectRoot,
   scanPathsInput,
   additionalInstructions,
   expectedOutputFormat,
-  fileData,
-  fileMimeType,
   selectedFile,
   isLoading,
   error,
@@ -100,38 +96,48 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
   openProjectRootPicker,
   openScanPathsDrawer,
   openPlannerListDrawer,
-  openAiInstructionDrawer,
+  openSystemConfig,
   openExpectedOutputDrawer,
   openErrorDetailsDrawer,
   plan,
-  revisionTone
-}) => {
+}) {
   const theme = useTheme();
-  const cardSx = {
+  
+  const cardSx = useMemo(() => ({
     backgroundColor: theme.palette.background.paper,
-    border: `1px solid ${theme.palette.divider}`
-  }
+    border: `1px solid ${theme.palette.divider}`,
 
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  }), [theme.palette.background.paper, theme.palette.divider]);
 
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClick = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
+  }, []);
+
+  const handleClose = useCallback(() => {
     setAnchorEl(null);
-  };
+  }, []);
 
-  const handleMenuItemClick = (tone: { value: string, label: string, icon: JSX.Element }) => {
-    handleRevisionTone(tone.value); // Call handler with selected tone value
+  const handleMenuItemClick = useCallback((tone: { value: string, label: string, icon: JSX.Element }) => {
+    handleRevisionTone(tone.value);
     handleClose();
-  };
-
-  // Split actions into logical groups and map them to corners
+  }, [handleRevisionTone, handleClose]);
+  const mainActions: GlobalAction[] = [
+        {
+          label: "Generate Plan",
+          action: handleGeneratePlan,
+          icon: isLoading ? <CircularProgress size={16} color="inherit" /> : <SendIcon fontSize="small" />,
+          color: 'success',
+          disabled: isLoading || !userPrompt.trim() || !projectRoot.trim(),
+          iconOnly: false,
+          variant: 'outlined'
+        }
+    
+  ];
   const floatingActionGroupsByCorner: Partial<Record<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right', GlobalActionGroup[]>> = useMemo(() => {
       
-    // Action 0: Error Details (BugReportIcon) - conditionally added to Primary Actions
     const errorDetailsAction: GlobalAction[] = [{
         label: "View Error Details",
         action: openErrorDetailsDrawer,
@@ -139,14 +145,10 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
         color: 'error',
         disabled: isLoading,
         iconOnly: true,
-    }]; // Only show if plan exists AND error exists
-      
-    // 1. Primary Actions (Bottom Right)
+    }];
+    
     const primaryActions: GlobalAction[] = [
-        
-        // ADDED: Error details icon moved here
         ...errorDetailsAction,
-        
         {
           label: "New Plan (Clear existing content)",
           action: handleClearPlan,
@@ -155,17 +157,9 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           disabled: isLoading && !plan,
           iconOnly: true,
         },
-        {
-          label: "Generate Plan",
-          action: handleGeneratePlan,
-          icon: isLoading ? <CircularProgress size={16} color="inherit" /> : <RocketLaunchIcon fontSize="small" />,
-          color: 'success',
-          disabled: isLoading || !userPrompt.trim() || !projectRoot.trim(),
-          iconOnly: true,
-        },
-    ];
     
-    // 2. Model Settings Actions (Top Right)
+    ];
+
     const modelSettingsActions: GlobalAction[] = [
         {
            label: "Tone Selector",
@@ -184,26 +178,16 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
           iconOnly: true,
         },
         {
-          label: "Edit AI Instructions / System Prompt",
-          action: openAiInstructionDrawer,
+          label: "System Configuration",
+          action: openSystemConfig,
           icon: <SettingsIcon fontSize="small" />,
-          color: additionalInstructions.length > 50 ? 'primary' : 'secondary', 
-          disabled: isLoading,
-          iconOnly: true,
-        },
-        {
-          label: `Edit Expected Output Format / JSON Schema`,
-          action: openExpectedOutputDrawer,
-          icon: <SchemaIcon fontSize="small" />,
-          color: expectedOutputFormat.length > 50 ? 'primary' : 'secondary', 
+          color: 'success', 
           disabled: isLoading,
           iconOnly: true,
         },
     ];
 
-    // 3. Context Actions (Bottom Left)
     const contextActions: GlobalAction[] = [
-        // ADDED: View All Saved Plans (ListAltIcon) moved here
         {
           label: "View All Saved Plans",
           action: openPlannerListDrawer,
@@ -238,7 +222,6 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
         },
     ];
     
-    // Combine into corner groups
     const cornerGroups: Partial<Record<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right', GlobalActionGroup[]>> = {};
 
     if (modelSettingsActions.length > 0) {
@@ -254,11 +237,8 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
     }
     
     return cornerGroups;
-
-
   }, [
     isLoading,
-    error,
     plan,
     userPrompt,
     projectRoot,
@@ -266,29 +246,23 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
     additionalInstructions,
     expectedOutputFormat,
     selectedFile,
+    handleClick, 
     openErrorDetailsDrawer,
     handleClearPlan,
     handleGeneratePlan,
-    handleClick,
     handlePromptGenerate,
-    openAiInstructionDrawer,
+    openSystemConfig,
     openExpectedOutputDrawer,
     openPlannerListDrawer,
     openProjectRootPicker,
     openScanPathsDrawer,
     fileInputRef,
-    
-    // Note: truncatePathDisplay and other utilities/constants are assumed stable.
   ]);
 
   return (
-    <Card sx={cardSx} className="flex-shrink-0 py-1 rounded-xl shadow-lg border border-solid border-gray-700/20  backdrop-blur-md">
+    <Card sx={cardSx} className="flex-shrink-0 rounded-xl shadow-lg">
       <CardContent sx={formSectionSx} className="flex flex-col">
-
-        
-
         <Box>
-
             <input
                 type="file"
                 ref={fileInputRef}
@@ -296,7 +270,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
                 style={{ display: 'none' }}
                 disabled={isLoading}
             />
-            <Box className="flex items-center gap-1 flex-shrink-0 min-w-0 mb-1">
+            <Box className="flex items-center gap-1 flex-shrink-0 min-w-0">
                     
                     <Tooltip title={<MarkdownRenderer content={PROJECT_ROOT_TOOLTIP_DOCS}  />} arrow
                         placement="right">
@@ -314,7 +288,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
             <FloatingIconTextField
               label="Enter your prompt"
               multiline
-              rows={3}
+              rows={1}
               fullWidth
               value={userPrompt}
               onChange={(e) => setUserPrompt(e.target.value)}
@@ -346,16 +320,24 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
             </Menu>
             <Stack 
                 direction="row" 
-                spacing={2} 
+                spacing={1} 
                 alignItems="center" 
-                className="mt-3 text-sm text-text-secondary" 
+                className="mt-2 text-sm text-text-secondary justify-between" 
                 flexWrap="wrap"
             >
 
-                
-                
-                {/* 2. Attached File Status */}
-                {selectedFile && (
+               <Box className="text-xs flex flex-col gap-2">
+
+                <Box className="text-xs text-text-secondary flex gap-2 ml-auto">
+                    <Typography variant="caption">
+                        AI Instructions: <span className={`font-mono font-bold ${additionalInstructions.length > 50 ? 'text-primary-main' : 'text-text-secondary'}`}>{additionalInstructions.length > 50 ? 'Custom' : 'Default'}</span>
+                    </Typography>
+                    <Typography variant="caption">
+                        Output Format: <span className={`font-mono font-bold ${expectedOutputFormat.length > 50 ? 'text-primary-main' : 'text-text-secondary'}`}>{expectedOutputFormat.length > 50 ? 'Schema' : 'Default'}</span>
+                    </Typography>
+                   
+                </Box>
+                   {selectedFile && (
                     <Stack direction="row" spacing={1} alignItems="center" className="max-w-sm">
                         <Chip
                             label={`${selectedFile.name} (${(selectedFile.size / 1024).toFixed(2)} KB)`}
@@ -367,20 +349,16 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = ({
                         />
                     </Stack>
                 )}
-
-                {/* 3. Hidden AI Config status feedback for UX consistency */}
-                <Box className="mt-1 text-xs text-text-secondary flex gap-2 ml-auto">
-                    <Typography variant="caption">
-                        AI Instructions: <span className={`font-mono font-bold ${additionalInstructions.length > 50 ? 'text-primary-main' : 'text-text-secondary'}`}>{additionalInstructions.length > 50 ? 'Custom' : 'Default'}</span>
-                    </Typography>
-                    <Typography variant="caption">
-                        Output Format: <span className={`font-mono font-bold ${expectedOutputFormat.length > 50 ? 'text-primary-main' : 'text-text-secondary'}`}>{expectedOutputFormat.length > 50 ? 'Schema' : 'Default'}</span>
-                    </Typography>
                 </Box>
+                <Box className="text-xs flex gap-2 mr-auto">
+                 <GlobalActionButton 
+                        globalActions={mainActions} 
+                    />
+                 </Box>
             </Stack>
         </Box>
 
       </CardContent>
     </Card>
   );
-};
+});

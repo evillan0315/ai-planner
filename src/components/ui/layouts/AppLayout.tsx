@@ -362,7 +362,7 @@ export const AppLayout: React.FC<LayoutProps> = ({ children }) => {
                 borderColor: theme.palette.divider,
               }}
             >
-              {/* Right Sidebar Content: Plan Generator */}
+   
               <PlanGenerator />
             </Box>
           </>

@@ -40,14 +40,10 @@ interface FileChangeStatus {
 const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onEditFileChange }) => {
   // We need globalApplyStatus to reset individual change statuses upon global application
   const { applyStatus: globalApplyStatus, projectRoot } = useStore(plannerStore); 
-  const [individualChangeStatus, setIndividualChangeStatus] = useState<
-    Map<number, FileChangeStatus>
-  >(new Map());
+  const [individualChangeStatus, setIndividualChangeStatus] = useState<Map<number, FileChangeStatus>>(new Map());
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<
-    'success' | 'error' | 'info' | 'warning'
-  >('info');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('info');
 
   // NEW STATE FOR SELECTION
   const [selectedChangeIndices, setSelectedChangeIndices] = useState<Set<number>>(new Set());
@@ -98,7 +94,7 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
   }, [plan.gitInstructions]);
 
   // Effect: Reset individual statuses when global application starts/succeeds
-  useEffect(() => {
+ useEffect(() => {
     if (globalApplyStatus === 'success') {
       // Mark all changes as success if global application succeeded
       const newStatuses = new Map<number, FileChangeStatus>();
@@ -107,7 +103,7 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
       });
       setIndividualChangeStatus(newStatuses);
     } else if (globalApplyStatus === 'applying' || globalApplyStatus === 'idle') {
-        // Reset statuses when global apply starts or is idle/failed
+        // Reset statuses when global apply starts or is failed
         // Note: We only fully reset if we were previously successful, otherwise preserve manual attempts
         if (Array.from(individualChangeStatus.values()).some(s => s.status === 'success')) {
              setIndividualChangeStatus(new Map());
@@ -316,7 +312,7 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
       {/* 9. Git Instructions */}
       {gitInstructionsContent && (
         <PlanSectionAccordion title="Git Instructions">
-          {JSON.stringify(gitInstructionsContent)}
+          <MarkdownRenderer content={gitInstructionsContent} />
          
         </PlanSectionAccordion>
       )}

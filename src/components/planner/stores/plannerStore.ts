@@ -68,7 +68,7 @@ export const setPlan = (planId: string | null, plan: IPlan | null) => {
 
   plannerStore.set({
     ...plannerStore.get(),
-    userPrompt: plan.title,
+    userPrompt: plan.llmInput.userPrompt,
     currentPlanId: planId,
     plan: plan,
     isLoading: false,

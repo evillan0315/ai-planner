@@ -39,14 +39,16 @@ ${formattedRelevantFiles}
 }
 
 
-export async function extractJsonFromMarkdown(text: string): string {
+export async function extractJsonFromMarkdown(text: string): Promise<string> {
+    // Matches ```json ... ``` OR ```
     const jsonBlockRegex = /```json\n([\s\S]*?)\n```/;
     const match = text.match(jsonBlockRegex);
     if (match && match[1]) {
       return match[1].trim();
     }
+    // If no specific JSON block is found, return the whole trimmed text
     return text.trim();
-  }
+}
 
 /**
  * Truncates a file path to show start/end segments for display.

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Typography, Box, Paper, Alert } from '@mui/material'; // Removed TextField
+import { Typography, Box, Paper } from '@mui/material'; // Removed TextField
 import { useStore } from '@nanostores/react';
 import {
   plannerStore,
@@ -18,7 +18,7 @@ import { DEFAULT_SYSTEM_CONFIG } from '../config';
 
 // Path to the configuration file to load
 const CONFIG_FILE_PATH = "/media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/planner/config/ai_system_instruction.yaml";
-interface InstructionEditorDrawerProps {
+interface SystemConfigWrapperProps {
   open: boolean;
   onClose: () => void;
   type: 'ai' | 'expected';
@@ -35,7 +35,7 @@ const monacoEditorSx = {
   overflow: 'hidden', // Ensure content inside editor doesn't overflow
 };
 
-const InstructionEditorDrawer: React.FC<InstructionEditorDrawerProps> = ({
+const SystemConfigWrapper: React.FC<SystemConfigWrapperProps> = ({
   open,
   onClose,
   type,
@@ -105,38 +105,25 @@ const InstructionEditorDrawer: React.FC<InstructionEditorDrawerProps> = ({
       position="left"
       size="medium"
       title={drawerTitle}
-      hasBackdrop={true}
+      hasBackdrop={false}
       footerActionButton={drawerActions}
     >
-    
+      
+      <Box sx={{ p: 0, height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
         
-
-
-        {type === 'expected' ? (
-        <>
-          <Typography variant="body2" color="text.secondary" sx={{ p: 1 }}>
-            Edit the expected JSON Schema for LLM output validation.
-          </Typography>
-          <Box sx={monacoEditorSx}>
-            <MonacoEditor
-              value={localValue}
-              onChange={(value) => setLocalValue(value || '')}
-              language={monacoLanguage}
-              options={{
-                readOnly: false,
-                minimap: { enabled: false },
-                wordWrap: 'on',
-              }}
-            />
-          </Box>
-        </>
-      ) : (
-        <Alert severity='info'>System Configuration is now managed via the main 'System Configuration' action button.</Alert>
-      )}
+        <Box sx={monacoEditorSx}>
+        {/* SystemConfigForm handles its own local state management based on DEFAULT_SYSTEM_CONFIG, 
+        as direct integration with plannerStore requires modifying SystemConfigForm's save behavior */}
+        <SystemConfigForm 
+          schema={DEFAULT_SYSTEM_CONFIG.schema} 
+          initialData={DEFAULT_SYSTEM_CONFIG.json}
+          //onFormChange={handleCancel}
+        />
+        </Box>
         
-  
+      </Box>
     </CustomDrawer>
   );
 };
 
-export default InstructionEditorDrawer;
+export default SystemConfigWrapper;

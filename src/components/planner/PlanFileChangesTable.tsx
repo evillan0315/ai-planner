@@ -36,6 +36,8 @@ interface PlanFileChangesTableProps {
   onToggleAllSelection: (selectAll: boolean) => void;
 }
 
+
+
 const tableContainerSx: SxProps = {
   borderRadius: '8px',
   overflowY: 'auto',
@@ -59,6 +61,7 @@ const PlanFileChangesTable: React.FC<PlanFileChangesTableProps> = ({
   onToggleAllSelection,
 }) => {
   if (changes.length === 0) {
+
     return (
       <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
         No file changes proposed.

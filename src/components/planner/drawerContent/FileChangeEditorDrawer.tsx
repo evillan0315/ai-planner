@@ -113,8 +113,7 @@ const FileChangeEditorDrawer: React.FC<FileChangeEditorDrawerProps> = ({
       ? testsAdded.split('\n').map((line) => line.trim()).filter(Boolean)
       : undefined;
 
-    // 2. Create updated change object
-    const updatedChange: IFileChange = {
+     const updatedChange: IFileChange = {
       // Required fields from store/backend
       filePath: filePath.trim(),
       action: action,
@@ -127,7 +126,7 @@ const FileChangeEditorDrawer: React.FC<FileChangeEditorDrawerProps> = ({
 
       // Content fields (controlled by action)
       ...(action === 'ADD' || action === 'MODIFY' || action === 'REPAIR'
-        ? { newContent: newContent }
+        ? { newContent: newContent } // NEW LINE: Ensures newContent is present if action dictates it
         : { newContent: undefined }),
       
       // Non-editable content fields (preserve originals)
