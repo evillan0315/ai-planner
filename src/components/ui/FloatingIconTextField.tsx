@@ -3,6 +3,7 @@ import TextField, { TextFieldProps } from '@mui/material/TextField';
 import { Box, SxProps } from '@mui/material';
 
 import GlobalActioButtonGroup, { GlobalActionGroup } from './GlobalActioButtonGroup';
+import MonacoEditor from '@/components/editor/monaco/MonacoEditor';
 
 // ---------------------------
 // 1. Interfaces & Types
@@ -23,6 +24,8 @@ type CornerPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 interface FloatingIconTextFieldProps extends TextFieldProps {
   /** Actions/icons to float inside the TextField area, keyed by desired corner position. */
   floatingActionGroupsByCorner?: Partial<Record<CornerPosition, GlobalActionGroup[]>>;
+  /** If true, renders the MonacoEditor component instead of TextField. */
+  editor?: boolean;
 }
 
 // Map CornerPosition to Internal Positioning
@@ -51,8 +54,8 @@ const getFloatingActionsContainerSx = (
   // Vertical positioning
   ...(positioning.y === 'bottom' ? { bottom: ICON_OFFSET, top: 'auto' } : { top: ICON_OFFSET, bottom: 'auto' }),
   // Horizontal positioning and flow direction (flow should be inward from the anchor)
-  ...(positioning.x === 'right' ? 
-    { right: ICON_OFFSET, left: 'auto', flexDirection: 'row-reverse' } : // Anchor Right, flow Right-to-Left (First group closest to corner)
+  ...(positioning.x === 'right' 
+    ? { right: ICON_OFFSET, left: 'auto', flexDirection: 'row-reverse' } : // Anchor Right, flow Right-to-Left (First group closest to corner)
     { left: ICON_OFFSET, right: 'auto', flexDirection: 'row' }), 
 });
 
@@ -92,9 +95,10 @@ const getInputAreaPaddingSx = (
  * It now supports actions positioned in four distinct corners.
  */
 export default function FloatingIconTextField({
-  floatingActionGroupsByCorner, // NEW PROP NAME
-  InputProps: userInputProps, // Capture user InputProps
-  multiline, // Must be explicitly destructured if we need its value
+  floatingActionGroupsByCorner,
+  InputProps: userInputProps,
+  multiline,
+  editor = false, // NEW PROP
   ...props // Remaining TextFieldProps
 }: FloatingIconTextFieldProps) {
 
@@ -151,6 +155,22 @@ export default function FloatingIconTextField({
 
   }, [floatingActionGroupsByCorner, activeCorners]);
 
+
+  if (editor) {
+      // Render MonacoEditor instead of TextField
+      return (
+        <Box position="relative" display="inline-block" width="100%">
+            <MonacoEditor
+                value={props.value as string} // Assumes value is string when editor=true
+                onChange={props.onChange as (value: string) => void} // Assumes onChange handles string
+                options={props.options} // Pass options if available
+                language={props.language} // Pass language if available
+                sx={{width: '100%', minHeight: props.rows ? `${props.rows * 20}px` : '200px' }} // Simple height estimation
+            />
+            {actionRenderers}
+        </Box>
+      );
+  }
 
   return (
     <Box position="relative" display="inline-block" width="100%">
