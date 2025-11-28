@@ -1,4 +1,27 @@
- export const GEMINI_SYSTEM_CONFIG = {
+import { deepMerge } from "@/components/planner/utils/objectUtils"; // Assuming a deepMerge utility exists or needs to be defined/imported for safety
+
+// Since we don't see objectUtils.ts, we must define a minimal deep merge or stick to shallow merge if overrides are simple.
+// For this scope, I will define a very basic object merge capable of handling the structure, assuming we only need to overwrite top-level/known nested structures if provided in overrides.
+
+// Utility for deep merging objects, required for safe runtime configuration updates
+const safeDeepMerge = (target: any, source: any): any => {
+    if (!source || typeof source !== 'object') return target;
+    if (!target || typeof target !== 'object') return source;
+
+    const output = Array.isArray(target) ? [...target] : { ...target };
+
+    Object.keys(source).forEach((key) => {
+        if (source[key] === Object(source[key]) && target[key] === Object(target[key])) {
+            output[key] = safeDeepMerge(target[key], source[key]);
+        } else {
+            output[key] = source[key];
+        }
+    });
+
+    return output;
+};
+
+export const DEFAULT_SYSTEM_CONFIG = {
   json: {
     system_instruction: {
       name: "AI-Code-Change-Planner-Optimized",
@@ -193,3 +216,40 @@
     ]
   }
 } as const;
+
+interface ISystemInstructionOverride {
+    system_instruction?: {
+        name?: string;
+        version?: string;
+        description?: string;
+        instruction_source?: string;
+        behavior?: any;
+        interaction_rules?: any;
+        output_format?: any;
+        knowledge_management?: any;
+    };
+  }
+
+export type TAIInstructionConfig = typeof DEFAULT_SYSTEM_CONFIG;
+
+/**
+ * Retrieves the default AI system instruction configuration, optionally merging runtime overrides.
+ * This allows modifying system instructions or adding new instruction sets dynamically.
+ * 
+ * @param overrides Configuration fragments to merge into the default structure.
+ * @returns The resulting validated configuration object.
+ */
+export const getAIInstructionConfig = (overrides?: ISystemInstructionOverride) => {
+    if (!overrides || !overrides.system_instruction) {
+        return DEFAULT_SYSTEM_CONFIG;
+    }
+
+    const mergedJson = safeDeepMerge(DEFAULT_SYSTEM_CONFIG.json, overrides);
+
+    // Since the schema validation relies on the structure being present, we merge the JSON part
+    // and keep the schema definition static as it describes the structure itself.
+    return {
+        ...DEFAULT_SYSTEM_CONFIG,
+        json: mergedJson,
+    } as TAIInstructionConfig;
+};

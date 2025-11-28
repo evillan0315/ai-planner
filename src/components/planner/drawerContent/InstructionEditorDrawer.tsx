@@ -14,7 +14,7 @@ import MonacoEditor from '@/components/editor/monaco/MonacoEditor'; // Import Mo
 import DynamicFormBuilder from '@/components/form/DynamicFormBuilder';
 import SystemConfigForm from '@/components/planner/config/SystemConfigForm';
 
-import {GEMINI_SYSTEM_CONFIG} from '../config';
+import { DEFAULT_SYSTEM_CONFIG } from '../config';
 
 // Path to the configuration file to load
 const CONFIG_FILE_PATH = "/media/eddie/Data/projects/nestJS/nest-modules/project-board-server/apps/ai-planner/src/components/planner/config/ai_system_instruction.yaml";
@@ -112,8 +112,8 @@ const InstructionEditorDrawer: React.FC<InstructionEditorDrawerProps> = ({
         
         <Box sx={monacoEditorSx}>
         <SystemConfigForm 
-          schema={GEMINI_SYSTEM_CONFIG.schema} 
-          initialData={GEMINI_SYSTEM_CONFIG.json}
+          schema={DEFAULT_SYSTEM_CONFIG.schema} 
+          initialData={DEFAULT_SYSTEM_CONFIG.json}
           //onFormChange={handleCancel}
           level={0}
           />

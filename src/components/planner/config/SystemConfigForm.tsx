@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Check, Add } from '@mui/icons-material';
-import { GEMINI_SYSTEM_CONFIG } from './index'; // Assuming you save the config here
+import { DEFAULT_SYSTEM_CONFIG } from './index'; // Assuming you save the config here
 
 // --- Helper Functions to Handle Nested State ---
 
@@ -36,7 +36,8 @@ const getNestedValue = (obj, path) => {
  * @param {*} value - The new value to set.
  */
 const setNestedValue = (obj, path, value) => {
-  const newObj = { ...obj };
+  if (!obj) return {};
+  const newObj = Array.isArray(obj) ? [...obj] : { ...obj };
   let current = newObj;
   for (let i = 0; i < path.length; i++) {
     const key = path[i];
@@ -76,7 +77,7 @@ const ArrayInput = ({ label, items, onChange, path }) => {
         {label}
       </Typography>
       <Paper elevation={1} className="flex flex-wrap gap-2 mb-2 p-2 min-h-[40px] max-h-40 overflow-y-auto border border-dashed">
-        {items.map((item, index) => (
+        {items && items.map((item, index) => (
           <Chip
             key={index}
             label={item}
@@ -84,7 +85,7 @@ const ArrayInput = ({ label, items, onChange, path }) => {
             size="small"
           />
         ))}
-        {!items || items.length === 0 && (
+        {(!items || items.length === 0) && (
             <Typography variant="body2" color="text.secondary" className="italic pt-1 pl-1">
               No items added.
             </Typography>
@@ -137,7 +138,7 @@ const FormSection = ({ title, data, path, handleChange }) => {
               <div key={key} className="md:col-span-2">
                 <ArrayInput
                   label={`${label}`}
-                  items={value}
+                  items={value || []}
                   onChange={handleChange}
                   path={currentPath}
                 />
@@ -149,7 +150,7 @@ const FormSection = ({ title, data, path, handleChange }) => {
                 key={key}
                 control={
                   <Switch
-                    checked={value}
+                    checked={!!value}
                     onChange={(e) => handleChange(currentPath, e.target.checked)}
                     color="primary"
                   />
@@ -197,8 +198,14 @@ const FormSection = ({ title, data, path, handleChange }) => {
 // --- Main Component ---
 
 const SystemConfigForm = () => {
-  const [config, setConfig] = useState(GEMINI_SYSTEM_CONFIG.json.system_instruction);
+  const initialConfig = DEFAULT_SYSTEM_CONFIG.json.system_instruction;
+  const [config, setConfig] = useState(initialConfig);
   const [currentTab, setCurrentTab] = useState(0);
+
+  // Sync state if initialConfig changes externally (though unlikely for this component)
+  useEffect(() => {
+    setConfig(initialConfig);
+  }, [initialConfig]);
 
   // General handler for all field changes
   const handleConfigChange = (path, value) => {
@@ -208,7 +215,8 @@ const SystemConfigForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Submitted Configuration:', config);
-    alert('Configuration saved (Check console for output)!');
+    // In a real app, this would dispatch an action to update the global store or API
+    alert('Configuration saved (Check console for output)! New structure is in config state.');
   };
 
   const handleTabChange = (event, newValue) => {
@@ -216,34 +224,39 @@ const SystemConfigForm = () => {
   };
 
   // Extract the top-level keys for the form (name, version, description, behavior, etc.)
-  const topLevelSections = Object.entries(config).filter(([key, value]) => typeof value === 'object' && value !== null && !Array.isArray(value));
-  const topLevelFields = Object.entries(config).filter(([key, value]) => typeof value !== 'object' || value === null || Array.isArray(value));
+  const topLevelEntries = Object.entries(config);
+  
+  // Separate primitives/arrays from nested objects for distinct rendering logic at the top level
+  const topLevelFields = topLevelEntries.filter(([, value]) => typeof value !== 'object' || value === null || Array.isArray(value));
+  const topLevelSections = topLevelEntries.filter(([, value]) => typeof value === 'object' && value !== null && !Array.isArray(value));
 
   return (
 <Box className="p-4">
-    <Box className="text-center">
+    <Box className="text-center mb-4">
       <Typography variant="h4" component="h1" className="font-extrabold">
-          System Configuration Editor
+          AI System Instruction Editor
         </Typography>
         <Typography variant="body1" color="secondary">
-            Edit AI System Instructions and Schema Parameters.
+            Modify 'system_instruction' structure based on validation schema.
         </Typography>
         </Box>
 
-        <Tabs value={currentTab} onChange={handleTabChange} aria-label="Configuration Tabs">
-          <Tab label="Editable JSON" />
-          <Tab label="Schema View" />
-        </Tabs>
+        <Paper sx={{ mb: 2 }} elevation={2}>
+          <Tabs value={currentTab} onChange={handleTabChange} aria-label="Configuration Tabs">
+            <Tab label="Editable Configuration" />
+            <Tab label="Validation Schema Reference" />
+          </Tabs>
+        </Paper>
        
-       <Box className="flex-grow overflow-y-auto h-[calc(100vh-180px)] p-4" sx={{backgroundColor: 'background.paper'}}>
+       <Box className="flex-grow overflow-y-auto h-[calc(100vh-220px)] p-2" sx={{backgroundColor: 'background.default', borderRadius: 1}}>
         {/* JSON Data Tab */}
         {currentTab === 0 && (
         
           <form onSubmit={handleSubmit} className="flex flex-col">
-           <Box className="space-y-4 pb-6 flex-grow" >
+           <Box className="space-y-6 pb-6 flex-grow" >
             
             {/* Top-Level Primitive Fields (Name, Version, Description) */}
-            <Paper elevation={1} className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Paper elevation={3} className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 border-l-4 border-indigo-500">
               {topLevelFields.map(([key, value]) => {
                 const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                 const isTextArea = key === 'description';
@@ -274,15 +287,15 @@ const SystemConfigForm = () => {
               />
             ))}
            </Box>
-            <Box className="flex justify-center sticky bottom-0 py-3 shadow-lg">
+            <Box className="flex justify-center sticky bottom-0 bg-white dark:bg-gray-900 py-3 mt-4 shadow-2xl rounded-t-lg border-t">
               <Button
                 type="submit"
                 variant="contained"
                 size="large"
                 startIcon={<Check />}
-                className="shadow-xl px-8"
+                className="shadow-xl px-10"
               >
-                Apply Configuration
+                Save & Apply Configuration
               </Button>
             </Box>
           </form>
@@ -290,12 +303,12 @@ const SystemConfigForm = () => {
 
         {/* JSON Schema Tab (Read-Only) */}
         {currentTab === 1 && (
-            <Paper elevation={1} className="p-4 overflow-x-auto rounded-lg">
-                <Typography variant="h6" sx={{ color: 'primary.main' }} className="mb-2">
-                    System Instruction Schema
+            <Paper elevation={3} className="p-4 overflow-x-auto rounded-lg border-l-4 border-green-500">
+                <Typography variant="h6" sx={{ color: 'text.primary' }} className="mb-3 font-semibold">
+                    System Instruction Schema Reference
                 </Typography>
-                <pre className="text-sm bg-gray-800 text-green-300 p-3 rounded overflow-auto">
-                    {JSON.stringify(GEMINI_SYSTEM_CONFIG.schema, null, 2)}
+                <pre className="text-xs bg-gray-900 text-green-300 p-3 rounded overflow-auto">
+                    {JSON.stringify(DEFAULT_SYSTEM_CONFIG.schema, null, 2)}
                 </pre>
             </Paper>
         )}
@@ -306,4 +319,3 @@ const SystemConfigForm = () => {
 };
 
 export default SystemConfigForm;
-
