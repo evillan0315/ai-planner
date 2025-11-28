@@ -104,9 +104,8 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = React.memo(function P
   const theme = useTheme();
   
   const cardSx = useMemo(() => ({
-    backgroundColor: theme.palette.background.paper,
-    border: `1px solid ${theme.palette.divider}`,
-
+    backgroundColor: theme.palette.background.default,
+    //border: `1px solid ${theme.palette.divider}`,
   }), [theme.palette.background.paper, theme.palette.divider]);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -129,7 +128,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = React.memo(function P
           label: "Generate Plan",
           action: handleGeneratePlan,
           icon: isLoading ? <CircularProgress size={16} color="inherit" /> : <SendIcon fontSize="small" />,
-          color: 'success',
+          color: 'primary',
           disabled: isLoading || !userPrompt.trim() || !projectRoot.trim(),
           iconOnly: false,
           variant: 'outlined'
@@ -260,7 +259,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = React.memo(function P
   ]);
 
   return (
-    <Card sx={cardSx} className="flex-shrink-0 rounded-xl shadow-lg">
+    <Card elevation={2} sx={cardSx} className="flex-shrink-0 shadow-xl">
       <CardContent sx={formSectionSx} className="flex flex-col">
         <Box>
             <input
@@ -295,7 +294,7 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = React.memo(function P
               disabled={isLoading}
               floatingActionGroupsByCorner={floatingActionGroupsByCorner} 
               sx={{
-                backgroundColor:'background.paper',
+                backgroundColor:'background.default',
                 '& .MuiInputBase-multiline': { 
                   padding: '40px 20px 40px 20px !important'
                 },

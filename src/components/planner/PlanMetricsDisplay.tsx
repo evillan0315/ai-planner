@@ -25,7 +25,7 @@ const PlanMetricsDisplay: React.FC<PlanMetricsDisplayProps> = ({
   }
 
   return (
-    <Box className="flex space-x-4">
+    <Box className="flex space-x-2">
       {confidence !== undefined && confidence !== null && (
         <Card className="rounded-xl shadow-lg border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md flex-1">
           <CardContent>

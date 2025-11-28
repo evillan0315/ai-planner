@@ -8,6 +8,7 @@ import {
   Tooltip,
   IconButton,
   CircularProgress,
+  Paper
 } from '@mui/material';
 import { useStore } from '@nanostores/react';
 import { plannerStore } from './stores/plannerStore';
@@ -192,12 +193,12 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
   }, [plan.changes]);
 
   return (
-    <Box className="space-y-4 p-2 w-full h-full"> 
+    <Paper className="space-y-2 p-2 w-full h-full overflow-auto" sx={{backgroundColor: 'background.default'}}> 
 
       {(plan.summary || plan.metadata?.planId || plan.metadata?.tokensUsed !== undefined) && (
-        <Card className="rounded-xl shadow-lg border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md">
+        <Card className="rounded-xl shadow-lg border border-solid border-gray-700/20 ">
           <CardContent>
-            <Box className="flex items-center justify-between mb-2">
+            <Box className="flex items-center justify-between ">
                 <Typography variant="h6" fontWeight="bold" color="primary.main" className="mb-0">
                     Plan Details
                 </Typography>
@@ -233,6 +234,11 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
         </Card>
       )}
       
+      {/* 4. Confidence and Effort Metrics */}
+      <PlanMetricsDisplay
+        confidence={plan.confidence}
+        estimatedEffortMinutes={plan.estimatedEffortMinutes}
+      />
       {/* 2. Thought Process */}
       <PlanSectionAccordion title="Thought Process" defaultExpanded>
         {thoughtProcessContent ? (
@@ -252,11 +258,6 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
         </PlanSectionAccordion>
       )}
 
-      {/* 4. Confidence and Effort Metrics */}
-      <PlanMetricsDisplay
-        confidence={plan.confidence}
-        estimatedEffortMinutes={plan.estimatedEffortMinutes}
-      />
 
       {/* 5. Build Scripts */}
       {buildScriptsContent && (
@@ -333,7 +334,7 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
           message={snackbarMessage}
         />
       )}
-    </Box>
+    </Paper>
   );
 };
 export default PlanDisplay;

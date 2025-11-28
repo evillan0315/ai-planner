@@ -35,7 +35,7 @@ export const PlanGenerationStatus: React.FC<PlanGenerationStatusProps> = ({
     );
   } else {
     return (
-      <Box className="flex-grow flex items-center justify-center pt-4 h-full">
+      <Box className="flex-grow flex items-center justify-center pt-4 h-full" >
         <Typography variant="h6" color="text.secondary">
           Enter a prompt and click "Generate Plan" to begin.
         </Typography>

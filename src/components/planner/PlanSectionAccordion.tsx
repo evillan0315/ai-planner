@@ -34,10 +34,11 @@ const PlanSectionAccordion: React.FC<PlanSectionAccordionProps> = ({
 }) => {
   return (
     <Accordion
-      defaultExpanded={defaultExpanded}
-      className={`rounded-xl shadow-lg border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md ${className}`}
+      //defaultExpanded={defaultExpanded}
+      className={`rounded-xl shadow-lg border border-solid border-gray-700/20 bg-background-paper/80 backdrop-blur-md p-0 ${className}`}
     >
       <AccordionSummary
+        className="p-0"
         expandIcon={<ExpandMoreIcon />}
         aria-controls={`${title.toLowerCase().replace(/\s/g, '-')}-content`}
         id={`${title.toLowerCase().replace(/\s/g, '-')}-header`}
@@ -47,7 +48,7 @@ const PlanSectionAccordion: React.FC<PlanSectionAccordionProps> = ({
           {title}
         </Typography>
       </AccordionSummary>
-      <AccordionDetails>{children}</AccordionDetails>
+      <AccordionDetails className="max-h-[100px] overflow-auto p-0" sx={{}}>{children}</AccordionDetails>
     </Accordion>
   );
 };
