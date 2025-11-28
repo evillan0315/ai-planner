@@ -53,9 +53,8 @@ import PlanMetadataEditorDrawer from '@/components/planner/drawerContent/PlanMet
 import FileChangeEditorDrawer from '@/components/planner/drawerContent/FileChangeEditorDrawer';
 import PlannerList from '@/components/planner/PlannerList';
 import ErrorDetailsDrawerContent from '@/components/planner/drawerContent/ErrorDetailsDrawerContent'; 
-import { projectRootDirectoryStore, setProjectRoot as setGlobalProjectRoot } from '@/components/file-explorer/stores/fileTreeStore'; // ALIAS IMPORT FOR CLARITY
+import { projectRootDirectoryStore, setProjectRoot as setGlobalProjectRoot } from '@/components/file-explorer/stores/fileTreeStore'; 
 
-// New components
 import { PlanInputForm } from './PlanInputForm';
 import { PlanGenerationStatus } from './PlanGenerationStatus';
 import { CustomSnackbar } from '@/components/ui/snackbar/CustomSnackbar'; 
@@ -512,7 +511,7 @@ const PlanGenerator: React.FC = () => {
       variant: 'contained',
       action: () => {
         handleLoadProject(tempDrawerProjectRootInput);
-        setIsProjectRootPickerDialogOpen(false);
+        setIsProjectRootDialogOpen(false);
       },
       icon: <CheckIcon />,
       disabled: !tempDrawerProjectRootInput.trim(),
@@ -638,10 +637,10 @@ const planTitleHeader = useMemo(() => {
 
 
   return (
-    <Box className="flex flex-col h-full w-full overflow-hidden">
+    <Box className="flex flex-col h-full w-full overflow-hidden"> 
      
-      {/* 1. Scrollable Plan Status/Display area */}
-      <Box className="flex-grow min-h-0 h-full">
+      {/* 1. Scrollable Plan Status/Display area */} 
+      <Box className="flex-grow min-h-0 h-full"> 
         <ContentLayout 
             headerContent={planTitleHeader}
             headerRightActions={headerRightActions}
@@ -651,7 +650,7 @@ const planTitleHeader = useMemo(() => {
             contentWrapperSx={{ 
                 p: 0, 
             }}
-        >
+        > 
             
             <PlanGenerationStatus
                 isLoading={isLoading}
@@ -660,17 +659,13 @@ const planTitleHeader = useMemo(() => {
                 onEditFileChange={handleEditFileChangeRequest}
             />
            
-        </ContentLayout>
-      </Box>
+        </ContentLayout> 
+      </Box> 
 
 
 
-
-
-
-
-      {/* 2. Fixed Input Form (Sticky Bottom area) */}
-      {/* ADDED WRAPPER with p-2 and theme styling for visual anchor */}
+      {/* 2. Fixed Input Form (Sticky Bottom area) */} 
+      {/* ADDED WRAPPER with p-2 and theme styling for visual anchor */} 
       <Box 
         className="flex-shrink-0 p-2 mt-2"
         sx={{
@@ -722,8 +717,8 @@ const planTitleHeader = useMemo(() => {
           mode="root"
           // Pass the local state which is updated by the inner FileExplorerControls' onUsePath handler
           currentPath={tempDrawerProjectRootInput || '/'}
-          currentScanPaths={[]} // Not used in root mode
-          onPathChange={setTempDrawerProjectRootInput} // Updates local state
+          currentScanPaths={[]}
+          onPathChange={setTempDrawerProjectRootInput} // Update local state
           onScanPathsChange={() => {}} // N/A, not used in root mode
         />
       </CustomDrawer>
@@ -812,7 +807,7 @@ const planTitleHeader = useMemo(() => {
         />
       </CustomDrawer>
 
-      {/* Snackbar for General Errors (generation failure) OR Apply Status */}
+      {/* Snackbar for General Errors (generation failure) OR Apply Status */} 
       <CustomSnackbar
         open={snackbarOpen}
         autoHideDuration={6000} // Added autoHideDuration for consistency

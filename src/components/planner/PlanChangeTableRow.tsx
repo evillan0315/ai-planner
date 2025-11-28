@@ -18,7 +18,7 @@ import type { IFileChange } from '@/components/planner/types';
 
 type ChangeApplyStatus = 'idle' | 'applying' | 'success' | 'failure';
 
-interface PlanChangeTableRowProps {
+export interface PlanChangeTableRowProps {
   change: IFileChange;
   index: number;
   status: ChangeApplyStatus;
