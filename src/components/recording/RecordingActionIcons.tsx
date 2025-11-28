@@ -39,7 +39,7 @@ const secondaryIconColorSx: SxProps<Theme> = (theme) => ({
 /**
  * A button set component mimicking the structure and styling of RecordingControls,
  * designed to be used within GlobalActioButtonGroup contexts (like the Footer).
- * Note: Actions use placeholder implementations here, expecting parent (Footer) to handle state/logic.
+ * Note: Actions use placeholder implementations here, relying on props for logic.
  */
 export const RecordingActionIcons: React.FC<RecordingActionIconsProps> = ({
   isScreenRecording,
