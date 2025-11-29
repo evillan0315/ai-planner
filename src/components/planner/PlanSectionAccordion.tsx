@@ -1,3 +1,31 @@
+
+import React, { ReactNode } from 'react';
+import {
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Typography,
+  SxProps,
+} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+
+interface PlanSectionAccordionProps {
+  title: string;
+  children: ReactNode;
+  defaultExpanded?: boolean;
+  titleIcon?: ReactNode;
+  className?: string;
+}
+
+const sectionTitleSx: SxProps = {
+  marginBottom: 0,
+  color: 'primary.main',
+  fontWeight: 'bold',
+  display: 'flex',
+  alignItems: 'center',
+  gap: 1,
+};
+
 const PlanSectionAccordion: React.FC<PlanSectionAccordionProps> = ({
   title,
   children,
@@ -21,15 +49,11 @@ const PlanSectionAccordion: React.FC<PlanSectionAccordionProps> = ({
           {title}
         </Typography>
       </AccordionSummary>
-      <AccordionDetails 
-        className="p-0"
-        sx={{ 
-            maxHeight: '200px', // NEW: Set height to 200px
-            overflowY: 'auto', // NEW: Ensure vertical scroll
-            overflowX: 'hidden' // Optional: Prevent horizontal scroll unless content explicitly demands it
-        }}
-      >{children}</AccordionDetails>
+      <AccordionDetails sx={{ 
+            padding: 0, 
+        }}>{children}</AccordionDetails>
     </Accordion>
   );
 };
+
 export default PlanSectionAccordion;

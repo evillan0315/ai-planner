@@ -23,7 +23,7 @@ const AuthCallback = lazy(() => import('./pages/AuthCallback'));
 const FileExplorerPage = lazy(() => import('./pages/FileExplorerPage')); // ADD File Explorer Page
 const CodejectorLandingPage = lazy(() => import('./pages/CodejectorLandingPage')); // ADDED
 const CodejectorPage = lazy(() => import('./pages/CodejectorPage')); // ADDED
-
+const SwaggerUIPage = lazy(() => import('./pages/SwaggerUIPage'));
 // Initialize authentication store on app start
 initAuth();
 
@@ -47,6 +47,11 @@ function App() {
             <Route path="/planner" element={
               <Suspense fallback={<Loading />}>
                 <PlannerLandingPage />
+              </Suspense>
+            } />
+            <Route path="/swagger" element={
+              <Suspense fallback={<Loading />}>
+                <SwaggerUIPage />
               </Suspense>
             } />
             <Route path="/planner/list" element={

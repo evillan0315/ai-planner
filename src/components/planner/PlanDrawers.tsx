@@ -46,7 +46,6 @@ interface Props {
   openExpectedOutputDrawer: () => void;
   openErrorDetailsDrawer: () => void;
   setUserPrompt?: (v: string) => void;
-  setIsPlanMetadataEditorOpen?: (v: boolean) => void;
 }
 
 const PlanDrawers: React.FC<Props> = (props) => {

@@ -73,7 +73,7 @@ const PlanGenerator: React.FC = () => {
           <PlanGenerationStatus
             isLoading={isLoading}
             plan={plan}
-            onEditPlanMetadata={() => drawersProps.setIsPlanMetadataEditorOpen(true)}
+            onEditPlanMetadata={drawersProps.setIsPlanMetadataEditorOpen}
             onEditFileChange={handleEditFileChangeRequest}
           />
         </ContentLayout>

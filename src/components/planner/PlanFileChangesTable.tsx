@@ -41,12 +41,12 @@ interface PlanFileChangesTableProps {
 const tableContainerSx: SxProps = {
   borderRadius: '8px',
   overflowY: 'auto',
-  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  backgroundColor: 'background.paper',
 };
 
 const tableHeadCellSx: SxProps = {
   fontWeight: 'bold',
-  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  backgroundColor: 'background.default',
 };
 
 
@@ -106,7 +106,7 @@ const PlanFileChangesTable: React.FC<PlanFileChangesTableProps> = ({
 
 
   return (
-    <Box sx={{ px: 0 }}> {/* Use Box wrapper to control padding/margins if needed */}
+    <Box sx={{ px: 2, mb:2 }}> {/* Use Box wrapper to control padding/margins if needed */}
         {/* Selection Controls and Count */}
         <Box className="flex items-center justify-between p-2">
             <Typography variant="body2" color="text.secondary">
@@ -120,7 +120,7 @@ const PlanFileChangesTable: React.FC<PlanFileChangesTableProps> = ({
           <Table stickyHeader size="small">
             <TableHead>
               <TableRow>
-                {/* NEW: Checkbox Header Cell for Select All/Indeterminate State */}
+        
                 <TableCell sx={tableHeadCellSx} padding="checkbox">
                     <Tooltip title={isAllSelected ? 'Deselect All' : selectedCount > 0 ? `Deselect All (${selectedCount})` : 'Select All'}>
                         <Checkbox 

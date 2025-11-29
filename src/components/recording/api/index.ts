@@ -20,7 +20,8 @@ const API_ENDPOINT = `${API_BASE_URL}/recording`;
 export const recordingApiService = {
   // --- Basic CRUD (Existing) ---
   async getAllRecordings(): Promise<IRecording[]> {
-    const response = await axios.get<IRecording[]>(API_ENDPOINT, { headers: getAuthHeaders() });
+    const response = await axios.get<IRecording[]>(`${API_ENDPOINT}/paginated
+`, { headers: getAuthHeaders() });
     return response.data;
   },
 

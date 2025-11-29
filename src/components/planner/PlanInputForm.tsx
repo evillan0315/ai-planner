@@ -69,12 +69,7 @@ interface PlanInputFormProps {
   revisionTone: string | '';
 }
 
-const formSectionSx = {
-  // Define your styles here if needed
-      px:2,
-      py:0.5,
-      margin:0
-};
+
 
 export const PlanInputForm: React.FC<PlanInputFormProps> = React.memo(function PlanInputForm({
   userPrompt,
@@ -105,9 +100,15 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = React.memo(function P
   
   const cardSx = useMemo(() => ({
     backgroundColor: theme.palette.background.default,
-    //border: `1px solid ${theme.palette.divider}`,
-  }), [theme.palette.background.paper, theme.palette.divider]);
-
+    px: 2,
+    py: 1,
+    borderRadius: 0
+  }), [theme.palette.background.default, theme.palette.divider]);
+  
+  const formSectionSx = useMemo(() => ({
+    //backgroundColor: theme.palette.background.default,
+    p:`0px !important`,
+  }), []);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -259,9 +260,9 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = React.memo(function P
   ]);
 
   return (
-    <Card elevation={2} sx={cardSx} className="flex-shrink-0 shadow-xl">
+    <Card elevation={0} sx={cardSx} className="planner-input-form">
       <CardContent sx={formSectionSx} className="flex flex-col">
-        <Box>
+        <Box className="flex flex-col">
             <input
                 type="file"
                 ref={fileInputRef}
@@ -269,21 +270,21 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = React.memo(function P
                 style={{ display: 'none' }}
                 disabled={isLoading}
             />
-            <Box className="flex items-center gap-1 flex-shrink-0 min-w-0">
+            <Box className="flex items-center justify-between gap-1 flex-shrink-0 min-w-0">
                     
-                    <Tooltip title={<MarkdownRenderer content={PROJECT_ROOT_TOOLTIP_DOCS}  />} arrow
-                        placement="right">
-                        <IconButton size="small" color="info" aria-label="project root documentation">
-                            <DescriptionIcon sx={{ fontSize: 16 }} />
-                        </IconButton>
-                    </Tooltip>
                     <Tooltip title={projectRoot} arrow placement="top">
                         <Typography variant="caption" className="font-mono font-semibold text-text-primary truncate max-w-[180px] sm:max-w-sm">
-                            {truncatePathDisplay(projectRoot)}
+                            {truncatePathDisplay(projectRoot, 40)}
                         </Typography>
                     </Tooltip>
+                    <Tooltip title={<MarkdownRenderer content={PROJECT_ROOT_TOOLTIP_DOCS}  />} arrow
+                        placement="right">
+                        <IconButton size="small" sx={{p: 0, mb:1}} color="purple">
+                          <DescriptionIcon fontSize="small"/>
+                        </IconButton>
+                    </Tooltip>
                     
-                </Box>
+            </Box>
             <FloatingIconTextField
               label="Enter your prompt"
               multiline
@@ -294,11 +295,11 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = React.memo(function P
               disabled={isLoading}
               floatingActionGroupsByCorner={floatingActionGroupsByCorner} 
               sx={{
-                backgroundColor:'background.default',
+                backgroundColor:'background.paper',
                 '& .MuiInputBase-multiline': { 
-                  padding: '40px 20px 40px 20px !important'
+                  padding: '40px 20px 36px 20px !important'
                 },
-            }}
+              }}
             />
             <Menu
               id="basic-menu"
@@ -320,12 +321,11 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = React.memo(function P
             <Stack 
                 direction="row" 
                 spacing={1} 
-                alignItems="center" 
-                className="mt-2 text-sm text-text-secondary justify-between" 
+                className="mt-2 text-sm text-text-secondary items-start justify-between" 
                 flexWrap="wrap"
             >
 
-               <Box className="text-xs flex flex-col gap-2">
+               <Box className="text-xs flex flex-col items-start gapY-2">
 
                 <Box className="text-xs text-text-secondary flex gap-2 ml-auto">
                     <Typography variant="caption">
@@ -349,11 +349,10 @@ export const PlanInputForm: React.FC<PlanInputFormProps> = React.memo(function P
                     </Stack>
                 )}
                 </Box>
-                <Box className="text-xs flex gap-2 mr-auto">
-                 <GlobalActionButton 
-                        globalActions={mainActions} 
-                    />
-                 </Box>
+               
+                  <GlobalActionButton globalActions={mainActions} />
+                
+                
             </Stack>
         </Box>
 

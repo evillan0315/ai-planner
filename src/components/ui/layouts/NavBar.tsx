@@ -135,12 +135,12 @@ export const NavBar: React.FC = () => {
             </MenuItem>
             <MenuItem
               component={RouterLink}
-              to="/stream-demo"
+              to="/swagger"
               onClick={handleMenuClose}
             >
               <Stack direction="row" alignItems="center" spacing={1}>
                 <SendIcon fontSize="small" />
-                <Typography>Stream Demo</Typography>
+                <Typography>Api Docs</Typography>
               </Stack>
             </MenuItem>
           </Menu>

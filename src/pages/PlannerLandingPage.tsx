@@ -3,7 +3,7 @@ import { Box, Typography, Button, Paper, Stack } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import AddRoadIcon from '@mui/icons-material/AddRoad';
 import ListAltIcon from '@mui/icons-material/ListAlt'; // New icon for plan list
-
+import SwaggerApiDocs from '@/components/swagger/SwaggerApiDocs';
 const paperSx = {
   p: 4,
   mb: 3,
@@ -75,6 +75,7 @@ function PlannerLandingPage() {
             </Button>
           </Stack>
         </Stack>
+        <SwaggerApiDocs />
       </Paper>
     </Box>
   );

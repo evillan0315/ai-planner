@@ -208,6 +208,8 @@ const PlanDisplay: React.FC<PlanDisplayProps> = ({ plan, onEditPlanMetadata, onE
                         size="small"
                         color="primary"
                         aria-label="edit plan metadata"
+                        data-testid="edit-plan-metadata-button" // ADDED Test ID
+                        sx={{ '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.05)' }}} // Explicit hover to confirm interaction area
                     >
                         <EditIcon fontSize="small" />
                     </IconButton>

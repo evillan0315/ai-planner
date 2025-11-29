@@ -44,7 +44,9 @@
     "react-router-dom": "^6.24.0",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
-    "strip-ansi": "^7.1.2"
+    "strip-ansi": "^7.1.2",
+    "swagger-ui-react": "^5.30.3",
+    "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

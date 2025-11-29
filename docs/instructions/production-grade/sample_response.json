@@ -1,0 +1,51 @@
+{
+  "id": "<unique-task-id>",
+  "title": "<task-title>",
+  "summary": "<short explanation of what was done>",
+  "thoughtProcess": [
+    "<step 1 of reasoning>",
+    "<step 2 of reasoning>"
+  ],
+  "assumptions": [
+    "<assumption 1>",
+    "<assumption 2>"
+  ],
+  "confidence": 100,
+  "estimatedEffortMinutes": 30,
+  "documentation": "<any relevant documentation or notes>",
+  "buildScripts": {
+    "install": "npm install",
+    "build": "npm run build"
+  },
+  "changes": [
+    {
+      "index": 0,
+      "action": "ADD",
+      "filePath": "src/components/ExampleComponent.tsx",
+      "reason": "Initial creation of ExampleComponent",
+      "oldContent": null,
+      "newContent": "* FilePath: src/components/ExampleComponent.tsx\n* Title: Example Component\n* Reason: Initial creation of ExampleComponent\n* Action: ADD\n\n```tsx\nimport React from 'react';\n\ninterface ExampleComponentProps {\n  text: string;\n}\n\nexport const ExampleComponent: React.FC<ExampleComponentProps> = ({ text }) => {\n  return <div className=\"p-4 bg-blue-100 text-blue-900 rounded\">{text}</div>;\n};\n```",
+      "testsAdded": [
+        "src/components/__tests__/ExampleComponent.test.tsx"
+      ],
+      "estimatedMinutes": 20
+    }
+  ],
+  "tests": {
+    "add": [
+      "src/components/__tests__/ExampleComponent.test.tsx"
+    ],
+    "modify": []
+  },
+  "gitInstructions": {
+    "branchName": "feature/add-example-component",
+    "commitMessage": "feat: add ExampleComponent with initial implementation",
+    "commands": [
+      "git checkout -b feature/add-example-component",
+      "git add src/components/ExampleComponent.tsx src/components/__tests__/ExampleComponent.test.tsx",
+      "git commit -m \"feat: add ExampleComponent with initial implementation\"",
+      "git push -u origin feature/add-example-component"
+    ]
+  },
+  "error": null
+}
